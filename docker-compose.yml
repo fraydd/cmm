@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: cmm_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: cmm_db
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_PASSWORD: cmm_password
+      MYSQL_USER: cmm_user
+    volumes:
+      - dbdata:/var/lib/mysql
+    ports:
+      - "3306:3306"
+
+volumes:
+  dbdata:
+    driver: local 
