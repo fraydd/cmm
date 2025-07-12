@@ -1,0 +1,424 @@
+// ===========================================
+// DIAGRAMA DE BASE DE DATOS MEJORADO
+// Sistema de Gestión de Modelos y Empleados
+// Versión: 2.0 - Normalizada y Escalable
+// ===========================================
+
+// ===== TABLAS DE AUTENTICACIÓN Y PERMISOS =====
+
+Table users {
+  id bigint [pk]
+  name varchar(255) [not null]
+  email varchar(255) [unique, not null]
+  password varchar(255) [not null]
+  email_verified_at timestamp [null]
+  remember_token varchar(100) [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    email
+  }
+}
+
+Table roles {
+  id bigint [pk]
+  name varchar(255) [unique, not null]
+  guard_name varchar(255) [default: 'web', not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table permissions {
+  id bigint [pk]
+  name varchar(255) [unique, not null]
+  guard_name varchar(255) [default: 'web', not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table model_has_roles {
+  role_id bigint [not null]
+  model_id bigint [not null]
+  model_type varchar(255) [not null]
+  
+  indexes {
+    (model_id, model_type)
+    (role_id, model_id, model_type)
+  }
+}
+
+Table model_has_permissions {
+  permission_id bigint [not null]
+  model_id bigint [not null]
+  model_type varchar(255) [not null]
+  
+  indexes {
+    (model_id, model_type)
+    (permission_id, model_id, model_type)
+  }
+}
+
+Table role_has_permissions {
+  permission_id bigint [not null]
+  role_id bigint [not null]
+  
+  indexes {
+    (role_id, permission_id)
+  }
+}
+
+// ===== TABLAS DE CATÁLOGOS =====
+
+Table genders {
+  id bigint [pk]
+  name varchar(50) [not null]
+  code varchar(10) [unique, not null]
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table blood_types {
+  id bigint [pk]
+  name varchar(20) [not null]
+  code varchar(5) [unique, not null]
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table identification_types {
+  id bigint [pk]
+  name varchar(100) [not null]
+  code varchar(20) [unique, not null]
+  description text [null]
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table payment_methods {
+  id bigint [pk]
+  name varchar(100) [not null]
+  description text [null]
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+// ===== TABLA PRINCIPAL DE PERSONAS =====
+
+Table people {
+  id bigint [pk]
+  first_name varchar(255) [not null]
+  last_name varchar(255) [not null]
+  identification_number varchar(20) [unique, not null]
+  identification_type_id bigint [not null]
+  identification_place varchar(255) [not null]
+  birth_date date [not null]
+  address text [not null]
+  phone varchar(20) [not null]
+  email varchar(255) [unique, not null]
+  gender_id bigint [not null]
+  blood_type_id bigint [not null]
+  photo varchar(500) [null]
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    identification_number
+    email
+    (first_name, last_name)
+  }
+}
+
+// ===== TABLAS DE EMPLEADOS =====
+
+Table employees {
+  id bigint [pk]
+  person_id bigint [not null]
+  user_id bigint [null]
+  employee_code varchar(50) [unique, not null]
+  hire_date date [not null]
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    employee_code
+  }
+}
+
+// ===== TABLAS DE MODELOS =====
+
+Table models {
+  id bigint [pk]
+  person_id bigint [not null]
+  model_code varchar(50) [unique, not null]
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    model_code
+  }
+}
+
+Table model_profiles {
+  id bigint [pk]
+  model_id bigint [not null]
+  height decimal(3,2) [not null]
+  bust int [not null]
+  waist int [not null]
+  hips int [not null]
+  hair_color varchar(100) [not null]
+  eye_color varchar(100) [not null]
+  skin_color varchar(100) [not null]
+  pants_size varchar(20) [not null]
+  shirt_size varchar(20) [not null]
+  shoe_size varchar(20) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table model_social_media {
+  id bigint [pk]
+  model_id bigint [not null]
+  platform varchar(50) [not null]
+  username varchar(255) [not null]
+  url varchar(500) [null]
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    (model_id, platform)
+  }
+}
+
+Table guardians {
+  id bigint [pk]
+  model_id bigint [not null]
+  person_id bigint [not null]
+  relationship varchar(100) [not null]
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+// ===== TABLAS DE SUSCRIPCIONES Y PAGOS =====
+
+Table subscription_plans {
+  id bigint [pk]
+  name varchar(255) [not null]
+  description text [null]
+  monthly_price decimal(10,2) [not null]
+  duration_months int [not null]
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table subscriptions {
+  id bigint [pk]
+  model_id bigint [not null]
+  plan_id bigint [not null]
+  start_date date [not null]
+  end_date date [not null]
+  months_paid int [not null, default: 0]
+  total_amount decimal(10,2) [not null]
+  paid_amount decimal(10,2) [not null, default: 0]
+  remaining_amount decimal(10,2) [not null, default: 0]
+  status varchar(20) [not null, default: 'active']
+  last_payment_date date [null]
+  next_payment_date date [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    (model_id, status)
+    (start_date, end_date)
+  }
+}
+
+Table payments {
+  id bigint [pk]
+  subscription_id bigint [null]
+  model_id bigint [not null]
+  payment_method_id bigint [not null]
+  amount decimal(10,2) [not null]
+  concept varchar(255) [not null]
+  status varchar(20) [not null, default: 'completed']
+  observations text [null]
+  payment_date timestamp [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    (model_id, payment_date)
+    (subscription_id, payment_date)
+  }
+}
+
+// ===== TABLAS DE ADEUDOS =====
+
+Table debts {
+  id bigint [pk]
+  model_id bigint [not null]
+  concept varchar(255) [not null]
+  amount decimal(10,2) [not null]
+  paid_amount decimal(10,2) [not null, default: 0]
+  remaining_amount decimal(10,2) [not null, default: 0]
+  due_date date [null]
+  status varchar(20) [not null, default: 'pending']
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    (model_id, status)
+    due_date
+  }
+}
+
+Table debt_payments {
+  id bigint [pk]
+  debt_id bigint [not null]
+  payment_method_id bigint [not null]
+  amount decimal(10,2) [not null]
+  observations text [null]
+  payment_date timestamp [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+// ===== TABLAS DE TARIFAS Y SERVICIOS =====
+
+Table tariffs {
+  id bigint [pk]
+  name varchar(255) [not null]
+  type varchar(50) [not null]
+  description text [null]
+  amount decimal(10,2) [not null]
+  effective_date date [not null]
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    (type, effective_date)
+  }
+}
+
+Table special_services {
+  id bigint [pk]
+  name varchar(255) [not null]
+  description text [null]
+  price decimal(10,2) [not null]
+  event_date date [null]
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table service_registrations {
+  id bigint [pk]
+  model_id bigint [not null]
+  service_id bigint [not null]
+  amount decimal(10,2) [not null]
+  paid_amount decimal(10,2) [not null, default: 0]
+  remaining_amount decimal(10,2) [not null, default: 0]
+  status varchar(20) [not null, default: 'registered']
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+// ===== TABLAS DE ASISTENCIA =====
+
+Table attendance_records {
+  id bigint [pk]
+  person_id bigint [not null]
+  person_type varchar(20) [not null]
+  check_in timestamp [not null]
+  check_out timestamp [null]
+  observations text [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    (person_id, check_in)
+    (person_type, check_in)
+  }
+}
+
+// ===== TABLAS DE TRANSACCIONES Y CAJA =====
+
+Table transactions {
+  id bigint [pk]
+  transaction_type varchar(20) [not null]
+  payer_id bigint [null]
+  receiver_id bigint [null]
+  payment_method_id bigint [not null]
+  amount decimal(10,2) [not null]
+  concept varchar(255) [not null]
+  observations text [null]
+  transaction_date timestamp [not null]
+  status varchar(20) [not null, default: 'completed']
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    (transaction_type, transaction_date)
+    (payer_id, transaction_date)
+    (receiver_id, transaction_date)
+  }
+}
+
+// ===== RELACIONES PRINCIPALES =====
+
+// Autenticación y Permisos
+Ref: roles.id < model_has_roles.role_id
+Ref: permissions.id < model_has_permissions.permission_id
+Ref: roles.id < role_has_permissions.role_id
+Ref: permissions.id < role_has_permissions.permission_id
+
+// Personas y Catálogos
+Ref: identification_types.id < people.identification_type_id
+Ref: genders.id < people.gender_id
+Ref: blood_types.id < people.blood_type_id
+
+// Personas y Empleados
+Ref: people.id < employees.person_id
+Ref: users.id < employees.user_id
+
+// Personas y Modelos
+Ref: people.id < models.person_id
+Ref: models.id < model_profiles.model_id
+Ref: models.id < model_social_media.model_id
+Ref: models.id < guardians.model_id
+Ref: people.id < guardians.person_id
+
+// Suscripciones y Pagos
+Ref: models.id < subscriptions.model_id
+Ref: subscription_plans.id < subscriptions.plan_id
+Ref: subscriptions.id < payments.subscription_id
+Ref: models.id < payments.model_id
+Ref: payment_methods.id < payments.payment_method_id
+
+// Adeudos
+Ref: models.id < debts.model_id
+Ref: debts.id < debt_payments.debt_id
+Ref: payment_methods.id < debt_payments.payment_method_id
+
+// Servicios Especiales
+Ref: models.id < service_registrations.model_id
+Ref: special_services.id < service_registrations.service_id
+
+// Asistencia
+Ref: people.id < attendance_records.person_id
+
+// Transacciones
+Ref: people.id < transactions.payer_id
+Ref: people.id < transactions.receiver_id
+Ref: payment_methods.id < transactions.payment_method_id
