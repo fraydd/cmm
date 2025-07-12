@@ -1,0 +1,102 @@
+// Variables
+$header-height: 64px;
+$transition-duration: var(--cmm-transition-normal);
+
+// Mixins
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin flex-start {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+// Layout principal
+.adminLayout {
+  min-height: 100vh;
+}
+
+// Header
+.header {
+  background: var(--cmm-bg-header) !important;
+  padding: 0 var(--cmm-spacing-md) !important;
+  @include flex-between;
+  box-shadow: var(--cmm-shadow-md) !important;
+  height: $header-height;
+  border-bottom: 1px solid var(--cmm-border-primary);
+}
+
+// Contenedor del título
+.titleContainer {
+  @include flex-start;
+}
+
+// Título del header
+.headerTitle {
+  margin: 0 !important;
+  color: var(--cmm-text-primary) !important;
+  font-weight: 600 !important;
+}
+
+// Contenedor de usuario
+.userContainer {
+  @include flex-start;
+}
+
+// Dropdown de usuario
+.userDropdown {
+  cursor: pointer;
+  padding: var(--cmm-spacing-sm);
+  border-radius: var(--cmm-radius-md);
+  transition: all $transition-duration var(--cmm-ease-in-out);
+  
+  &:hover {
+    background-color: var(--cmm-primary-100);
+  }
+}
+
+// Nombre del usuario
+.userName {
+  color: var(--cmm-text-primary);
+  font-weight: 500;
+  margin-left: var(--cmm-spacing-sm);
+}
+
+// Contenido principal
+.content {
+  margin: var(--cmm-spacing-lg) !important;
+  background: var(--cmm-bg-primary) !important;
+  border-radius: var(--cmm-radius-lg) !important;
+  overflow: auto;
+  box-shadow: var(--cmm-shadow-sm);
+  border: 1px solid var(--cmm-border-primary);
+}
+
+// Contenedor interno del contenido
+.contentInner {
+  background: var(--cmm-bg-secondary) !important;
+  padding: var(--cmm-spacing-lg) !important;
+  border-radius: var(--cmm-radius-lg) !important;
+  min-height: calc(100vh - 200px);
+  box-shadow: var(--cmm-shadow-sm);
+}
+
+// Avatar del usuario
+.userAvatar {
+  background-color: var(--cmm-primary-500);
+  color: var(--cmm-text-light);
+  
+  &:hover {
+    background-color: var(--cmm-primary-600);
+  }
+}

@@ -1,0 +1,101 @@
+// Variables
+$logo-height: 64px;
+$transition-duration: var(--cmm-transition-normal);
+
+// Mixins
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin absolute-center($direction: 'vertical') {
+  position: absolute;
+  
+  @if $direction == 'vertical' {
+    top: 50%;
+    transform: translateY(-50%);
+  } @else if $direction == 'horizontal' {
+    left: 50%;
+    transform: translateX(-50%);
+  } @else {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+}
+
+@mixin button-reset {
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+@mixin hover-scale($scale: 1.05) {
+  &:hover {
+    transform: scale($scale);
+    transition: transform $transition-duration ease;
+  }
+}
+
+@mixin active-scale($scale: 0.95) {
+  &:active {
+    transform: scale($scale);
+  }
+}
+
+// Contenedor principal del sidebar
+.sidebar {
+}
+
+// Contenedor del logo/título
+.logoContainer {
+  height: $logo-height;
+  @include flex-center;
+  border-bottom: 1px solid var(--cmm-border-sidebar);
+  position: relative;
+  box-shadow: var(--cmm-shadow-sm);
+}
+
+// Título del logo
+.logoTitle {
+  margin: 0 !important;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: all var(--cmm-transition-normal) var(--cmm-ease-in-out);
+  max-width: 100%;
+  display: block;
+  color: var(--cmm-text-light) !important;
+  font-weight: 600 !important;
+  
+  // Cuando está colapsado
+  &.collapsed {
+    opacity: 0.9;
+    transform: scale(0.9);
+  }
+  
+  // Cuando está expandido
+  &.expanded {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// Menú principal
+.menu {
+  border-right: 0;
+  margin-top: var(--cmm-spacing-lg);
+}
+
+// Tema activo en el menú de temas
+.activeTheme {
+  background-color: var(--cmm-primary-600) !important;
+  color: var(--cmm-accent) !important;
+  font-weight: 600;
+  
+  &:hover {
+    background-color: var(--cmm-primary-700) !important;
+  }
+}
+
+// Los estilos del botón ahora están en SidebarToggleButton.module.scss 
