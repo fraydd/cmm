@@ -66,16 +66,25 @@ export default function AdminLayout({ children, title = "Panel de Administració
                         
                         {/* Usuario y acciones */}
                         <div className={styles.userContainer}>
-                            <Dropdown menu={userMenu} placement="bottomRight">
-                                <Space className={styles.userDropdown}>
-                                    <Avatar 
-                                        icon={<UserOutlined />} 
-                                        className={styles.userAvatar}
-                                    />
-                                    <span className={styles.userName}>
-                                        {auth?.user?.name || 'Usuario'}
-                                    </span>
-                                </Space>
+                            <Dropdown menu={userMenu} placement="bottomRight" trigger={['click']}>
+                                <div className={styles.userDropdown}>
+                                    <div className={styles.avatarContainer}>
+                                        <Avatar 
+                                            icon={<UserOutlined />} 
+                                            className={styles.userAvatar}
+                                            size="default"
+                                        />
+                                        <div className={styles.avatarStatus}></div>
+                                    </div>
+                                    <div className={styles.userInfo}>
+                                        <span className={styles.userName}>
+                                            {auth?.user?.name || 'Usuario'}
+                                        </span>
+                                        <span className={styles.userRole}>
+                                            Administrador
+                                        </span>
+                                    </div>
+                                </div>
                             </Dropdown>
                         </div>
                     </Header>

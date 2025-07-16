@@ -23,7 +23,16 @@ $transition-duration: var(--cmm-transition-normal);
 
 // Layout principal
 .adminLayout {
-  min-height: 100vh;
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+}
+
+// Layout interno (que contiene header y content)
+.adminLayout > .ant-layout {
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
 }
 
 // Header
@@ -34,6 +43,7 @@ $transition-duration: var(--cmm-transition-normal);
   box-shadow: var(--cmm-shadow-md) !important;
   height: $header-height;
   border-bottom: 1px solid var(--cmm-border-primary);
+  flex-shrink: 0;
 }
 
 // Contenedor del título
@@ -56,20 +66,56 @@ $transition-duration: var(--cmm-transition-normal);
 // Dropdown de usuario
 .userDropdown {
   cursor: pointer;
-  padding: var(--cmm-spacing-sm);
-  border-radius: var(--cmm-radius-md);
+  padding: var(--cmm-spacing-md);
+  border-radius: var(--cmm-radius-lg);
   transition: all $transition-duration var(--cmm-ease-in-out);
+  display: flex;
+  align-items: center;
+  gap: var(--cmm-spacing-md);
   
   &:hover {
-    background-color: var(--cmm-primary-100);
+    .userName {
+      color: var(--cmm-primary-600);
+    }
+    
+    .userRole {
+      color: var(--cmm-primary-400);
+    }
   }
+}
+
+// Contenedor del avatar
+.avatarContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Contenedor de información del usuario
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
 }
 
 // Nombre del usuario
 .userName {
   color: var(--cmm-text-primary);
-  font-weight: 500;
-  margin-left: var(--cmm-spacing-sm);
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.2;
+  margin: 0;
+}
+
+// Rol del usuario
+.userRole {
+  color: var(--cmm-text-secondary);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.2;
+  margin: 0;
 }
 
 // Contenido principal
@@ -77,9 +123,11 @@ $transition-duration: var(--cmm-transition-normal);
   margin: var(--cmm-spacing-lg) !important;
   background: var(--cmm-bg-primary) !important;
   border-radius: var(--cmm-radius-lg) !important;
-  overflow: auto;
+  overflow: hidden;
   box-shadow: var(--cmm-shadow-sm);
   border: 1px solid var(--cmm-border-primary);
+  height: calc(100vh - $header-height - 2 * var(--cmm-spacing-lg));
+  max-height: calc(100vh - $header-height - 2 * var(--cmm-spacing-lg));
 }
 
 // Contenedor interno del contenido
@@ -87,16 +135,35 @@ $transition-duration: var(--cmm-transition-normal);
   background: var(--cmm-bg-secondary) !important;
   padding: var(--cmm-spacing-lg) !important;
   border-radius: var(--cmm-radius-lg) !important;
-  min-height: calc(100vh - 200px);
+  height: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
   box-shadow: var(--cmm-shadow-sm);
 }
 
 // Avatar del usuario
 .userAvatar {
-  background-color: var(--cmm-primary-500);
+  background: linear-gradient(135deg, var(--cmm-primary-500) 0%, var(--cmm-primary-600) 100%);
   color: var(--cmm-text-light);
+  border: 2px solid var(--cmm-bg-primary);
+  box-shadow: var(--cmm-shadow-sm);
+  transition: all $transition-duration var(--cmm-ease-in-out);
   
   &:hover {
-    background-color: var(--cmm-primary-600);
+    background: linear-gradient(135deg, var(--cmm-primary-600) 0%, var(--cmm-primary-700) 100%);
   }
+}
+
+// Indicador de estado del avatar
+.avatarStatus {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 12px;
+  height: 12px;
+  background-color: var(--cmm-success-500);
+  border: 2px solid var(--cmm-bg-primary);
+  border-radius: 50%;
+  box-shadow: var(--cmm-shadow-sm);
 }

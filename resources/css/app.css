@@ -16,3 +16,62 @@ body {
     margin: 0 auto;
     padding: 0 1rem;
 }
+
+/* Estilos globales para scrollbars delgados y compactos */
+/* Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--cmm-border-primary);
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--cmm-primary-400);
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--cmm-border-primary) transparent;
+}
+
+/* Scrollbars específicos para contenedores con fondo */
+.contentInner::-webkit-scrollbar-track {
+    background: var(--cmm-bg-secondary);
+}
+
+/* Scrollbars para elementos con scroll horizontal */
+::-webkit-scrollbar:horizontal {
+    height: 6px;
+}
+
+/* Scrollbars para tablas y listas */
+.ant-table-body::-webkit-scrollbar,
+.ant-list::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}                                       
+
+.ant-table-body::-webkit-scrollbar-thumb,
+.ant-list::-webkit-scrollbar-thumb {
+    background: var(--cmm-border-secondary);
+}
+
+.ant-table-body::-webkit-scrollbar-thumb:hover,
+.ant-list::-webkit-scrollbar-thumb:hover {
+    background: var(--cmm-primary-500);
+}
