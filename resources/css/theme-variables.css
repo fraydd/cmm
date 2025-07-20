@@ -16,8 +16,13 @@
 
   /* Colores de Estado */
   --cmm-success: #16a34a;
+  --cmm-success-500: #16a34a;
   --cmm-warning: #d97706;
+  --cmm-warning-500: #d97706;
   --cmm-error: #dc2626;
+  --cmm-error-500: #dc2626;
+  --cmm-info: #3b82f6;
+  --cmm-info-500: #3b82f6;
 
   /* Colores Semánticos */
   --cmm-bg-primary: var(--cmm-primary-50);
@@ -28,7 +33,7 @@
   --cmm-bg-tooltip: var(--cmm-primary-800);
 
   --cmm-text-primary: var(--cmm-primary-800);
-  --cmm-text-secondary: var(--cmm-primary-500);
+  --cmm-text-secondary: #86340b;
   --cmm-text-tertiary: var(--cmm-primary-400);
   --cmm-text-sidebar: var(--cmm-accent);
   --cmm-text-light: #ffffff;
@@ -36,11 +41,13 @@
   --cmm-border-primary: var(--cmm-primary-200);
   --cmm-border-secondary: var(--cmm-primary-100);
   --cmm-border-sidebar: var(--cmm-primary-700);
+  --cmm-border-color: var(--cmm-primary-200);
 
   /* Sombras */
   --cmm-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --cmm-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   --cmm-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --cmm-shadow-color: rgba(0, 0, 0, 0.1);
 
   /* Transiciones */
   --cmm-transition-fast: 0.1s;

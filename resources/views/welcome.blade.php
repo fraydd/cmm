@@ -74,6 +74,11 @@
 </head>
 <body>
     <div class="welcome-container">
+        @if(session('error'))
+            <div style="background: #ffdddd; color: #a94442; border: 1px solid #ebccd1; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+                {{ session('error') }}
+            </div>
+        @endif
         <h1 class="welcome-title">CMM</h1>
         <p class="welcome-subtitle">Carlos Mario Miranda Models</p>
         <p class="welcome-subtitle">Sistema de Gestión Integral para Modelos</p>

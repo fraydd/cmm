@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { App } from 'antd';
-import { Card, Button, Space, Typography, Table, Tag, Empty, Divider, Alert, Row, Col, Input, Select, DatePicker, Tooltip, Popconfirm, message } from 'antd';
+import { Card, Button, Space, Typography, Table, Tag, Empty, Divider, Alert, Row, Col, Input, Select, DatePicker, Tooltip, Popconfirm, message, Pagination } from 'antd';
 import { 
     PlusOutlined, 
     UserOutlined, 
@@ -12,11 +12,13 @@ import {
     DeleteOutlined,
     EditOutlined,
     EyeOutlined,
-    ReloadOutlined
+    ReloadOutlined,
+    CheckOutlined
 } from '@ant-design/icons';
 import { useNotifications } from '../../hooks/useNotifications.jsx';
 import ModeloModal from '../../Components/ModeloModal.jsx';
 import AdminLayout from '../../Layouts/AdminLayout';
+import styles from './Index.module.scss';
 
 const { Title, Text } = Typography;
 
@@ -33,6 +35,13 @@ export default function Index({ modelos, debug_info }) {
         fechaDesde: null,
         fechaHasta: null
     });
+    const [pagination, setPagination] = useState({
+        current: 1,
+        pageSize: 15,
+        total: 0
+    });
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [isUpdated, setIsUpdated] = useState(false);
 
     // Debug cuando el componente se monta
     useEffect(() => {}, []);
@@ -40,6 +49,10 @@ export default function Index({ modelos, debug_info }) {
     // Actualizar datos filtrados cuando cambian los modelos
     useEffect(() => {
         setFilteredData(modelos);
+        setPagination(prev => ({
+            ...prev,
+            total: modelos.length
+        }));
     }, [modelos]);
 
     // Función para aplicar filtros
@@ -79,6 +92,11 @@ export default function Index({ modelos, debug_info }) {
         }
 
         setFilteredData(filtered);
+        setPagination(prev => ({
+            ...prev,
+            total: filtered.length,
+            current: 1 // Reset a la primera página cuando cambian los filtros
+        }));
     };
 
     // Aplicar filtros cuando cambian
@@ -89,6 +107,11 @@ export default function Index({ modelos, debug_info }) {
     // Debug en cada render
     console.log('Renderizando componente Modelos/Index');
     
+    // Calcular datos paginados
+    const startIndex = (pagination.current - 1) * pagination.pageSize;
+    const endIndex = startIndex + pagination.pageSize;
+    const paginatedData = filteredData.slice(startIndex, endIndex);
+    
     const handleAddModel = () => {
         setIsModalVisible(true);
     };
@@ -98,40 +121,143 @@ export default function Index({ modelos, debug_info }) {
     };
 
     const handleModalSubmit = async (values) => {
+        // Convertir fechas a string si existen
+        if (values.fecha_nacimiento && typeof values.fecha_nacimiento === 'object' && values.fecha_nacimiento.format) {
+            values.fecha_nacimiento = values.fecha_nacimiento.format('YYYY-MM-DD');
+        }
+        if (values.fecha_vigencia && typeof values.fecha_vigencia === 'object' && values.fecha_vigencia.format) {
+            values.fecha_vigencia = values.fecha_vigencia.format('YYYY-MM-DD');
+        }
+        // Limpiar campos opcionales: convertir undefined a string vacío
+        Object.keys(values).forEach(key => {
+            if (values[key] === undefined) {
+                values[key] = '';
+            }
+        });
+        // Crear FormData para enviar archivos
+        const formData = new FormData();
+        // Agregar todos los campos de texto al FormData
+        Object.keys(values).forEach(key => {
+            if (key !== 'model_images') {
+                if (values[key] !== undefined && values[key] !== null) {
+                    formData.append(key, values[key]);
+                }
+            }
+        });
+        // Agregar las imágenes como archivos
+        if (values.model_images && Array.isArray(values.model_images)) {
+            // Metadatos de las imágenes
+            const imagesMeta = values.model_images.map(img => ({
+                temp_id: img.temp_id,
+                url: img.url,
+                name: img.name,
+                size: img.size,
+                original_name: img.original_name || img.name
+            }));
+            formData.append('model_images_meta', JSON.stringify(imagesMeta));
+            // Archivos físicos
+            values.model_images.forEach((image, index) => {
+                if (image.originFileObj) {
+                    formData.append(`model_images${index}`, image.originFileObj);
+                }
+            });
+        }
+        // Obtener el token CSRF del meta tag
+        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         setLoading(true);
         try {
-            
-            // Aquí iría la llamada al backend
-            // await router.post('/modelos', values);
-            
-            // Simular delay
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
+            // Petición real al backend usando fetch con CSRF
+            const response = await fetch('/admin/modelos', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': token
+                }
+            });
+            if (!response.ok) {
+                let errorMsg = 'Error en la respuesta del servidor';
+                try {
+                    const errorData = await response.json();
+                    errorMsg = errorData.message || errorMsg;
+                } catch {}
+                throw new Error(errorMsg);
+            }
+            const result = await response.json();
             showSuccess('Modelo creado exitosamente!');
             setIsModalVisible(false);
-            
-            // Aquí podrías recargar los datos o actualizar el estado
-            // router.reload();
-            
+            // Recargar datos después de crear
+            await refreshData();
         } catch (error) {
             console.error('Error al crear modelo:', error);
-            showError('Error al crear el modelo. Inténtalo de nuevo.');
+            showError(error.message || 'Error al crear el modelo. Inténtalo de nuevo.');
         } finally {
             setLoading(false);
+        }
+    };
+
+    // Función para eliminar un modelo individual
+    const handleDeleteModel = async (modelId) => {
+        try {
+            // Obtener el token CSRF del meta tag
+            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            // Llamada al backend para eliminar un modelo
+            const response = await fetch(`/admin/modelos/${modelId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Error al eliminar el modelo');
+            }
+
+            const result = await response.json();
+            message.success(result.message);
+            // Recargar datos después de eliminar
+            await refreshData();
+        } catch (error) {
+            console.error('Error al eliminar modelo:', error);
+            showError(error.message || 'Error al eliminar el modelo');
         }
     };
 
     // Funciones para acciones masivas
     const handleBulkDelete = async () => {
         try {
-            // Aquí iría la llamada al backend para eliminar múltiples modelos
-            // await router.delete('/modelos/bulk', { data: { ids: selectedRowKeys } });
+            // Obtener el token CSRF del meta tag
+            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
             
-            message.success(`Se eliminaron ${selectedRowKeys.length} modelos exitosamente`);
+            // Llamada al backend para eliminar múltiples modelos
+            const response = await fetch(`/admin/modelos/${selectedRowKeys[0]}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    ids: selectedRowKeys
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Error al eliminar los modelos');
+            }
+
+            const result = await response.json();
+            message.success(result.message);
             setSelectedRowKeys([]);
-            // router.reload();
+            // Recargar datos después de eliminar
+            await refreshData();
         } catch (error) {
-            showError('Error al eliminar los modelos seleccionados');
+            console.error('Error al eliminar modelos:', error);
+            showError(error.message || 'Error al eliminar los modelos seleccionados');
         }
     };
 
@@ -165,6 +291,49 @@ export default function Index({ modelos, debug_info }) {
         });
     };
 
+    // Función para recargar datos dinámicamente
+    const refreshData = async () => {
+        setIsRefreshing(true);
+        try {
+            const response = await fetch('/admin/modelos', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al cargar los datos');
+            }
+
+            const data = await response.json();
+            setFilteredData(data.modelos);
+            setPagination(prev => ({
+                ...prev,
+                total: data.modelos.length,
+                current: 1 // Reset a la primera página
+            }));
+            // showSuccess('Datos actualizados correctamente'); // Quitar notificación
+            setIsUpdated(true);
+            setTimeout(() => setIsUpdated(false), 1000);
+        } catch (error) {
+            console.error('Error al recargar datos:', error);
+            showError('Error al recargar los datos. Inténtalo de nuevo.');
+        } finally {
+            setIsRefreshing(false);
+        }
+    };
+
+    // Función para manejar cambios de paginación
+    const handleTableChange = (paginationInfo) => {
+        setPagination(prev => ({
+            ...prev,
+            current: paginationInfo.current,
+            pageSize: paginationInfo.pageSize
+        }));
+    };
+
 
 
     // Configuración de la tabla
@@ -193,37 +362,35 @@ export default function Index({ modelos, debug_info }) {
             sorter: (a, b) => a.version.localeCompare(b.version),
         },
         {
+            title: 'Fecha último registro',
+            dataIndex: 'fecha_creacion',
+            key: 'fecha_creacion',
+            width: 140,
+            sorter: (a, b) => new Date(a.fecha_creacion) - new Date(b.fecha_creacion),
+        },
+        {
             title: 'Estado',
             dataIndex: 'estado',
             key: 'estado',
             width: 120,
             render: (estado) => {
                 const colorMap = {
-                    'activo': 'green',
-                    'en_desarrollo': 'blue',
-                    'inactivo': 'red',
-                    'archivado': 'gray'
+                    'Activo': 'success',
+                    'Proximo': 'warning',
+                    'Vencido': 'error'
                 };
                 return (
                     <Tag color={colorMap[estado] || 'default'}>
-                        {estado?.replace('_', ' ').toUpperCase()}
+                        {estado?.toUpperCase()}
                     </Tag>
                 );
             },
             filters: [
-                { text: 'Activo', value: 'activo' },
-                { text: 'En Desarrollo', value: 'en_desarrollo' },
-                { text: 'Inactivo', value: 'inactivo' },
-                { text: 'Archivado', value: 'archivado' },
+                { text: 'Activo', value: 'Activo' },
+                { text: 'Próximo', value: 'Proximo' },
+                { text: 'Vencido', value: 'Vencido' },
             ],
             onFilter: (value, record) => record.estado === value,
-        },
-        {
-            title: 'Fecha Creación',
-            dataIndex: 'fecha_creacion',
-            key: 'fecha_creacion',
-            width: 140,
-            sorter: (a, b) => new Date(a.fecha_creacion) - new Date(b.fecha_creacion),
         },
         {
             title: 'Acciones',
@@ -257,10 +424,7 @@ export default function Index({ modelos, debug_info }) {
                         <Popconfirm
                             title="¿Estás seguro de eliminar este modelo?"
                             description="Esta acción no se puede deshacer"
-                            onConfirm={() => {
-                                message.success('Modelo eliminado exitosamente');
-                                // Aquí iría la llamada al backend
-                            }}
+                            onConfirm={() => handleDeleteModel(record.id)}
                             okText="Sí, eliminar"
                             cancelText="Cancelar"
                         >
@@ -279,9 +443,9 @@ export default function Index({ modelos, debug_info }) {
     
     return (
         <AdminLayout title="Gestión de Modelos">
-            <div>
+            <div className={styles.modelosPage}>
                 {/* Header de la página */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                <div className={styles.headerSection}>
                     <div>
                         <Title level={2} style={{ margin: 0 }}>
                             <UserOutlined style={{ marginRight: '8px' }} />
@@ -289,127 +453,105 @@ export default function Index({ modelos, debug_info }) {
                         </Title>
                         <Text type="secondary">Gestiona todos los modelos registrados en el sistema</Text>
                     </div>
-                    <Space>
-                        <Button 
-                            icon={<ReloadOutlined />}
-                            onClick={() => window.location.reload()}
-                        >
-                            Recargar
-                        </Button>
-                        <Button 
-                            type="primary" 
-                            icon={<PlusOutlined />}
-                            onClick={handleAddModel}
-                        >
-                            Agregar Nuevo Modelo
-                        </Button>
-                    </Space>
                 </div>
 
-                {/* Contenido principal */}
-                <Card>
-                    {/* Filtros */}
-                    <div style={{ padding: '16px 0', borderBottom: '1px solid #f0f0f0' }}>
-                        <Row gutter={[16, 16]} align="middle">
-                            <Col span={6}>
-                                <Input
-                                    placeholder="Buscar por nombre, descripción o versión..."
-                                    prefix={<SearchOutlined />}
-                                    value={filters.search}
-                                    onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                                    allowClear
-                                />
-                            </Col>
-                            <Col span={4}>
-                                <Select
-                                    placeholder="Estado"
-                                    value={filters.estado}
-                                    onChange={(value) => setFilters({ ...filters, estado: value })}
-                                    allowClear
-                                    style={{ width: '100%' }}
-                                >
-                                    <Select.Option value="activo">Activo</Select.Option>
-                                    <Select.Option value="en_desarrollo">En Desarrollo</Select.Option>
-                                    <Select.Option value="inactivo">Inactivo</Select.Option>
-                                    <Select.Option value="archivado">Archivado</Select.Option>
-                                </Select>
-                            </Col>
-                            <Col span={4}>
-                                <DatePicker
-                                    placeholder="Desde"
-                                    value={filters.fechaDesde}
-                                    onChange={(date) => setFilters({ ...filters, fechaDesde: date })}
-                                    style={{ width: '100%' }}
-                                />
-                            </Col>
-                            <Col span={4}>
-                                <DatePicker
-                                    placeholder="Hasta"
-                                    value={filters.fechaHasta}
-                                    onChange={(date) => setFilters({ ...filters, fechaHasta: date })}
-                                    style={{ width: '100%' }}
-                                />
-                            </Col>
-                            <Col span={6}>
-                                <Space>
-                                    <Button 
-                                        icon={<FilterOutlined />}
-                                        onClick={clearFilters}
-                                    >
-                                        Limpiar Filtros
-                                    </Button>
-                                    {selectedRowKeys.length > 0 && (
-                                        <span style={{ color: '#1890ff' }}>
-                                            {selectedRowKeys.length} seleccionado(s)
-                                        </span>
-                                    )}
-                                </Space>
-                            </Col>
-                        </Row>
+                {/* CONTENEDOR B - Grid anidado */}
+                <div className={styles.cardContainer}>
+                    {/* CONTENEDOR 1 - Filtros */}
+                    <div className={styles.filtersSection}>
+                        <Input
+                            placeholder="Buscar por nombre, descripción o versión..."
+                            prefix={<SearchOutlined />}
+                            value={filters.search}
+                            onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                            allowClear
+                        />
+                        <Select
+                            placeholder="Estado"
+                            value={filters.estado}
+                            onChange={(value) => setFilters({ ...filters, estado: value })}
+                            allowClear
+                            style={{ width: '100%' }}
+                        >
+                            <Select.Option value="Activo">Activo</Select.Option>
+                            <Select.Option value="Proximo">Próximo</Select.Option>
+                            <Select.Option value="Vencido">Vencido</Select.Option>
+                        </Select>
+                        <DatePicker
+                            placeholder="Desde"
+                            value={filters.fechaDesde}
+                            onChange={(date) => setFilters({ ...filters, fechaDesde: date })}
+                            style={{ width: '100%' }}
+                        />
+                        <DatePicker
+                            placeholder="Hasta"
+                            value={filters.fechaHasta}
+                            onChange={(date) => setFilters({ ...filters, fechaHasta: date })}
+                            style={{ width: '100%' }}
+                        />
+                        <Space>
+                            <Button 
+                                icon={<FilterOutlined />}
+                                onClick={clearFilters}
+                            >
+                                Limpiar Filtros
+                            </Button>
+                            {selectedRowKeys.length > 0 && (
+                                <span className={styles.selectedCount}>
+                                    {selectedRowKeys.length} seleccionado(s)
+                                </span>
+                            )}
+                        </Space>
                     </div>
 
-                    {/* Acciones masivas */}
-                    {selectedRowKeys.length > 0 && (
-                        <div style={{ padding: '12px 0', background: '#e6f7ff', borderBottom: '1px solid #91d5ff' }}>
-                            <Space>
-                                <Text strong>Acciones masivas:</Text>
+                    {/* CONTENEDOR 2 - Acciones masivas */}
+                    <div className={styles.bulkActionsSection}>
+                        <div className={styles.bulkActionsLeft}>
+                            <Popconfirm
+                                title={`¿Estás seguro de eliminar ${selectedRowKeys.length} modelo(s)?`}
+                                onConfirm={handleBulkDelete}
+                                okText="Sí"
+                                cancelText="No"
+                            >
                                 <Button 
-                                    size="small"
-                                    onClick={() => handleBulkAction('activate')}
+                                    size="small" 
+                                    danger 
+                                    icon={<DeleteOutlined />}
+                                    className={selectedRowKeys.length > 0 ? styles.visibleButton : styles.hiddenButton}
                                 >
-                                    Activar
+                                    Eliminar ({selectedRowKeys.length})
                                 </Button>
-                                <Button 
-                                    size="small"
-                                    onClick={() => handleBulkAction('deactivate')}
-                                >
-                                    Desactivar
-                                </Button>
-                                <Popconfirm
-                                    title={`¿Estás seguro de eliminar ${selectedRowKeys.length} modelo(s)?`}
-                                    onConfirm={handleBulkDelete}
-                                    okText="Sí"
-                                    cancelText="No"
-                                >
-                                    <Button 
-                                        size="small" 
-                                        danger 
-                                        icon={<DeleteOutlined />}
-                                    >
-                                        Eliminar
-                                    </Button>
-                                </Popconfirm>
-                            </Space>
+                            </Popconfirm>
                         </div>
-                    )}
+                        <div className={styles.bulkActionsRight}>
+                            <Button 
+                                icon={
+                                    isRefreshing ? <ReloadOutlined spin /> : isUpdated ? <CheckOutlined style={{ color: 'green' }} /> : <ReloadOutlined />
+                                }
+                                loading={isRefreshing}
+                                onClick={refreshData}
+                                disabled={isRefreshing}
+                            >
+                                {isRefreshing ? 'Actualizando...' : isUpdated ? 'Actualizado' : 'Recargar'}
+                            </Button>
+                            <Button 
+                                type="primary" 
+                                icon={<PlusOutlined />}
+                                onClick={handleAddModel}
+                            >
+                                Agregar Nuevo Modelo
+                            </Button>
+                        </div>
+                    </div>
 
-                    {/* Tabla */}
-                    <div style={{ marginTop: 16 }}>
+                    {/* CONTENEDOR 3 - Tabla */}
+                    <div className={styles.tableContainer}>
                         {filteredData.length > 0 ? (
                             <Table 
                                 columns={columns} 
-                                dataSource={filteredData}
+                                dataSource={paginatedData}
                                 rowKey="id"
+                                onChange={handleTableChange}
                                 rowSelection={{
                                     selectedRowKeys,
                                     onChange: setSelectedRowKeys,
@@ -426,16 +568,9 @@ export default function Index({ modelos, debug_info }) {
                                         }
                                     ]
                                 }}
-                                pagination={{
-                                    pageSize: 15,
-                                    showSizeChanger: true,
-                                    showQuickJumper: true,
-                                    showTotal: (total, range) => 
-                                        `${range[0]}-${range[1]} de ${total} modelos`,
-                                    position: ['bottomCenter'],
-                                    pageSizeOptions: ['10', '15', '20', '50']
-                                }}
-                                scroll={{ x: 900 }}
+                                pagination={false}
+                                scroll={{ x: 900, y: 'calc(100vh - 400px)' }}
+                                sticky={{ offsetHeader: 0 }}
                             />
                         ) : (
                             <Empty
@@ -448,7 +583,39 @@ export default function Index({ modelos, debug_info }) {
                             </Empty>
                         )}
                     </div>
-                </Card>
+
+                    {/* CONTENEDOR 4 - Paginación */}
+                    <div className={styles.paginationContainer}>
+                        {filteredData.length > 0 && (
+                            <Pagination
+                                current={pagination.current}
+                                pageSize={pagination.pageSize}
+                                total={pagination.total}
+                                showSizeChanger={true}
+                                showQuickJumper={true}
+                                showTotal={(total, range) => 
+                                    `${range[0]}-${range[1]} de ${total} modelos`}
+                                pageSizeOptions={['10', '15', '20', '50']}
+                                size="default"
+                                responsive={true}
+                                onChange={(page, pageSize) => {
+                                    setPagination(prev => ({
+                                        ...prev,
+                                        current: page,
+                                        pageSize: pageSize
+                                    }));
+                                }}
+                                onShowSizeChange={(current, size) => {
+                                    setPagination(prev => ({
+                                        ...prev,
+                                        current: 1,
+                                        pageSize: size
+                                    }));
+                                }}
+                            />
+                        )}
+                    </div>
+                </div>
 
                 {/* Modal para crear/editar modelo */}
                 <ModeloModal

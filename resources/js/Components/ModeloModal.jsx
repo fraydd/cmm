@@ -32,15 +32,18 @@ const ModeloModal = ({
             open={visible}
             onCancel={handleCancel}
             footer={null}
-            width={900}
-            style={{ top: 20 }}
-            styles={{ body: { height: 650, padding: '24px' } }}
+            width={'90vw'}
+            style={{ maxWidth: '80vw', minWidth: 320 }}
+            centered={true}
+            styles={{ body: { minHeight: '60vh', maxHeight: '90vh', padding: '2vw' } }}
+            destroyOnClose={true}
         >
             <ModeloForm
                 form={form}
                 onFinish={handleSubmit}
                 loading={loading}
-                initialValues={initialValues}
+                initialValues={{}}
+                visible={visible}
             />
         </Modal>
     );

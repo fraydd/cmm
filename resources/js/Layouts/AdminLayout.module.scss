@@ -167,3 +167,34 @@ $transition-duration: var(--cmm-transition-normal);
   border-radius: 50%;
   box-shadow: var(--cmm-shadow-sm);
 }
+
+// Contenedor de usuario y sede
+.userAndBranchContainer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-left: auto;
+}
+
+// Selector de sede tipo texto
+.branchSelector {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  font-size: 16px;
+  min-width: 160px;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.branchSelectorName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: middle;
+  max-width: 140px;
+}

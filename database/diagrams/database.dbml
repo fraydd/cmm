@@ -50,6 +50,7 @@ Table invitations {
   email varchar(255) [not null, unique]
   token varchar(255) [not null, unique]
   status varchar(20) [not null, default: 'pending']
+  is_active boolean [default: true, not null]
   expires_at timestamp [not null]
   invited_by bigint [null]
   accepted_by bigint [null]
@@ -241,6 +242,41 @@ Table models {
   }
 }
 
+// ===== NUEVOS CATÁLOGOS PARA MODELOS =====
+
+Table hair_colors {
+  id bigint [pk]
+  name varchar(100) [not null, unique]
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table eye_colors {
+  id bigint [pk]
+  name varchar(100) [not null, unique]
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table skin_colors {
+  id bigint [pk]
+  name varchar(100) [not null, unique]
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table relationships {
+  id bigint [pk]
+  name varchar(100) [not null, unique]
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+// Modificar model_profiles para usar los catálogos
 Table model_profiles {
   id bigint [pk]
   model_id bigint [not null]
@@ -248,9 +284,9 @@ Table model_profiles {
   bust int [not null]
   waist int [not null]
   hips int [not null]
-  hair_color varchar(100) [not null]
-  eye_color varchar(100) [not null]
-  skin_color varchar(100) [not null]
+  hair_color_id bigint [not null, ref: > hair_colors.id]
+  eye_color_id bigint [not null, ref: > eye_colors.id]
+  skin_color_id bigint [not null, ref: > skin_colors.id]
   pants_size varchar(20) [not null]
   shirt_size varchar(20) [not null]
   shoe_size varchar(20) [not null]
@@ -260,24 +296,31 @@ Table model_profiles {
 
 Table model_social_media {
   id bigint [pk]
-  model_id bigint [not null]
-  platform varchar(50) [not null]
-  username varchar(255) [not null]
+  model_id bigint [not null] 
+  social_media_platform_id bigint [not null]
   url varchar(500) [null]
-  is_active boolean [default: true, not null]
+  is_active boolean [default: true]
   created_at timestamp [null]
   updated_at timestamp [null]
   
   indexes {
-    (model_id, platform)
+    (model_id)
   }
 }
 
+Table social_media_platforms {
+  id bigint [pk]
+  name varchar(50) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+// Modificar guardians para usar el catálogo de relationships
 Table guardians {
   id bigint [pk]
   model_id bigint [not null]
   person_id bigint [not null]
-  relationship varchar(100) [not null]
+  relationship_id bigint [not null, ref: > relationships.id]
   is_active boolean [default: true, not null]
   created_at timestamp [null]
   updated_at timestamp [null]
@@ -335,7 +378,7 @@ Table subscription_plans {
   id bigint [pk]
   name varchar(255) [not null]
   description text [null]
-  monthly_price decimal(10,2) [not null]
+  price decimal(10,2) [not null]
   duration_months int [not null, default: 1]
   is_active boolean [default: true, not null]
   created_at timestamp [null]
@@ -345,7 +388,7 @@ Table subscription_plans {
 Table subscriptions {
   id bigint [pk]
   model_id bigint [not null]
-  plan_id bigint [not null]
+  branch_subscription_plan_id bigint [not null, ref: > branch_subscription_plans.id]
   start_date date [not null]
   end_date date [not null]
   status varchar(20) [not null, default: 'active'] // active, expired, cancelled
@@ -465,6 +508,20 @@ Table product_branch_access {
   updated_at timestamp [null]
 }
 
+// ===== RELACIÓN MUCHOS A MUCHOS: PLANES DE SUSCRIPCIÓN POR SEDE =====
+
+Table branch_subscription_plans {
+  id bigint [pk]
+  branch_id bigint [not null, ref: > branches.id]
+  subscription_plan_id bigint [not null, ref: > subscription_plans.id]
+  custom_price decimal(10,2) [null] // Opcional: precio personalizado por sede
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+// Un plan puede estar en varias sedes y una sede puede tener varios planes disponibles.
+
 // ===== TABLAS DE FACTURACIÓN =====
 
 Table invoices {
@@ -566,6 +623,20 @@ Table cash_movements {
     movement_type
   }
 }
+// Nueva tabla para múltiples imágenes de modelos
+Table model_images {
+  id bigint [pk]
+  model_id bigint [not null]
+  file_path varchar(500) [not null]
+  file_name varchar(255) [not null]
+  image_type varchar(50) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    model_id
+  }
+}
 
 // ===== TABLAS DE ASISTENCIA =====
 
@@ -597,9 +668,11 @@ Ref: genders.id < people.gender_id
 Ref: blood_types.id < people.blood_type_id
 Ref: people.id < employees.person_id
 Ref: users.id < employees.user_id
+Ref: models.id < model_images.model_id
 Ref: people.id < models.person_id
 Ref: models.id < model_profiles.model_id
 Ref: models.id < model_social_media.model_id
+Ref: social_media_platforms.id < model_social_media.social_media_platform_id
 Ref: models.id < guardians.model_id
 Ref: people.id < guardians.person_id
 Ref: people.id < cart.person_id
@@ -623,7 +696,6 @@ Ref: payment_methods.id < payments.payment_method_id
 Ref: product_categories.id < products.category_id
 Ref: cart.product_id < products.id
 Ref: invoice_items.product_id < products.id
-Ref: subscription_plans.id < subscriptions.plan_id
 Ref: models.id < subscriptions.model_id
 Ref: cart.subscription_id < subscriptions.id
 Ref: invoice_items.subscription_id < subscriptions.id

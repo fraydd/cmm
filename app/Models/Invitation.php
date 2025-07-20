@@ -67,7 +67,8 @@ class Invitation extends Model
      */
     public function isValid()
     {
-        return $this->status === 'pending' && !$this->isExpired();
+        // Solo es válida si está pendiente, activa y no expirada
+        return $this->status === 'pending' && !$this->isExpired() && $this->is_active;
     }
 
     /**

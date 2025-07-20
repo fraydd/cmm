@@ -7,7 +7,8 @@ import {
     DashboardOutlined,
     SettingOutlined,
     MailOutlined,
-    SkinOutlined
+    SkinOutlined,
+    ClockCircleOutlined
 } from '@ant-design/icons';
 import { router, usePage } from '@inertiajs/react';
 import { usePermissions } from '../hooks/usePermissions';
@@ -110,6 +111,12 @@ const Sidebar = forwardRef(({ collapsed, auth, onToggle }, ref) => {
             icon: <MailOutlined />,
             label: 'Invitaciones',
             onClick: () => router.visit('/admin/invitaciones')
+        },
+        {
+            key: 'asistencias',
+            icon: <ClockCircleOutlined />,
+            label: 'Asistencias',
+            onClick: () => router.visit('/admin/asistencias')
         },
         {
             key: 'caja',

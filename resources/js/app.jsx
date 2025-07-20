@@ -8,6 +8,15 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { App, ConfigProvider } from 'antd';
 import '@ant-design/v5-patch-for-react-19';
 import { initializeTheme } from './utils/themeManager';
+import { BranchProvider } from './hooks/useBranch';
+
+export function AppWithBranchProvider({ children }) {
+  return (
+    <BranchProvider>
+      {children}
+    </BranchProvider>
+  );
+}
 
 createInertiaApp({
     title: (title) => `${title} - CMM`,
@@ -27,7 +36,9 @@ createInertiaApp({
                 }}
             >
                 <App>
-                    <InertiaApp {...props} />
+                    <AppWithBranchProvider>
+                        <InertiaApp {...props} />
+                    </AppWithBranchProvider>
                 </App>
             </ConfigProvider>
         );

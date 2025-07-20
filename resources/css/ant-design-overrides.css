@@ -54,4 +54,131 @@
 
 .ant-btn-sm.ant-btn-primary:active {
   box-shadow: 0 1px 0 var(--cmm-primary-800)40 !important;
+}
+
+/* Overrides para tabla usando variables CSS dinámicas */
+.ant-table-thead > tr > th {
+  background-color: var(--cmm-table-header) !important;
+  color: var(--cmm-text-primary) !important;
+  border-bottom: 1px solid var(--cmm-primary-200) !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 2 !important;
+}
+
+.ant-table-thead > tr > th:hover {
+  background-color: var(--cmm-table-header-hover) !important;
+}
+
+/* Mantener el fondo del header cuando se ordena */
+.ant-table-thead > tr > th.ant-table-column-sort {
+  background-color: var(--cmm-table-header) !important;
+}
+
+.ant-table-thead > tr > th.ant-table-column-sort:hover {
+  background-color: var(--cmm-table-header-hover) !important;
+}
+
+/* Mantener el fondo de las celdas del cuerpo cuando se ordena la columna */
+.ant-table-tbody > tr > td.ant-table-column-sort {
+  background-color: transparent !important;
+}
+
+.ant-table-tbody > tr:hover > td.ant-table-column-sort {
+  background-color: var(--cmm-table-hover) !important;
+}
+
+.ant-table-tbody > tr > td {
+  border-bottom: 1px solid var(--cmm-primary-200) !important;
+}
+
+.ant-table-tbody > tr:hover > td {
+  background-color: var(--cmm-primary-50) !important;
+}
+
+/* Asegurar que el contenedor de la tabla tenga scroll */
+.ant-table-container {
+  overflow: auto !important;
+}
+
+/* Asegurar que el header se mantenga fijo */
+.ant-table-header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 2 !important;
+  background-color: var(--cmm-table-header) !important;
+}
+
+/* Quitar el borde molesto del scrollbar */
+.ant-table-cell-scrollbar:not([rowspan]) {
+  box-shadow: none !important;
+}
+
+/* Quitar el borde del scrollbar en el header también */
+.ant-table-thead .ant-table-cell-scrollbar:not([rowspan]) {
+  box-shadow: none !important;
 } 
+
+/* Overrides para notificaciones usando variables CSS dinámicas */
+.ant-notification {
+  color: var(--cmm-text-primary) !important;
+}
+
+.ant-notification-notice {
+  background-color: var(--cmm-bg-primary) !important;
+  border: 1px solid var(--cmm-border-color) !important;
+  box-shadow: 0 4px 12px var(--cmm-shadow-color) !important;
+}
+
+.ant-notification-notice-message {
+  color: var(--cmm-text-primary) !important;
+}
+
+.ant-notification-notice-description {
+  color: var(--cmm-text-secondary) !important;
+}
+
+/* Notificación de éxito */
+.ant-notification-notice-success {
+  border-left: 4px solid var(--cmm-success-500) !important;
+}
+
+.ant-notification-notice-success .ant-notification-notice-icon {
+  color: var(--cmm-success-500) !important;
+}
+
+/* Notificación de error */
+.ant-notification-notice-error {
+  border-left: 4px solid var(--cmm-error-500) !important;
+}
+
+.ant-notification-notice-error .ant-notification-notice-icon {
+  color: var(--cmm-error-500) !important;
+}
+
+/* Notificación de advertencia */
+.ant-notification-notice-warning {
+  border-left: 4px solid var(--cmm-warning-500) !important;
+}
+
+.ant-notification-notice-warning .ant-notification-notice-icon {
+  color: var(--cmm-warning-500) !important;
+}
+
+/* Notificación de información */
+.ant-notification-notice-info {
+  border-left: 4px solid var(--cmm-info-500) !important;
+}
+
+.ant-notification-notice-info .ant-notification-notice-icon {
+  color: var(--cmm-info-500) !important;
+}
+
+/* Botón de cerrar notificación */
+.ant-notification-notice-close {
+  color: var(--cmm-text-secondary) !important;
+}
+
+.ant-notification-notice-close:hover {
+  color: var(--cmm-text-primary) !important;
+}

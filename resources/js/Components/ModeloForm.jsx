@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Form, Input, Select, Button, Space, Steps, DatePicker, Upload, InputNumber, Radio, Checkbox, Divider, Row, Col, Typography, Tooltip, message, theme } from 'antd';
 import { 
     PlusOutlined, 
@@ -13,6 +13,9 @@ import {
     ContactsOutlined,
     DollarOutlined
 } from '@ant-design/icons';
+import { useBranch } from '../hooks/useBranch';
+import ModelImageUploader from './ModelImageUploader.jsx';
+import styles from './ModeloForm.module.scss';
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -23,11 +26,49 @@ const ModeloForm = ({
     form, 
     onFinish, 
     loading = false, 
-    initialValues = {} 
+    initialValues = {},
+    visible // <-- Asegúrate de pasar esta prop desde el modal
 }) => {
     const { token } = theme.useToken();
+    const { selectedBranch } = useBranch();
     const [currentStep, setCurrentStep] = useState(0);
     const [formData, setFormData] = useState(initialValues);
+    const [catalogs, setCatalogs] = useState({
+        identification_types: [],
+        genders: [],
+        blood_types: [],
+        hair_colors: [],
+        eye_colors: [],
+        skin_colors: [],
+        relationships: [],
+        payment_methods: [],
+        subscription_plans: [],
+    });
+    const [loadingCatalogs, setLoadingCatalogs] = useState(true);
+
+    // Resetear el paso cuando el modal se abre
+    useEffect(() => {
+        if (visible) setCurrentStep(0);
+    }, [visible]);
+
+    useEffect(() => {
+        if (!selectedBranch) return;
+        setLoadingCatalogs(true);
+        fetch(`/admin/modelos/catalogs?branch_id=${selectedBranch.id}`)
+            .then(res => res.json())
+            .then(data => {
+                setCatalogs(data);
+                setLoadingCatalogs(false);
+            })
+            .catch(() => setLoadingCatalogs(false));
+    }, [selectedBranch]);
+
+    useEffect(() => {
+        if (!visible) {
+            setCurrentStep(0);
+            form.resetFields(); // Limpia el formulario al cerrar
+        }
+    }, [visible, form]);
 
     const steps = [
         {
@@ -62,6 +103,21 @@ const ModeloForm = ({
     const next = async () => {
         try {
             const values = await form.validateFields();
+            
+            // Limpiar datos de imágenes antes de enviar
+            if (values.model_images && Array.isArray(values.model_images)) {
+                values.model_images = values.model_images
+                    .filter(img => img.status === 'done' && img.temp_id) // Solo imágenes subidas exitosamente
+                    .map(img => ({
+                        temp_id: img.temp_id,
+                        url: img.url,
+                        name: img.name,
+                        size: img.size,
+                        original_name: img.name
+                    }));
+                
+            }
+            
             setFormData({ ...formData, ...values });
             
             if (currentStep < steps.length - 1) {
@@ -92,16 +148,25 @@ const ModeloForm = ({
                     <div key="step-0">
                         <Title level={4}>Datos Personales</Title>
                         <Row gutter={16}>
-                            <Col span={12}>
+                            <Col span={8}>
                                 <Form.Item
-                                    label="Nombre completo"
-                                    name="nombre_completo"
+                                    label="Nombres"
+                                    name="nombres"
                                     rules={[{ required: true, message: 'Campo obligatorio' }]}
                                 >
-                                    <Input placeholder="Nombre completo" />
+                                    <Input placeholder="Nombres" />
                                 </Form.Item>
                             </Col>
-                            <Col span={12}>
+                            <Col span={8}>
+                                <Form.Item
+                                    label="Apellidos"
+                                    name="apellidos"
+                                    rules={[{ required: true, message: 'Campo obligatorio' }]}
+                                >
+                                    <Input placeholder="Apellidos" />
+                                </Form.Item>
+                            </Col>
+                            <Col span={8}>
                                 <Form.Item
                                     label="Número de identificación"
                                     name="numero_identificacion"
@@ -116,14 +181,13 @@ const ModeloForm = ({
                             <Col span={8}>
                                 <Form.Item
                                     label="Tipo de documento"
-                                    name="tipo_documento"
+                                    name="identification_type_id"
                                     rules={[{ required: true, message: 'Campo obligatorio' }]}
                                 >
-                                    <Select placeholder="Seleccione">
-                                        <Option value="cc">Cédula de Ciudadanía</Option>
-                                        <Option value="ce">Cédula de Extranjería</Option>
-                                        <Option value="ti">Tarjeta de Identidad</Option>
-                                        <Option value="pp">Pasaporte</Option>
+                                    <Select placeholder="Seleccione" loading={loadingCatalogs} allowClear>
+                                        {catalogs.identification_types.map(opt => (
+                                            <Option key={opt.id} value={opt.id}>{opt.name}</Option>
+                                        ))}
                                     </Select>
                                 </Form.Item>
                             </Col>
@@ -155,31 +219,26 @@ const ModeloForm = ({
                             <Col span={8}>
                                 <Form.Item
                                     label="Sexo"
-                                    name="sexo"
+                                    name="gender_id"
                                     rules={[{ required: true, message: 'Campo obligatorio' }]}
                                 >
-                                    <Select placeholder="Seleccione">
-                                        <Option value="femenino">Femenino</Option>
-                                        <Option value="masculino">Masculino</Option>
-                                        <Option value="otro">Otro</Option>
+                                    <Select placeholder="Seleccione" loading={loadingCatalogs} allowClear>
+                                        {catalogs.genders.map(opt => (
+                                            <Option key={opt.id} value={opt.id}>{opt.name}</Option>
+                                        ))}
                                     </Select>
                                 </Form.Item>
                             </Col>
                             <Col span={8}>
                                 <Form.Item
                                     label="G.S. RH"
-                                    name="grupo_sanguineo"
+                                    name="blood_type_id"
                                     rules={[{ required: true, message: 'Campo obligatorio' }]}
                                 >
-                                    <Select placeholder="Seleccione">
-                                        <Option value="a+">A+</Option>
-                                        <Option value="a-">A-</Option>
-                                        <Option value="b+">B+</Option>
-                                        <Option value="b-">B-</Option>
-                                        <Option value="ab+">AB+</Option>
-                                        <Option value="ab-">AB-</Option>
-                                        <Option value="o+">O+</Option>
-                                        <Option value="o-">O-</Option>
+                                    <Select placeholder="Seleccione" loading={loadingCatalogs} allowClear>
+                                        {catalogs.blood_types.map(opt => (
+                                            <Option key={opt.id} value={opt.id}>{opt.name}</Option>
+                                        ))}
                                     </Select>
                                 </Form.Item>
                             </Col>
@@ -219,24 +278,15 @@ const ModeloForm = ({
                         </Row>
 
                         <Form.Item
-                            label="Fotografía"
-                            name="fotografia"
-                            rules={[{ required: true, message: 'Campo obligatorio' }]}
+                            label="Imágenes del Modelo"
+                            name="model_images"
+                            rules={[]}
+                            valuePropName="value"
                         >
-                            <Upload
-                                listType="picture-card"
-                                maxCount={1}
-                                beforeUpload={() => false}
-                                fileList={form.getFieldValue('fotografia') || []}
-                                onChange={(info) => {
-                                    form.setFieldsValue({ fotografia: info.fileList });
-                                }}
-                            >
-                                <div>
-                                    <UploadOutlined />
-                                    <div style={{ marginTop: 8 }}>Subir foto</div>
-                                </div>
-                            </Upload>
+                            <ModelImageUploader
+                                value={form.getFieldValue('model_images') || []}
+                                onChange={imgs => form.setFieldsValue({ model_images: imgs })}
+                            />
                         </Form.Item>
                     </div>
                 );
@@ -312,13 +362,10 @@ const ModeloForm = ({
                                     name="cabello"
                                     rules={[{ required: true, message: 'Campo obligatorio' }]}
                                 >
-                                    <Select placeholder="Seleccione">
-                                        <Option value="negro">Negro</Option>
-                                        <Option value="castaño">Castaño</Option>
-                                        <Option value="rubio">Rubio</Option>
-                                        <Option value="pelirrojo">Pelirrojo</Option>
-                                        <Option value="gris">Gris</Option>
-                                        <Option value="blanco">Blanco</Option>
+                                    <Select placeholder="Seleccione" loading={loadingCatalogs} allowClear>
+                                        {catalogs.hair_colors.map(opt => (
+                                            <Option key={opt.id} value={opt.id}>{opt.name}</Option>
+                                        ))}
                                     </Select>
                                 </Form.Item>
                             </Col>
@@ -328,12 +375,10 @@ const ModeloForm = ({
                                     name="ojos"
                                     rules={[{ required: true, message: 'Campo obligatorio' }]}
                                 >
-                                    <Select placeholder="Seleccione">
-                                        <Option value="cafes">Cafés</Option>
-                                        <Option value="azules">Azules</Option>
-                                        <Option value="verdes">Verdes</Option>
-                                        <Option value="grises">Grises</Option>
-                                        <Option value="negros">Negros</Option>
+                                    <Select placeholder="Seleccione" loading={loadingCatalogs} allowClear>
+                                        {catalogs.eye_colors.map(opt => (
+                                            <Option key={opt.id} value={opt.id}>{opt.name}</Option>
+                                        ))}
                                     </Select>
                                 </Form.Item>
                             </Col>
@@ -343,11 +388,10 @@ const ModeloForm = ({
                                     name="piel"
                                     rules={[{ required: true, message: 'Campo obligatorio' }]}
                                 >
-                                    <Select placeholder="Seleccione">
-                                        <Option value="blanca">Blanca</Option>
-                                        <Option value="morena">Morena</Option>
-                                        <Option value="negra">Negra</Option>
-                                        <Option value="mestiza">Mestiza</Option>
+                                    <Select placeholder="Seleccione" loading={loadingCatalogs} allowClear>
+                                        {catalogs.skin_colors.map(opt => (
+                                            <Option key={opt.id} value={opt.id}>{opt.name}</Option>
+                                        ))}
                                     </Select>
                                 </Form.Item>
                             </Col>
@@ -357,12 +401,7 @@ const ModeloForm = ({
                                     name="calzado"
                                     rules={[{ required: true, message: 'Campo obligatorio' }]}
                                 >
-                                    <InputNumber 
-                                        placeholder="38" 
-                                        min={30} 
-                                        max={50}
-                                        style={{ width: '100%' }}
-                                    />
+                                    <Input placeholder="Ej: 38, 8US, 25MX, etc." />
                                 </Form.Item>
                             </Col>
                         </Row>
@@ -374,12 +413,7 @@ const ModeloForm = ({
                                     name="pantalon"
                                     rules={[{ required: true, message: 'Campo obligatorio' }]}
                                 >
-                                    <InputNumber 
-                                        placeholder="28" 
-                                        min={20} 
-                                        max={50}
-                                        style={{ width: '100%' }}
-                                    />
+                                    <Input placeholder="Ej: 28, S, 40, etc." />
                                 </Form.Item>
                             </Col>
                             <Col span={8}>
@@ -388,12 +422,7 @@ const ModeloForm = ({
                                     name="camisa"
                                     rules={[{ required: true, message: 'Campo obligatorio' }]}
                                 >
-                                    <InputNumber 
-                                        placeholder="M" 
-                                        min={1} 
-                                        max={20}
-                                        style={{ width: '100%' }}
-                                    />
+                                    <Input placeholder="Ej: M, L, 38, etc." />
                                 </Form.Item>
                             </Col>
                         </Row>
@@ -452,16 +481,25 @@ const ModeloForm = ({
                     <div key="step-2">
                         <Title level={4}>Datos de Acudiente</Title>
                         <Row gutter={16}>
-                            <Col span={12}>
+                            <Col span={8}>
                                 <Form.Item
-                                    label="Nombre completo"
-                                    name="acudiente_nombre"
+                                    label="Nombres"
+                                    name="acudiente_nombres"
                                     rules={[{ required: true, message: 'Campo obligatorio' }]}
                                 >
-                                    <Input placeholder="Nombre completo del acudiente" />
+                                    <Input placeholder="Nombres del acudiente" />
                                 </Form.Item>
                             </Col>
-                            <Col span={12}>
+                            <Col span={8}>
+                                <Form.Item
+                                    label="Apellidos"
+                                    name="acudiente_apellidos"
+                                    rules={[{ required: true, message: 'Campo obligatorio' }]}
+                                >
+                                    <Input placeholder="Apellidos del acudiente" />
+                                </Form.Item>
+                            </Col>
+                            <Col span={8}>
                                 <Form.Item
                                     label="Número de identificación"
                                     name="acudiente_identificacion"
@@ -488,14 +526,10 @@ const ModeloForm = ({
                                     name="acudiente_parentesco"
                                     rules={[{ required: true, message: 'Campo obligatorio' }]}
                                 >
-                                    <Select placeholder="Seleccione">
-                                        <Option value="padre">Padre</Option>
-                                        <Option value="madre">Madre</Option>
-                                        <Option value="hermano">Hermano/a</Option>
-                                        <Option value="tio">Tío/a</Option>
-                                        <Option value="abuelo">Abuelo/a</Option>
-                                        <Option value="tutor">Tutor legal</Option>
-                                        <Option value="otro">Otro</Option>
+                                    <Select placeholder="Seleccione" loading={loadingCatalogs} allowClear>
+                                        {catalogs.relationships.map(opt => (
+                                            <Option key={opt.id} value={opt.id}>{opt.name}</Option>
+                                        ))}
                                     </Select>
                                 </Form.Item>
                             </Col>
@@ -527,15 +561,14 @@ const ModeloForm = ({
                         <Row gutter={16}>
                             <Col span={12}>
                                 <Form.Item
-                                    label="Número de meses"
-                                    name="meses_suscripcion"
-                                    rules={[{ required: true, message: 'Campo obligatorio' }]}
+                                    label="Plan de suscripción"
+                                    name="subscription_plan_id"
+                                    rules={[{ required: true, message: 'Seleccione un plan' }]}
                                 >
-                                    <Select placeholder="Seleccione">
-                                        <Option value={1}>1 mes</Option>
-                                        <Option value={3}>3 meses</Option>
-                                        <Option value={6}>6 meses</Option>
-                                        <Option value={12}>12 meses</Option>
+                                    <Select placeholder="Seleccione" loading={loadingCatalogs} allowClear>
+                                        {catalogs.subscription_plans.map(opt => (
+                                            <Option key={opt.id} value={opt.id}>{opt.name}</Option>
+                                        ))}
                                     </Select>
                                 </Form.Item>
                             </Col>
@@ -545,15 +578,32 @@ const ModeloForm = ({
                                     name="medio_pago"
                                     rules={[{ required: true, message: 'Campo obligatorio' }]}
                                 >
-                                    <Select placeholder="Seleccione">
-                                        <Option value="efectivo">Efectivo</Option>
-                                        <Option value="tarjeta">Tarjeta de crédito/débito</Option>
-                                        <Option value="transferencia">Transferencia bancaria</Option>
-                                        <Option value="pse">PSE</Option>
+                                    <Select placeholder="Seleccione" loading={loadingCatalogs} allowClear>
+                                        {catalogs.payment_methods.map(opt => (
+                                            <Option key={opt.id} value={opt.id}>{opt.name}</Option>
+                                        ))}
                                     </Select>
                                 </Form.Item>
                             </Col>
                         </Row>
+
+                        {/* Campo de cantidad, solo si hay plan seleccionado */}
+                        <Form.Item
+                            noStyle
+                            shouldUpdate={(prev, curr) => prev.subscription_plan_id !== curr.subscription_plan_id}
+                        >
+                            {({ getFieldValue }) =>
+                                getFieldValue('subscription_plan_id') ? (
+                                    <Form.Item
+                                        label="Cantidad"
+                                        name="subscription_quantity"
+                                        rules={[{ required: true, message: 'Ingrese la cantidad' }]}
+                                    >
+                                        <InputNumber min={1} placeholder="Cantidad" style={{ width: '100%' }} />
+                                    </Form.Item>
+                                ) : null
+                            }
+                        </Form.Item>
 
                         <Row gutter={16}>
                             <Col span={12}>
@@ -622,19 +672,7 @@ const ModeloForm = ({
         }
     };
 
-    const contentStyle = {
-        height: 500,
-        overflowY: 'auto',
-        paddingRight: 8,
-        lineHeight: 'normal',
-        textAlign: 'left',
-        color: token.colorTextTertiary,
-        backgroundColor: token.colorFillAlter,
-        borderRadius: token.borderRadiusLG,
-        border: `1px dashed ${token.colorBorder}`,
-        marginTop: 16,
-        padding: 16,
-    };
+    const contentStyle = undefined; // Eliminamos el objeto de estilos en línea
 
     return (
         <Form
@@ -643,25 +681,25 @@ const ModeloForm = ({
             initialValues={initialValues}
             autoComplete="off"
         >
-            <Steps current={currentStep} items={items} onChange={handleStepClick} />
+            <Steps current={currentStep} items={items} />
             
-            <div style={contentStyle}>
+            <div className={styles.modeloFormContent}>
                 {renderStepContent()}
             </div>
             
-            <div style={{ marginTop: 24 }}>
+            <div className={styles.modeloFormButtons}>
                 {currentStep < steps.length - 1 && (
-                    <Button type="primary" onClick={() => next()}>
+                    <Button type="primary" onClick={() => next()} className={styles.modeloFormButton}>
                         Siguiente
                     </Button>
                 )}
                 {currentStep === steps.length - 1 && (
-                    <Button type="primary" onClick={() => next()}>
+                    <Button type="primary" onClick={() => next()} loading={loading} disabled={loading} className={styles.modeloFormButton}>
                         Finalizar Registro
                     </Button>
                 )}
                 {currentStep > 0 && (
-                    <Button style={{ margin: '0 8px' }} onClick={() => prev()}>
+                    <Button className={styles.modeloFormButton} style={{ margin: '0 8px' }} onClick={() => prev()}>
                         Anterior
                     </Button>
                 )}

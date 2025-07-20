@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -32,6 +33,21 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
+
+            // Log de roles y permisos del usuario
+            $user = Auth::user();
+            $directPermissions = $user->permissions->pluck('name')->toArray();
+            $rolePermissions = $user->roles->flatMap(function ($role) {
+                return $role->permissions->pluck('name');
+            })->unique()->values()->toArray();
+
+            Log::info('Usuario autenticado', [
+                'id' => $user->id,
+                'email' => $user->email,
+                'roles' => $user->roles->pluck('name')->toArray(),
+                'permisos_directos' => $directPermissions,
+                'permisos_por_rol' => $rolePermissions,
+            ]);
 
             return redirect()->intended('/admin/dashboard');
         }

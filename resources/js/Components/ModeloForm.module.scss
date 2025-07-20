@@ -1,0 +1,53 @@
+.modeloFormContent {
+  min-height: 75vh;
+  max-height: 75vh;
+  height: auto;
+  overflow-y: auto;
+  padding: 1.5vw;
+  line-height: normal;
+  text-align: left;
+  background-color: var(--cmm-bg-primary);
+  border-radius: var(--cmm-radius-lg);
+  border: 1px dashed var(--cmm-border-primary);
+  margin-top: 16px;
+  margin-bottom: 0;
+  color: var(--cmm-text-primary);
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--cmm-text-secondary); // Un gris más oscuro
+    opacity: 1;
+  }
+
+  // Placeholder de los Select de Ant Design
+  :global(.ant-select-selection-placeholder) {
+    color: var(--cmm-text-secondary) !important;
+    opacity: 1 !important;
+  }
+
+    // Placeholder de los InputNumber de Ant Design
+    :global(.ant-input-number-input::placeholder) {
+        color: var(--cmm-text-secondary) !important;
+        opacity: 1 !important;
+      }
+}
+
+.modeloFormButtons {
+  margin-top: 24px;
+  margin-bottom: 8px;
+  display: flex;
+  gap: 12px;
+}
+
+.modeloFormButton {
+  padding: 6px 18px;
+  font-size: 16px;
+  background-color: var(--cmm-primary-600);
+  color: var(--cmm-text-light);
+  border-radius: var(--cmm-radius-md);
+  border: none;
+  transition: background var(--cmm-transition-normal);
+  &:hover {
+    background-color: var(--cmm-primary-700);
+  }
+} 

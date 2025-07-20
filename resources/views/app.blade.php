@@ -11,6 +11,7 @@
     
     <!-- Inertia maneja el head -->
     @inertiaHead
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body>
     <!-- Aquí es donde Inertia monta React -->

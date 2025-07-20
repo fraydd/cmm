@@ -14,8 +14,13 @@ const themes = {
     '--cmm-primary-900': '#1a2a3a',
     '--cmm-accent': '#ECEFCA',
     '--cmm-success': '#16a34a',
+    '--cmm-success-500': '#16a34a',
     '--cmm-warning': '#d97706',
+    '--cmm-warning-500': '#d97706',
     '--cmm-error': '#dc2626',
+    '--cmm-error-500': '#dc2626',
+    '--cmm-info': '#3b82f6',
+    '--cmm-info-500': '#3b82f6',
     '--cmm-bg-primary': '#f8fafc',
     '--cmm-bg-secondary': '#ffffff',
     '--cmm-bg-sidebar': '#1a2a3a',
@@ -23,6 +28,11 @@ const themes = {
     '--cmm-text-primary': '#213448',
     '--cmm-text-secondary': '#547792',
     '--cmm-text-sidebar': '#ECEFCA',
+    '--cmm-table-hover': '#f1f5f9',
+    '--cmm-table-header': '#e2e8f0',
+    '--cmm-table-header-hover': '#cbd5e1',
+    '--cmm-border-color': '#e2e8f0',
+    '--cmm-shadow-color': 'rgba(0, 0, 0, 0.1)',
   },
   dark: {
     // Tema oscuro exclusivamente en escala de grises
@@ -38,8 +48,13 @@ const themes = {
     '--cmm-primary-900': '#171717',   // Extremadamente oscuro
     '--cmm-accent': '#ffffff',        // Blanco puro para acentos
     '--cmm-success': '#22c55e',       // Verde (mantener para estados)
+    '--cmm-success-500': '#22c55e',   // Verde (mantener para estados)
     '--cmm-warning': '#f59e0b',       // Naranja (mantener para estados)
+    '--cmm-warning-500': '#f59e0b',   // Naranja (mantener para estados)
     '--cmm-error': '#ef4444',         // Rojo (mantener para estados)
+    '--cmm-error-500': '#ef4444',     // Rojo (mantener para estados)
+    '--cmm-info': '#3b82f6',          // Azul (mantener para estados)
+    '--cmm-info-500': '#3b82f6',      // Azul (mantener para estados)
     '--cmm-bg-primary': '#171717',    // Fondo principal muy oscuro
     '--cmm-bg-secondary': '#262626',  // Fondo secundario oscuro
     '--cmm-bg-sidebar': '#171717',    // Sidebar muy oscuro
@@ -47,6 +62,11 @@ const themes = {
     '--cmm-text-primary': '#ffffff',  // Texto principal blanco
     '--cmm-text-secondary': '#d4d4d4', // Texto secundario gris claro
     '--cmm-text-sidebar': '#ffffff',  // Texto sidebar blanco
+    '--cmm-table-hover': '#404040',   // Gris oscuro elegante para hover en modo oscuro
+    '--cmm-table-header': '#171717',  // Header más oscuro que el fondo secundario
+    '--cmm-table-header-hover': '#262626', // Hover del header en modo oscuro
+    '--cmm-border-color': '#404040',  // Borde en modo oscuro
+    '--cmm-shadow-color': 'rgba(0, 0, 0, 0.3)', // Sombra más intensa en modo oscuro
   },
   blue: {
     // Tema azul (nuevo tema)
@@ -62,8 +82,13 @@ const themes = {
     '--cmm-primary-900': '#1e3a8a',
     '--cmm-accent': '#fef3c7',
     '--cmm-success': '#16a34a',
+    '--cmm-success-500': '#16a34a',
     '--cmm-warning': '#d97706',
+    '--cmm-warning-500': '#d97706',
     '--cmm-error': '#dc2626',
+    '--cmm-error-500': '#dc2626',
+    '--cmm-info': '#3b82f6',
+    '--cmm-info-500': '#3b82f6',
     '--cmm-bg-primary': '#f8fafc',
     '--cmm-bg-secondary': '#ffffff',
     '--cmm-bg-sidebar': '#1e3a8a',
@@ -71,6 +96,11 @@ const themes = {
     '--cmm-text-primary': '#1e40af',
     '--cmm-text-secondary': '#3b82f6',
     '--cmm-text-sidebar': '#fef3c7',
+    '--cmm-table-hover': '#dbeafe',
+    '--cmm-table-header': '#bfdbfe',
+    '--cmm-table-header-hover': '#93c5fd',
+    '--cmm-border-color': '#bfdbfe',
+    '--cmm-shadow-color': 'rgba(59, 130, 246, 0.1)',
   },
 };
 
