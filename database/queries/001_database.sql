@@ -583,6 +583,7 @@ CREATE TABLE `attendance_records` (
   `check_in` timestamp NOT NULL,
   `check_out` timestamp NULL,
   `observations` text NULL,
+   `is_closed` boolean NOT NULL DEFAULT false,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),

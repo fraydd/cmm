@@ -18,6 +18,7 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')->hourly();
         $schedule->command('modelos:clean-temp-images')->daily();
+        $schedule->command('attendance:close-open')->dailyAt('00:00');
     }
 
     /**

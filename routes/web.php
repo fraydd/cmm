@@ -85,3 +85,9 @@ Route::prefix('admin')->middleware(['auth', 'verified'])->group(function () {
         ->name('admin.attendance.destroy')
         ->middleware('can:delete_attendance');
 });
+
+// Rutas de checkin (admin)
+Route::prefix('admin')->middleware(['auth', 'verified'])->group(function () {
+    Route::get('checkin', [\App\Http\Controllers\Admin\CheckinController::class, 'index'])->name('admin.checkin.index');
+    Route::post('checkin', [\App\Http\Controllers\Admin\CheckinController::class, 'store'])->name('admin.checkin.store');
+});

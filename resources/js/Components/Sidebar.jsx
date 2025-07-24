@@ -8,7 +8,8 @@ import {
     SettingOutlined,
     MailOutlined,
     SkinOutlined,
-    ClockCircleOutlined
+    ClockCircleOutlined,
+    CheckCircleOutlined
 } from '@ant-design/icons';
 import { router, usePage } from '@inertiajs/react';
 import { usePermissions } from '../hooks/usePermissions';
@@ -113,10 +114,23 @@ const Sidebar = forwardRef(({ collapsed, auth, onToggle }, ref) => {
             onClick: () => router.visit('/admin/invitaciones')
         },
         {
-            key: 'asistencias',
+            key: 'asistencia',
+            label: 'Asistencia',
             icon: <ClockCircleOutlined />,
-            label: 'Asistencias',
-            onClick: () => router.visit('/admin/asistencias')
+            children: [
+                {
+                    key: 'checkin',
+                    label: 'Check-in',
+                    icon: <CheckCircleOutlined />,
+                    onClick: () => router.visit('/admin/checkin')
+                },
+                {
+                    key: 'asistencias',
+                    label: 'Asistencias',
+                    icon: <ClockCircleOutlined />,
+                    onClick: () => router.visit('/admin/asistencias')
+                }
+            ]
         },
         {
             key: 'caja',
