@@ -9,7 +9,8 @@ import {
     MailOutlined,
     SkinOutlined,
     ClockCircleOutlined,
-    CheckCircleOutlined
+    CheckCircleOutlined,
+    IdcardOutlined
 } from '@ant-design/icons';
 import { router, usePage } from '@inertiajs/react';
 import { usePermissions } from '../hooks/usePermissions';
@@ -44,8 +45,12 @@ const Sidebar = forwardRef(({ collapsed, auth, onToggle }, ref) => {
         } else if (path.includes('/admin/modelos')) {
             setSelectedKeys(['modelos.index']);
             setOpenKeys(['modelos']);
+        } else if (path.includes('/admin/empleados')) {
+            setSelectedKeys(['empleados.index']);
+            setOpenKeys(['empleados']);
         } else if (path.includes('/admin/invitaciones')) {
-            setSelectedKeys(['invitaciones']);
+            setSelectedKeys(['empleados.invitaciones']);
+            setOpenKeys(['empleados']);
         } else if (path.includes('/admin/caja')) {
             setSelectedKeys(['caja.index']);
             setOpenKeys(['caja']);
@@ -108,10 +113,21 @@ const Sidebar = forwardRef(({ collapsed, auth, onToggle }, ref) => {
             ]
         },
         {
-            key: 'invitaciones',
-            icon: <MailOutlined />,
-            label: 'Invitaciones',
-            onClick: () => router.visit('/admin/invitaciones')
+            key: 'empleados',
+            icon: <IdcardOutlined />,
+            label: 'Empleados',
+            children: [
+                { 
+                    key: 'empleados.index', 
+                    label: 'Lista de Empleados',
+                    onClick: () => router.visit('/admin/empleados')
+                },
+                { 
+                    key: 'empleados.invitaciones', 
+                    label: 'Invitaciones',
+                    onClick: () => router.visit('/admin/invitaciones')
+                }
+            ]
         },
         {
             key: 'asistencia',
@@ -189,7 +205,7 @@ const Sidebar = forwardRef(({ collapsed, auth, onToggle }, ref) => {
         if (item.key === 'dashboard') return true;
         if (item.key === 'settings') return true; // Configuración disponible para todos
         if (item.key === 'modelos') return can('view_modelos');
-        if (item.key === 'invitaciones') return can('view_invitations');
+        if (item.key === 'empleados') return can('view_employees') || can('view_invitations');
         if (item.key === 'caja') return can('view_caja');
         if (item.key === 'academia') return can('view_academia');
         return true;

@@ -1,0 +1,167 @@
+.employeeFormContent {
+  min-height: 75vh;
+  max-height: 75vh;
+  height: auto;
+  overflow-y: auto;
+  padding: 1.5vw;
+  line-height: normal;
+  text-align: left;
+  background-color: var(--cmm-bg-primary);
+  border-radius: var(--cmm-radius-lg);
+  border: 1px dashed var(--cmm-border-primary);
+  margin-top: 16px;
+  margin-bottom: 0;
+  color: var(--cmm-text-primary);
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--cmm-text-placeholder) !important;
+    opacity: 1;
+  }
+
+  // Placeholder de los Select de Ant Design
+  :global(.ant-select-selection-placeholder) {
+    color: var(--cmm-text-placeholder) !important;
+    opacity: 1 !important;
+  }
+
+    // Placeholder de los InputNumber de Ant Design
+    :global(.ant-input-number-input::placeholder) {
+        color: var(--cmm-text-placeholder) !important;
+        opacity: 1 !important;
+      }
+
+  // Placeholder de los DatePicker de Ant Design
+  :global(.ant-picker-input > input::placeholder) {
+    color: var(--cmm-text-placeholder) !important;
+    opacity: 1 !important;
+  }
+}
+
+.employeeFormButtons {
+  margin-top: 24px;
+  margin-bottom: 8px;
+  display: flex;
+  gap: 12px;
+}
+
+.employeeFormButton {
+  padding: 6px 18px;
+  font-size: 16px;
+  background-color: var(--cmm-primary-600);
+  color: var(--cmm-text-light);
+  border-radius: var(--cmm-radius-md);
+  border: none;
+  transition: background var(--cmm-transition-normal);
+  &:hover {
+    background-color: var(--cmm-primary-700) !important;
+  }
+}
+/* Overrides para formularios usando variables CSS del tema */
+.employeeFormContent :global(.ant-form-item-label > label) {
+  color: var(--cmm-text-primary) !important;
+  font-weight: 500;
+}
+
+/* Placeholders específicos con alta especificidad */
+.employeeFormContent :global(.ant-input::placeholder),
+.employeeFormContent :global(.ant-input-number-input::placeholder),
+.employeeFormContent :global(.ant-picker-input input::placeholder) {
+  color: var(--cmm-text-placeholder) !important;
+  opacity: 1 !important;
+}
+
+.employeeFormContent :global(.ant-select-selection-placeholder) {
+  color: var(--cmm-text-placeholder) !important;
+  opacity: 1 !important;
+}
+
+.employeeFormContent :global(.ant-input),
+.employeeFormContent :global(.ant-select-selector),
+.employeeFormContent :global(.ant-picker),
+.employeeFormContent :global(.ant-input-number) {
+  border-color: var(--cmm-border-color) !important;
+  background-color: var(--cmm-bg-primary) !important;
+  color: var(--cmm-text-primary) !important;
+}
+
+.employeeFormContent :global(.ant-input:hover),
+.employeeFormContent :global(.ant-select-selector:hover),
+.employeeFormContent :global(.ant-picker:hover),
+.employeeFormContent :global(.ant-input-number:hover) {
+  border-color: var(--cmm-primary-400) !important;
+}
+
+.employeeFormContent :global(.ant-input:focus),
+.employeeFormContent :global(.ant-select-focused .ant-select-selector),
+.employeeFormContent :global(.ant-picker-focused),
+.employeeFormContent :global(.ant-input-number-focused) {
+  border-color: var(--cmm-primary-500) !important;
+  box-shadow: 0 0 0 2px rgba(var(--cmm-primary-rgb), 0.2) !important;
+}
+
+/* Select dropdowns */
+.employeeFormContent :global(.ant-select-dropdown) {
+  background-color: var(--cmm-bg-primary) !important;
+  border: 1px solid var(--cmm-border-color) !important;
+}
+
+.employeeFormContent :global(.ant-select-item) {
+  color: var(--cmm-text-primary) !important;
+}
+
+.employeeFormContent :global(.ant-select-item:hover) {
+  background-color: var(--cmm-primary-50) !important;
+}
+
+.employeeFormContent :global(.ant-select-item-option-selected) {
+  background-color: var(--cmm-primary-100) !important;
+  color: var(--cmm-primary-600) !important;
+}
+
+/* Date picker */
+.employeeFormContent :global(.ant-picker-dropdown) {
+  background-color: var(--cmm-bg-primary) !important;
+  border: 1px solid var(--cmm-border-color) !important;
+}
+
+.employeeFormContent :global(.ant-picker-cell-in-view) {
+  color: var(--cmm-text-primary) !important;
+}
+
+.employeeFormContent :global(.ant-picker-cell:hover .ant-picker-cell-inner) {
+  background-color: var(--cmm-primary-50) !important;
+}
+
+.employeeFormContent :global(.ant-picker-cell-selected .ant-picker-cell-inner) {
+  background-color: var(--cmm-primary-500) !important;
+}
+
+/* Radio buttons */
+.employeeFormContent :global(.ant-radio-wrapper) {
+  color: var(--cmm-text-primary) !important;
+}
+
+.employeeFormContent :global(.ant-radio-checked .ant-radio-inner) {
+  background-color: var(--cmm-primary-500) !important;
+  border-color: var(--cmm-primary-500) !important;
+}
+
+/* TextArea */
+.employeeFormContent :global(.ant-input) {
+  background-color: var(--cmm-bg-primary) !important;
+  border-color: var(--cmm-border-color) !important;
+  color: var(--cmm-text-primary) !important;
+}
+
+/* Input Number formatting */
+.employeeFormContent :global(.ant-input-number-input) {
+  color: var(--cmm-text-primary) !important;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .employeeFormContent {
+    padding: 1vw;
+  }
+}

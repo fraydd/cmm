@@ -1,5 +1,5 @@
 /* CONTENEDOR PADRE - Grid Principal (5 columnas × 10 filas) */
-.modelosPage {
+.empleadosPage {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   grid-template-rows: repeat(10, 1fr);
@@ -38,7 +38,7 @@
   grid-area: 1 / 1 / 2 / 6;
   padding: 16px;
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 2fr;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
   gap: 16px;
   align-items: center;
 }
@@ -100,22 +100,6 @@
   align-items: center;
 }
 
-.visibleButton {
-  opacity: 1;
-  visibility: visible;
-  transition: opacity 0.2s ease, visibility 0.2s ease;
-}
-
-.hiddenButton {
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.2s ease, visibility 0.2s ease;
-}
-
-.selectedCount {
-  color: var(--cmm-primary-600);
-}
-
 /* Estilos globales para evitar scroll en contenedores padres */
 :global(.ant-layout-content) {
   overflow: hidden !important;
@@ -153,19 +137,7 @@
   background-color: var(--cmm-table-header-hover) !important;
 }
 
-// Mantener el fondo de las celdas del cuerpo cuando se ordena la columna
-:global(.ant-table-wrapper .ant-table-tbody > tr > td.ant-table-column-sort),
-:global(.ant-table .ant-table-tbody > tr > td.ant-table-column-sort) {
-  background-color: transparent !important;
-}
-
-:global(.ant-table-wrapper .ant-table-tbody > tr:hover > td.ant-table-column-sort),
-:global(.ant-table .ant-table-tbody > tr:hover > td.ant-table-column-sort) {
-  background-color: var(--cmm-table-hover) !important;
-  transition: background-color 0.1s ease !important;
-}
-
-// Cuerpo de la tabla - Forzar color base y controlar transiciones
+// Filas de la tabla - Forzar color base y controlar transiciones
 :global(.ant-table-wrapper .ant-table-tbody > tr),
 :global(.ant-table .ant-table-tbody > tr) {
   background-color: var(--cmm-table-row) !important;
@@ -175,7 +147,12 @@
 :global(.ant-table-wrapper .ant-table-tbody > tr > td),
 :global(.ant-table .ant-table-tbody > tr > td) {
   background-color: var(--cmm-table-row) !important;
-  border-bottom: 1px solid var(--cmm-primary-200) !important;
+  transition: background-color 0.1s ease !important;
+}
+
+:global(.ant-table-wrapper .ant-table-tbody > tr:hover > td.ant-table-column-sort),
+:global(.ant-table .ant-table-tbody > tr:hover > td.ant-table-column-sort) {
+  background-color: var(--cmm-table-hover) !important;
   transition: background-color 0.1s ease !important;
 }
 
@@ -185,105 +162,54 @@
   transition: background-color 0.1s ease !important;
 }
 
+:global(.ant-table-wrapper .ant-table-tbody > tr:hover),
+:global(.ant-table .ant-table-tbody > tr:hover) {
+  background-color: var(--cmm-table-hover) !important;
+  transition: background-color 0.1s ease !important;
+}
+
+// Filas seleccionadas
 :global(.ant-table-wrapper .ant-table-tbody > tr.ant-table-row-selected > td),
 :global(.ant-table .ant-table-tbody > tr.ant-table-row-selected > td) {
   background-color: var(--cmm-table-hover) !important;
-  transition: background-color 0.1s ease !important;
 }
 
 :global(.ant-table-wrapper .ant-table-tbody > tr.ant-table-row-selected:hover > td),
 :global(.ant-table .ant-table-tbody > tr.ant-table-row-selected:hover > td) {
   background-color: var(--cmm-table-hover) !important;
-  transition: background-color 0.1s ease !important;
+}
+
+// Bordes de la tabla
+:global(.ant-table-wrapper .ant-table),
+:global(.ant-table) {
+  border: 1px solid var(--cmm-border-color) !important;
+}
+
+:global(.ant-table-wrapper .ant-table-tbody > tr > td),
+:global(.ant-table .ant-table-tbody > tr > td) {
+  border-bottom: 1px solid var(--cmm-border-light) !important;
 }
 
 // Paginación
-:global(.ant-pagination-item) {
-  background-color: var(--cmm-bg-secondary) !important;
-  border-color: var(--cmm-primary-200) !important;
-}
-
-:global(.ant-pagination-item a) {
-  color: var(--cmm-text-primary) !important;
-}
-
-:global(.ant-pagination-item:hover) {
-  border-color: var(--cmm-primary-400) !important;
-}
-
-:global(.ant-pagination-item-active) {
-  background-color: var(--cmm-primary-500) !important;
-  border-color: var(--cmm-primary-500) !important;
-}
-
-:global(.ant-pagination-item-active a) {
-  color: var(--cmm-accent) !important;
-}
-
-:global(.ant-pagination-prev),
-:global(.ant-pagination-next) {
-  color: var(--cmm-text-primary) !important;
-}
-
-:global(.ant-pagination-prev:hover),
-:global(.ant-pagination-next:hover) {
-  color: var(--cmm-primary-500) !important;
-}
-
-// Checkboxes de selección
-:global(.ant-checkbox-inner) {
-  background-color: var(--cmm-bg-secondary) !important;
-  border-color: var(--cmm-primary-200) !important;
-}
-
-:global(.ant-checkbox-checked .ant-checkbox-inner) {
-  background-color: var(--cmm-primary-500) !important;
-  border-color: var(--cmm-primary-500) !important;
-}
-
-// Select de paginación
-:global(.ant-pagination-options .ant-select .ant-select-selector) {
-  background-color: var(--cmm-bg-secondary) !important;
-  border-color: var(--cmm-primary-200) !important;
-  color: var(--cmm-text-primary) !important;
-}
-
-// Dropdown del selector de tamaño de página
-:global(.ant-pagination-options .ant-select-dropdown) {
-  background-color: var(--cmm-bg-secondary) !important;
-  border-color: var(--cmm-primary-200) !important;
-}
-
-:global(.ant-pagination-options .ant-select-dropdown .ant-select-item) {
-  color: var(--cmm-text-primary) !important;
-  background-color: var(--cmm-bg-secondary) !important;
-}
-
-:global(.ant-pagination-options .ant-select-dropdown .ant-select-item:hover) {
-  background-color: var(--cmm-table-hover) !important;
-}
-
-:global(.ant-pagination-options .ant-select-dropdown .ant-select-item-option-selected) {
-  background-color: var(--cmm-primary-500) !important;
-  color: var(--cmm-accent) !important;
-}
-
-:global(.ant-pagination-options .ant-select-dropdown .ant-select-item-option-active) {
-  background-color: var(--cmm-table-hover) !important;
-}
-
-// Asegurar que el dropdown sea visible
-:global(.ant-pagination-options .ant-select-dropdown) {
-  z-index: 1050 !important;
-}
-
-:global(.ant-pagination-options .ant-select) {
-  min-width: 80px !important;
-}
-
-// Estilos para el texto del selector
-:global(.ant-pagination-options .ant-select-selection-item) {
-  color: var(--cmm-text-primary) !important;
+:global(.ant-pagination) {
+  .ant-pagination-item {
+    border-color: var(--cmm-border-color);
+    
+    &.ant-pagination-item-active {
+      background-color: var(--cmm-primary-500);
+      border-color: var(--cmm-primary-500);
+    }
+  }
+  
+  .ant-pagination-prev,
+  .ant-pagination-next {
+    border-color: var(--cmm-border-color);
+    
+    &:hover {
+      color: var(--cmm-primary-500);
+      border-color: var(--cmm-primary-500);
+    }
+  }
 }
 
 // Estilos personalizados para los tags de estado
@@ -305,6 +231,18 @@
   color: #ff4d4f !important;
 }
 
+:global(.ant-tag.ant-tag-blue) {
+  background-color: transparent !important;
+  border-color: #1890ff !important;
+  color: #1890ff !important;
+}
+
+:global(.ant-tag.ant-tag-default) {
+  background-color: transparent !important;
+  border-color: var(--cmm-border-color) !important;
+  color: var(--cmm-text-secondary) !important;
+}
+
 // Estilos para modo oscuro
 :global([data-theme="dark"] .ant-tag.ant-tag-success) {
   background-color: transparent !important;
@@ -324,24 +262,42 @@
   color: #ef4444 !important;
 }
 
-// Botones de acción con variables CSS dinámicas
+:global([data-theme="dark"] .ant-tag.ant-tag-blue) {
+  background-color: transparent !important;
+  border-color: #3b82f6 !important;
+  color: #3b82f6 !important;
+}
+
+:global([data-theme="dark"] .ant-tag.ant-tag-default) {
+  background-color: transparent !important;
+  border-color: var(--cmm-border-color) !important;
+  color: var(--cmm-text-secondary) !important;
+}
+
+// Tags personalizados generales
+:global(.ant-tag) {
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+// Botones de acción con variables CSS apropiadas
 .tableContainer :global(.ant-btn-text) {
   background-color: transparent !important;
   
   &:hover {
     background-color: var(--cmm-table-hover) !important;
-    color: var(--cmm-primary-400) !important; // Color más claro
+    color: var(--cmm-primary-600) !important;
   }
   
   &.ant-btn-dangerous:hover {
     background-color: var(--cmm-table-hover) !important;
-    color: #ff7875 !important; // Rojo más claro/brillante para eliminar
+    color: var(--cmm-error) !important;
   }
 }
 
 // Estilos para campos de filtros
 .filtersSection {
-  // Inputs con wrapper (como búsqueda)
+  // Inputs con wrapper (como búsqueda y filtro por cargo)
   :global(.ant-input-affix-wrapper) {
     border-color: var(--cmm-border-input) !important;
     
@@ -446,5 +402,40 @@
       border-color: var(--cmm-primary-500) !important;
       box-shadow: 0 0 0 2px rgba(84, 119, 146, 0.1) !important;
     }
+  }
+}
+
+// Responsive design
+@media (max-width: 1200px) {
+  .filtersSection {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .headerSection {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 768px) {
+  .bulkActionsSection {
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+  }
+  
+  .bulkActionsLeft,
+  .bulkActionsRight {
+    justify-content: center;
+  }
+  
+  .tableContainer {
+    padding: 0 8px;
+  }
+  
+  .paginationContainer {
+    padding: 8px;
   }
 }

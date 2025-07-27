@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB; // Added this import for DB facade
+use Illuminate\Support\Facades\Log; // Added for logging
 
 class CheckinController extends Controller
 {
@@ -18,6 +19,14 @@ class CheckinController extends Controller
     // Registrar un nuevo check-in (aún sin lógica)
     public function store(Request $request)
     {
+        // Log de debugging
+        Log::info('=== CHECK-IN REQUEST ===', [
+            'all_data' => $request->all(),
+            'identification' => $request->input('identification_number'),
+            'branch_id' => $request->input('branch_id'),
+            'branch_id_type' => gettype($request->input('branch_id'))
+        ]);
+
         $identification = $request->input('identification_number');
         $branchId = $request->input('branch_id');
         if (!$identification) {
@@ -117,6 +126,43 @@ class CheckinController extends Controller
     // Check-in para modelos: solo check-in y cerrar
     private function checkinModelo($modelo, $person, $branchId)
     {
+        Log::info('=== CHECK-IN MODELO ===', [
+            'model_id' => $modelo->id,
+            'person_id' => $person->id,
+            'branch_id' => $branchId,
+            'nombre_completo' => $person->first_name . ' ' . $person->last_name,
+            'identification_number' => $person->identification_number
+        ]);
+
+        // Verificar si el modelo tiene una suscripción activa con acceso a esta sede
+        $subscription = DB::table('models as m')
+            ->join('subscriptions as s', 'm.id', '=', 's.model_id')
+            ->join('subscription_branch_access as sba', 's.id', '=', 'sba.subscription_id')
+            ->where('m.id', $modelo->id)
+            ->where('sba.branch_id', $branchId)
+            ->where('s.start_date', '<=', now()->toDateString())
+            ->where('s.end_date', '>=', now()->toDateString())
+            ->select('s.id as subscription_id', 's.end_date', 's.start_date', 's.status')
+            ->first();
+
+        if (!$subscription) {
+            Log::warning('=== ACCESO DENEGADO - MODELO SIN SUSCRIPCIÓN VÁLIDA ===', [
+                'model_id' => $modelo->id,
+                'branch_id' => $branchId,
+                'nombre_completo' => $person->first_name . ' ' . $person->last_name
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'No tienes una suscripción activa que te permita acceso a esta sede. Contacta con administración.'
+            ], 403);
+        }
+
+        Log::info('=== SUSCRIPCIÓN VÁLIDA ENCONTRADA ===', [
+            'subscription_id' => $subscription->subscription_id,
+            'end_date' => $subscription->end_date
+        ]);
+
         DB::table('attendance_records')->insert([
             'branch_id' => $branchId,
             'employee_id' => null,
@@ -134,7 +180,8 @@ class CheckinController extends Controller
             'type' => 'model',
             'data' => [
                 'nombre' => $person->first_name . ' ' . $person->last_name,
-                // 'suscripcion_restante' => ...
+                'subscription_end_date' => $subscription->end_date,
+                'subscription_id' => $subscription->subscription_id
             ]
         ]);
     }

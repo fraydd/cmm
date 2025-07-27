@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { App } from 'antd';
-import { Button, Space, Typography, Table, Tag, Empty, Input, Select, DatePicker, Tooltip, Popconfirm, message, Pagination } from 'antd';
+import { Card, Button, Space, Typography, Table, Tag, Empty, Divider, Alert, Row, Col, Input, Select, DatePicker, Tooltip, Popconfirm, message, Pagination } from 'antd';
 import { 
     PlusOutlined, 
     UserOutlined, 
+    CheckCircleOutlined, 
+    ExclamationCircleOutlined, 
+    InfoCircleOutlined,
     SearchOutlined,
     FilterOutlined,
     ClearOutlined,
@@ -11,30 +14,35 @@ import {
     EditOutlined,
     EyeOutlined,
     ReloadOutlined,
-    CheckOutlined
+    CheckOutlined,
+    TeamOutlined
 } from '@ant-design/icons';
-import { useNotifications } from '../../hooks/useNotifications.jsx';
-import ModeloModal from '../../Components/ModeloModal.jsx';
-import AdminLayout from '../../Layouts/AdminLayout';
+import { useNotifications } from '../../../hooks/useNotifications.jsx';
+import EmployeeModal from '../../../Components/EmployeeModal.jsx';
+import AdminLayout from '../../../Layouts/AdminLayout';
 import styles from './Index.module.scss';
 
 const { Title, Text } = Typography;
 
-export default function Index({ modelos = [], debug_info }) {
-    const { showSuccess, showError } = useNotifications();
+export default function Index({ empleados = [] }) {
+    const { notification } = App.useApp();
+    const { showSuccess, showError, showInfo, showWarning } = useNotifications();
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [loading, setLoading] = useState(false);
     const [selectedRowKeys, setSelectedRowKeys] = useState([]);
-    const [filteredData, setFilteredData] = useState(Array.isArray(modelos) ? modelos : []);
+    const [data, setData] = useState(Array.isArray(empleados) ? empleados : []); // Datos originales
+    const [filteredData, setFilteredData] = useState(Array.isArray(empleados) ? empleados : []);
     const [filters, setFilters] = useState({
         search: '',
+        estado: '',
+        cargo: '',
         fechaDesde: null,
         fechaHasta: null
     });
     const [pagination, setPagination] = useState({
         current: 1,
         pageSize: 15,
-        total: 0
+        total: Array.isArray(empleados) ? empleados.length : 0
     });
     const [sorting, setSorting] = useState({
         field: null,
@@ -43,22 +51,18 @@ export default function Index({ modelos = [], debug_info }) {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [isUpdated, setIsUpdated] = useState(false);
 
-    // Actualizar datos filtrados cuando cambian los modelos
+    // Actualizar datos filtrados cuando cambian los empleados
     useEffect(() => {
-        // Validación robusta de datos
-        const validModelos = Array.isArray(modelos) ? modelos.filter(model => 
-            model && 
-            typeof model === 'object' && 
-            (model.id !== undefined && model.id !== null && model.id !== '')
-        ) : [];
+        // Validar y limpiar datos antes de establecerlos
+        const validEmployees = Array.isArray(empleados) ? empleados.filter(emp => emp && emp.id) : [];
         
-        setFilteredData(validModelos);
+        setData(validEmployees); // Actualizar datos originales
+        setFilteredData(validEmployees);
         setPagination(prev => ({
             ...prev,
-            total: validModelos.length,
-            current: Math.max(1, prev.current) // Asegurar que current nunca sea menor a 1
+            total: validEmployees.length
         }));
-    }, [modelos]);
+    }, [empleados]);
 
     // Función para aplicar ordenamiento global
     const applySorting = (data) => {
@@ -72,13 +76,15 @@ export default function Index({ modelos = [], debug_info }) {
 
             // Manejar diferentes tipos de datos
             switch (sorting.field) {
-                case 'fecha_creacion':
-                    aValue = a?.fecha_creacion ? new Date(a.fecha_creacion) : new Date(0);
-                    bValue = b?.fecha_creacion ? new Date(b.fecha_creacion) : new Date(0);
+                case 'fecha_contratacion':
+                    aValue = a?.fecha_contratacion ? new Date(a.fecha_contratacion) : new Date(0);
+                    bValue = b?.fecha_contratacion ? new Date(b.fecha_contratacion) : new Date(0);
                     break;
                 case 'nombre':
-                case 'version':
-                case 'descripcion':
+                case 'cargo':
+                case 'identificacion':
+                case 'telefono':
+                case 'email':
                 case 'estado':
                     aValue = aValue.toString().toLowerCase();
                     bValue = bValue.toString().toLowerCase();
@@ -99,34 +105,38 @@ export default function Index({ modelos = [], debug_info }) {
         });
     };
 
-    // Función para aplicar filtros con ordenamiento global
+    // Función para aplicar filtros
     const applyFilters = () => {
-        // Validación inicial de datos
-        const validModelos = Array.isArray(modelos) ? modelos.filter(model => 
-            model && 
-            typeof model === 'object' && 
-            (model.id !== undefined && model.id !== null && model.id !== '')
-        ) : [];
-        
-        let filtered = [...validModelos];
+        let filtered = [...data];
 
         // Filtro de búsqueda
         if (filters.search) {
             filtered = filtered.filter(item =>
-                (item.nombre || '').toLowerCase().includes(filters.search.toLowerCase()) ||
-                (item.descripcion || '').toLowerCase().includes(filters.search.toLowerCase()) ||
-                (item.version || '').toLowerCase().includes(filters.search.toLowerCase())
+                item.nombre?.toLowerCase().includes(filters.search.toLowerCase()) ||
+                item.cargo?.toLowerCase().includes(filters.search.toLowerCase()) ||
+                item.identificacion?.toLowerCase().includes(filters.search.toLowerCase()) ||
+                item.email?.toLowerCase().includes(filters.search.toLowerCase())
+            );
+        }
+
+        // Filtro de estado
+        if (filters.estado) {
+            filtered = filtered.filter(item => item.estado === filters.estado);
+        }
+
+        // Filtro de cargo
+        if (filters.cargo) {
+            filtered = filtered.filter(item => 
+                item.cargo?.toLowerCase().includes(filters.cargo.toLowerCase())
             );
         }
 
         // Filtro de fechas
         if (filters.fechaDesde || filters.fechaHasta) {
             filtered = filtered.filter(item => {
-                const fecha = item.fecha_creacion ? new Date(item.fecha_creacion) : null;
+                const fecha = new Date(item.fecha_contratacion);
                 const desde = filters.fechaDesde ? new Date(filters.fechaDesde) : null;
                 const hasta = filters.fechaHasta ? new Date(filters.fechaHasta) : null;
-
-                if (!fecha) return false; // Si no hay fecha, excluir
 
                 if (desde && hasta) {
                     return fecha >= desde && fecha <= hasta;
@@ -153,19 +163,32 @@ export default function Index({ modelos = [], debug_info }) {
     // Aplicar filtros cuando cambian los filtros o el ordenamiento
     useEffect(() => {
         applyFilters();
-    }, [filters, modelos, sorting]);
+    }, [filters, data, sorting]);
+
+    // Función para limpiar todos los filtros
+    const clearFilters = () => {
+        setFilters({
+            search: '',
+            estado: '',
+            cargo: '',
+            fechaDesde: null,
+            fechaHasta: null
+        });
+        // También resetear el ordenamiento
+        setSorting({
+            field: null,
+            order: null
+        });
+    };
+
+    // Calcular datos paginados con validaciones seguras
+    const safeCurrentPage = Math.max(1, parseInt(pagination.current) || 1);
+    const safePageSize = Math.max(1, parseInt(pagination.pageSize) || 15);
+    const startIndex = (safeCurrentPage - 1) * safePageSize;
+    const endIndex = startIndex + safePageSize;
+    const paginatedData = Array.isArray(filteredData) ? filteredData.slice(startIndex, endIndex) : [];
     
-    // Calcular datos paginados con validación
-    const startIndex = Math.max(0, (Math.max(1, pagination.current) - 1) * Math.max(1, pagination.pageSize));
-    const endIndex = startIndex + Math.max(1, pagination.pageSize);
-    const validFilteredData = Array.isArray(filteredData) ? filteredData.filter(item => 
-        item && 
-        typeof item === 'object' && 
-        (item.id !== undefined && item.id !== null && item.id !== '')
-    ) : [];
-    const paginatedData = validFilteredData.slice(startIndex, endIndex);
-    
-    const handleAddModel = () => {
+    const handleAddEmployee = () => {
         setIsModalVisible(true);
     };
 
@@ -174,57 +197,35 @@ export default function Index({ modelos = [], debug_info }) {
     };
 
     const handleModalSubmit = async (values) => {
+        // Convertir fechas a string si existen
+        if (values.birth_date && typeof values.birth_date === 'object' && values.birth_date.format) {
+            values.birth_date = values.birth_date.format('YYYY-MM-DD');
+        }
+        if (values.hire_date && typeof values.hire_date === 'object' && values.hire_date.format) {
+            values.hire_date = values.hire_date.format('YYYY-MM-DD');
+        }
+        if (values.end_date && typeof values.end_date === 'object' && values.end_date.format) {
+            values.end_date = values.end_date.format('YYYY-MM-DD');
+        }
+
+        // Limpiar campos opcionales: convertir undefined a string vacío
+        Object.keys(values).forEach(key => {
+            if (values[key] === undefined) {
+                values[key] = '';
+            }
+        });
+
+        // Obtener el token CSRF del meta tag
+        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         setLoading(true);
         
         try {
-            // Convertir fechas a string si existen
-            if (values.fecha_nacimiento && typeof values.fecha_nacimiento === 'object' && values.fecha_nacimiento.format) {
-                values.fecha_nacimiento = values.fecha_nacimiento.format('YYYY-MM-DD');
-            }
-            if (values.fecha_vigencia && typeof values.fecha_vigencia === 'object' && values.fecha_vigencia.format) {
-                values.fecha_vigencia = values.fecha_vigencia.format('YYYY-MM-DD');
-            }
-
-            // Limpiar campos opcionales: convertir undefined a string vacío
-            Object.keys(values).forEach(key => {
-                if (values[key] === undefined) {
-                    values[key] = '';
-                }
-            });
-
-            // Crear FormData para enviar archivos
-            const formData = new FormData();
-            
-            // Agregar todos los campos de texto al FormData
-            Object.keys(values).forEach(key => {
-                if (key !== 'model_images' && values[key] !== undefined && values[key] !== null) {
-                    formData.append(key, values[key]);
-                }
-            });
-
-            // Agregar las imágenes como archivos
-            if (values.model_images && Array.isArray(values.model_images)) {
-                const imagesMeta = values.model_images.map(img => ({
-                    temp_id: img.temp_id,
-                    url: img.url,
-                    name: img.name,
-                    size: img.size,
-                    original_name: img.original_name || img.name
-                }));
-                formData.append('model_images_meta', JSON.stringify(imagesMeta));
-                
-                values.model_images.forEach((image, index) => {
-                    if (image.originFileObj) {
-                        formData.append(`model_images${index}`, image.originFileObj);
-                    }
-                });
-            }
-
-            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-            const response = await fetch('/admin/modelos', {
+            // Petición real al backend usando fetch con CSRF
+            const response = await fetch('/admin/empleados', {
                 method: 'POST',
-                body: formData,
+                body: JSON.stringify(values),
                 headers: {
+                    'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': token
                 }
             });
@@ -239,101 +240,85 @@ export default function Index({ modelos = [], debug_info }) {
             }
 
             const result = await response.json();
-            showSuccess('Modelo creado exitosamente!');
+            showSuccess('Empleado creado exitosamente!');
             setIsModalVisible(false);
+            // Recargar datos después de crear
             await refreshData();
         } catch (error) {
-            console.error('Error al crear modelo:', error);
-            showError(error.message || 'Error al crear el modelo. Inténtalo de nuevo.');
+            console.error('Error al crear empleado:', error);
+            showError(error.message || 'Error al crear el empleado. Inténtalo de nuevo.');
         } finally {
             setLoading(false);
         }
     };
 
-    // Función para eliminar un modelo individual
-    const handleDeleteModel = async (modelId) => {
+    // Función para eliminar un empleado individual
+    const handleDeleteEmployee = async (empleadoId) => {
         try {
-            // Obtener el token CSRF del meta tag
             const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
             
-            // Llamada al backend para eliminar un modelo
-            const response = await fetch(`/admin/modelos/${modelId}`, {
+            const response = await fetch(`/admin/empleados/${empleadoId}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': token,
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-CSRF-TOKEN': token
                 }
             });
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || 'Error al eliminar el modelo');
+                throw new Error(errorData.message || 'Error al eliminar el empleado');
             }
 
             const result = await response.json();
-            message.success(result.message);
+            showSuccess(result.message || 'Empleado eliminado correctamente');
+            
             // Recargar datos después de eliminar
             await refreshData();
         } catch (error) {
-            console.error('Error al eliminar modelo:', error);
-            showError(error.message || 'Error al eliminar el modelo');
+            console.error('Error al eliminar empleado:', error);
+            showError(error.message || 'Error al eliminar el empleado. Inténtalo de nuevo.');
         }
     };
 
-    // Funciones para acciones masivas
+    // Función para eliminar empleados en masa
     const handleBulkDelete = async () => {
+        if (selectedRowKeys.length === 0) return;
+
         try {
-            // Obtener el token CSRF del meta tag
             const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
             
-            // Llamada al backend para eliminar múltiples modelos
-            const response = await fetch(`/admin/modelos/${selectedRowKeys[0]}`, {
+            const response = await fetch(`/admin/empleados/${selectedRowKeys[0]}`, {
                 method: 'DELETE',
+                body: JSON.stringify({ ids: selectedRowKeys }),
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': token,
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify({
-                    ids: selectedRowKeys
-                })
+                    'X-CSRF-TOKEN': token
+                }
             });
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || 'Error al eliminar los modelos');
+                throw new Error(errorData.message || 'Error al eliminar los empleados');
             }
 
             const result = await response.json();
-            message.success(result.message);
+            showSuccess(result.message || 'Empleados eliminados correctamente');
             setSelectedRowKeys([]);
+            
             // Recargar datos después de eliminar
             await refreshData();
         } catch (error) {
-            console.error('Error al eliminar modelos:', error);
-            showError(error.message || 'Error al eliminar los modelos seleccionados');
+            console.error('Error al eliminar empleados:', error);
+            showError(error.message || 'Error al eliminar los empleados. Inténtalo de nuevo.');
         }
     };
 
-    const clearFilters = () => {
-        setFilters({
-            search: '',
-            fechaDesde: null,
-            fechaHasta: null
-        });
-        // También resetear el ordenamiento
-        setSorting({
-            field: null,
-            order: null
-        });
-    };
-
-    // Función para recargar datos dinámicamente
+    // Función para recargar datos
     const refreshData = async () => {
         setIsRefreshing(true);
         try {
-            const response = await fetch('/admin/modelos', {
+            const response = await fetch('/admin/empleados', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -346,18 +331,11 @@ export default function Index({ modelos = [], debug_info }) {
             }
 
             const data = await response.json();
-            
-            // Validar los datos recibidos
-            const validData = Array.isArray(data.modelos) ? data.modelos.filter(model => 
-                model && 
-                typeof model === 'object' && 
-                (model.id !== undefined && model.id !== null && model.id !== '')
-            ) : [];
-            
-            setFilteredData(validData);
+            setData(data.empleados); // Actualizar datos originales
+            setFilteredData(data.empleados); // Actualizar datos filtrados
             setPagination(prev => ({
                 ...prev,
-                total: validData.length,
+                total: data.empleados.length,
                 current: 1 // Reset a la primera página
             }));
             // Resetear ordenamiento al recargar datos
@@ -424,7 +402,6 @@ export default function Index({ modelos = [], debug_info }) {
         }));
     };
 
-
     // Configuración de la tabla
     const columns = [
         {
@@ -444,83 +421,97 @@ export default function Index({ modelos = [], debug_info }) {
             filterable: true,
         },
         {
-            title: 'Descripción',
-            dataIndex: 'descripcion',
-            key: 'descripcion',
-            width: 250,
+            title: 'Cargo',
+            dataIndex: 'cargo',
+            key: 'cargo',
+            width: 180,
             ellipsis: true,
             render: (text) => text || 'N/A',
             sorter: {
                 compare: (a, b) => 0, // Función dummy, el sorting real se hace en applySorting
                 multiple: false
             },
-            sortOrder: sorting.field === 'descripcion' ? sorting.order : null,
+            sortOrder: sorting.field === 'cargo' ? sorting.order : null,
             onHeaderCell: () => ({
-                onClick: () => handleColumnSort('descripcion')
+                onClick: () => handleColumnSort('cargo')
             }),
         },
         {
-            title: 'Versión',
-            dataIndex: 'version',
-            key: 'version',
-            width: 100,
-            render: (text) => text || 'N/A',
-            sorter: {
-                compare: (a, b) => 0, // Función dummy, el sorting real se hace en applySorting
-                multiple: false
-            },
-            sortOrder: sorting.field === 'version' ? sorting.order : null,
-            onHeaderCell: () => ({
-                onClick: () => handleColumnSort('version')
-            }),
-        },
-        {
-            title: 'Fecha último registro',
-            dataIndex: 'fecha_creacion',
-            key: 'fecha_creacion',
+            title: 'Identificación',
+            dataIndex: 'identificacion',
+            key: 'identificacion',
             width: 140,
             render: (text) => text || 'N/A',
             sorter: {
                 compare: (a, b) => 0, // Función dummy, el sorting real se hace en applySorting
                 multiple: false
             },
-            sortOrder: sorting.field === 'fecha_creacion' ? sorting.order : null,
+            sortOrder: sorting.field === 'identificacion' ? sorting.order : null,
             onHeaderCell: () => ({
-                onClick: () => handleColumnSort('fecha_creacion')
+                onClick: () => handleColumnSort('identificacion')
             }),
         },
         {
-            title: 'Estado',
-            dataIndex: 'estado',
-            key: 'estado',
-            width: 120,
-            render: (estado) => {
-                const colorMap = {
-                    'Activo': 'success',
-                    'Proximo': 'warning',
-                    'Vencido': 'error'
-                };
-                const estadoText = estado || 'N/A';
-                return (
-                    <Tag color={colorMap[estado] || 'default'}>
-                        {estadoText.toUpperCase()}
-                    </Tag>
-                );
-            },
-            filters: [
-                { text: 'Activo', value: 'Activo' },
-                { text: 'Próximo', value: 'Proximo' },
-                { text: 'Vencido', value: 'Vencido' },
-            ],
-            onFilter: (value, record) => record?.estado === value,
+            title: 'Teléfono',
+            dataIndex: 'telefono',
+            key: 'telefono',
+            width: 140,
+            render: (text) => text || 'N/A',
             sorter: {
                 compare: (a, b) => 0, // Función dummy, el sorting real se hace en applySorting
                 multiple: false
             },
-            sortOrder: sorting.field === 'estado' ? sorting.order : null,
+            sortOrder: sorting.field === 'telefono' ? sorting.order : null,
             onHeaderCell: () => ({
-                onClick: () => handleColumnSort('estado')
+                onClick: () => handleColumnSort('telefono')
             }),
+        },
+        {
+            title: 'Email',
+            dataIndex: 'email',
+            key: 'email',
+            width: 200,
+            ellipsis: true,
+            render: (text) => text || 'N/A',
+            sorter: {
+                compare: (a, b) => 0, // Función dummy, el sorting real se hace en applySorting
+                multiple: false
+            },
+            sortOrder: sorting.field === 'email' ? sorting.order : null,
+            onHeaderCell: () => ({
+                onClick: () => handleColumnSort('email')
+            }),
+        },
+        {
+            title: 'Fecha Contratación',
+            dataIndex: 'fecha_contratacion',
+            key: 'fecha_contratacion',
+            width: 140,
+            render: (text) => text || 'N/A',
+            sorter: {
+                compare: (a, b) => 0, // Función dummy, el sorting real se hace en applySorting
+                multiple: false
+            },
+            sortOrder: sorting.field === 'fecha_contratacion' ? sorting.order : null,
+            onHeaderCell: () => ({
+                onClick: () => handleColumnSort('fecha_contratacion')
+            }),
+        },
+        {
+            title: 'Usuario Sistema',
+            dataIndex: 'tiene_usuario',
+            key: 'tiene_usuario',
+            width: 130,
+            render: (tieneUsuario) => (
+                <Tag color={tieneUsuario ? 'blue' : 'default'}>
+                    {tieneUsuario ? 'SÍ' : 'NO'}
+                </Tag>
+            ),
+            filters: [
+                { text: 'Con Usuario', value: true },
+                { text: 'Sin Usuario', value: false },
+            ],
+            onFilter: (value, record) => record.tiene_usuario === value,
         },
         {
             title: 'Acciones',
@@ -528,41 +519,35 @@ export default function Index({ modelos = [], debug_info }) {
             width: 120,
             render: (_, record) => (
                 <Space size="small">
-                    <Tooltip title="Ver detalles del modelo">
-                        <Button 
-                            type="text" 
-                            size="small" 
+                    <Tooltip title="Ver detalles">
+                        <Button
+                            type="text"
                             icon={<EyeOutlined />}
-                            onClick={() => {
-                                message.info('Ver detalles del modelo');
-                                // Aquí iría la navegación a la vista de detalles
-                            }}
+                            size="small"
+                            onClick={() => window.location.href = `/admin/empleados/${record.id}`}
                         />
                     </Tooltip>
-                    <Tooltip title="Editar modelo">
-                        <Button 
-                            type="text" 
-                            size="small" 
+                    <Tooltip title="Editar">
+                        <Button
+                            type="text"
                             icon={<EditOutlined />}
-                            onClick={() => {
-                                message.info('Editar modelo');
-                                // Aquí iría la apertura del modal de edición
-                            }}
+                            size="small"
+                            onClick={() => window.location.href = `/admin/empleados/${record.id}/edit`}
                         />
                     </Tooltip>
-                    <Tooltip title="Eliminar modelo">
+                    <Tooltip title="Eliminar empleado">
                         <Popconfirm
-                            title="¿Estás seguro de eliminar este modelo?"
-                            description="Esta acción no se puede deshacer"
-                            onConfirm={() => handleDeleteModel(record.id)}
+                            title="¿Estás seguro de eliminar este empleado?"
+                            description="El empleado será eliminado y no podrá acceder al sistema"
+                            onConfirm={() => handleDeleteEmployee(record.id)}
                             okText="Sí, eliminar"
                             cancelText="Cancelar"
                         >
-                            <Button 
-                                type="text" 
-                                size="small" 
-                                danger 
+                            <Button
+                                type="text"
+                                danger
                                 icon={<DeleteOutlined />}
+                                size="small"
                             />
                         </Popconfirm>
                     </Tooltip>
@@ -570,18 +555,19 @@ export default function Index({ modelos = [], debug_info }) {
             ),
         },
     ];
-    
+
     return (
-        <AdminLayout title="Gestión de Modelos">
-            <div className={styles.modelosPage}>
-                {/* Header de la página */}
+        <AdminLayout>
+            <div className={styles.empleadosPage}>
+                {/* CONTENEDOR A - Header principal */}
                 <div className={styles.headerSection}>
                     <div>
                         <Title level={2} style={{ margin: 0 }}>
-                            <UserOutlined style={{ marginRight: '8px' }} />
-                            Lista de Modelos
+                            <TeamOutlined /> Gestión de Empleados
                         </Title>
-                        <Text type="secondary">Gestiona todos los modelos registrados en el sistema • {Array.isArray(modelos) ? modelos.length : 0} total(es)</Text>
+                        <Text type="secondary">
+                            Administra los empleados del sistema • {empleados.length} total(es)
+                        </Text>
                     </div>
                 </div>
 
@@ -590,30 +576,37 @@ export default function Index({ modelos = [], debug_info }) {
                     {/* CONTENEDOR 1 - Filtros */}
                     <div className={styles.filtersSection}>
                         <Input
-                            placeholder="Buscar por nombre, descripción o versión..."
+                            placeholder="Buscar por nombre, cargo, identificación..."
                             prefix={<SearchOutlined />}
                             value={filters.search}
-                            onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                            onChange={(e) => setFilters({...filters, search: e.target.value})}
+                            allowClear
+                        />
+                        <Input
+                            placeholder="Filtrar por cargo"
+                            value={filters.cargo}
+                            onChange={(e) => setFilters({...filters, cargo: e.target.value})}
                             allowClear
                         />
                         <DatePicker
-                            placeholder="Desde"
+                            placeholder="Fecha desde"
                             value={filters.fechaDesde}
-                            onChange={(date) => setFilters({ ...filters, fechaDesde: date })}
+                            onChange={(date) => setFilters({...filters, fechaDesde: date})}
                             style={{ width: '100%' }}
                         />
                         <DatePicker
-                            placeholder="Hasta"
+                            placeholder="Fecha hasta"
                             value={filters.fechaHasta}
-                            onChange={(date) => setFilters({ ...filters, fechaHasta: date })}
+                            onChange={(date) => setFilters({...filters, fechaHasta: date})}
                             style={{ width: '100%' }}
                         />
                         <Space>
-                            <Button 
-                                icon={<ClearOutlined />}
-                                onClick={clearFilters}
-                            >
-                            </Button>
+                            <Tooltip title="Limpiar Filtros">
+                                <Button 
+                                    icon={<ClearOutlined />}
+                                    onClick={clearFilters}
+                                />
+                            </Tooltip>
                             {selectedRowKeys.length > 0 && (
                                 <span className={styles.selectedCount}>
                                     {selectedRowKeys.length} seleccionado(s)
@@ -625,21 +618,23 @@ export default function Index({ modelos = [], debug_info }) {
                     {/* CONTENEDOR 2 - Acciones masivas */}
                     <div className={styles.bulkActionsSection}>
                         <div className={styles.bulkActionsLeft}>
-                            <Popconfirm
-                                title={`¿Estás seguro de eliminar ${selectedRowKeys.length} modelo(s)?`}
-                                onConfirm={handleBulkDelete}
-                                okText="Sí"
-                                cancelText="No"
-                            >
-                                <Button 
-                                    size="small" 
-                                    danger 
-                                    icon={<DeleteOutlined />}
-                                    className={selectedRowKeys.length > 0 ? styles.visibleButton : styles.hiddenButton}
+                            {selectedRowKeys.length > 0 && (
+                                <Popconfirm
+                                    title={`¿Estás seguro de eliminar ${selectedRowKeys.length} empleado(s)?`}
+                                    description="Los empleados serán eliminados y no podrán acceder al sistema"
+                                    onConfirm={handleBulkDelete}
+                                    okText="Sí, eliminar"
+                                    cancelText="Cancelar"
                                 >
-                                    Eliminar ({selectedRowKeys.length})
-                                </Button>
-                            </Popconfirm>
+                                    <Button 
+                                        size="small" 
+                                        danger 
+                                        icon={<DeleteOutlined />}
+                                    >
+                                        Eliminar ({selectedRowKeys.length})
+                                    </Button>
+                                </Popconfirm>
+                            )}
                         </div>
                         <div className={styles.bulkActionsRight}>
                             <Button 
@@ -655,21 +650,23 @@ export default function Index({ modelos = [], debug_info }) {
                             <Button 
                                 type="primary" 
                                 icon={<PlusOutlined />}
-                                onClick={handleAddModel}
+                                onClick={handleAddEmployee}
                             >
-                                Agregar Nuevo Modelo
+                                Agregar Nuevo Empleado
                             </Button>
                         </div>
                     </div>
 
                     {/* CONTENEDOR 3 - Tabla */}
                     <div className={styles.tableContainer}>
-                        {filteredData.length > 0 ? (
+                        {Array.isArray(filteredData) && filteredData.length > 0 ? (
                             <Table 
                                 columns={columns} 
                                 dataSource={paginatedData}
-                                rowKey={(record) => record?.id || `fallback-${Math.random()}`}
+                                rowKey={(record) => record?.id || Math.random()}
                                 onChange={handleTableChange}
+                                pagination={false}
+                                loading={loading}
                                 rowSelection={{
                                     selectedRowKeys,
                                     onChange: setSelectedRowKeys,
@@ -677,7 +674,7 @@ export default function Index({ modelos = [], debug_info }) {
                                         {
                                             key: 'all',
                                             text: 'Seleccionar todo',
-                                            onSelect: () => setSelectedRowKeys(validFilteredData.map(item => item?.id).filter(id => id !== undefined && id !== null))
+                                            onSelect: () => setSelectedRowKeys(filteredData.map(item => item?.id).filter(Boolean))
                                         },
                                         {
                                             key: 'none',
@@ -686,19 +683,18 @@ export default function Index({ modelos = [], debug_info }) {
                                         }
                                     ]
                                 }}
-                                pagination={false}
-                                scroll={{ x: 900, y: 'calc(100vh - 400px)' }}
+                                scroll={{ x: 1200, y: 'calc(100vh - 400px)' }}
                                 sticky={{ offsetHeader: 0 }}
                                 showSorterTooltip={false}
                                 sortDirections={['ascend', 'descend']}
                             />
                         ) : (
                             <Empty
-                                description="No hay modelos que coincidan con los filtros"
+                                description="No hay empleados que coincidan con los filtros"
                                 image={Empty.PRESENTED_IMAGE_SIMPLE}
                             >
-                                <Button type="primary" onClick={handleAddModel}>
-                                    Agregar Primer Modelo
+                                <Button type="primary" onClick={handleAddEmployee}>
+                                    Agregar Primer Empleado
                                 </Button>
                             </Empty>
                         )}
@@ -706,24 +702,24 @@ export default function Index({ modelos = [], debug_info }) {
 
                     {/* CONTENEDOR 4 - Paginación */}
                     <div className={styles.paginationContainer}>
-                        {filteredData.length > 0 && (
+                        {Array.isArray(filteredData) && filteredData.length > 0 && (
                             <Pagination
-                                current={Math.max(1, pagination.current)}
-                                pageSize={Math.max(1, pagination.pageSize)}
-                                total={Math.max(0, pagination.total)}
+                                current={Math.max(1, parseInt(pagination.current) || 1)}
+                                pageSize={Math.max(1, parseInt(pagination.pageSize) || 15)}
+                                total={Math.max(0, parseInt(pagination.total) || 0)}
                                 showSizeChanger={true}
                                 showQuickJumper={true}
                                 showTotal={(total, range) => {
-                                    const safeRange = Array.isArray(range) && range.length >= 2 ? range : [0, 0];
-                                    const safeTotal = Number(total) || 0;
-                                    return `${safeRange[0]}-${safeRange[1]} de ${safeTotal} modelos`;
+                                    const safeTotal = parseInt(total) || 0;
+                                    const safeRange = Array.isArray(range) ? range : [0, 0];
+                                    return `${safeRange[0]}-${safeRange[1]} de ${safeTotal} empleados`;
                                 }}
                                 pageSizeOptions={['10', '15', '20', '50']}
                                 size="default"
                                 responsive={true}
                                 onChange={(page, pageSize) => {
-                                    const safePage = Math.max(1, Number(page) || 1);
-                                    const safePageSize = Math.max(1, Number(pageSize) || 15);
+                                    const safePage = Math.max(1, parseInt(page) || 1);
+                                    const safePageSize = Math.max(1, parseInt(pageSize) || 15);
                                     setPagination(prev => ({
                                         ...prev,
                                         current: safePage,
@@ -731,12 +727,10 @@ export default function Index({ modelos = [], debug_info }) {
                                     }));
                                 }}
                                 onShowSizeChange={(current, size) => {
-                                    const safeCurrent = Math.max(1, Number(current) || 1);
-                                    const safeSize = Math.max(1, Number(size) || 15);
                                     setPagination(prev => ({
                                         ...prev,
-                                        current: 1, // Reset to first page when changing page size
-                                        pageSize: safeSize
+                                        current: 1,
+                                        pageSize: size
                                     }));
                                 }}
                             />
@@ -744,13 +738,13 @@ export default function Index({ modelos = [], debug_info }) {
                     </div>
                 </div>
 
-                {/* Modal para crear/editar modelo */}
-                <ModeloModal
+                {/* Modal para crear/editar empleado */}
+                <EmployeeModal
                     visible={isModalVisible}
                     onCancel={handleModalCancel}
                     onSubmit={handleModalSubmit}
                     loading={loading}
-                    title="Nuevo Modelo"
+                    title="Nuevo Empleado"
                 />
             </div>
         </AdminLayout>

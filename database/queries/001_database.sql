@@ -199,6 +199,8 @@ CREATE TABLE `employees` (
   `role` varchar(100) NOT NULL,
   `hire_date` date NOT NULL,
   `end_date` date NULL,
+  `salary` decimal(10,2) NULL,
+  `job_description` text NULL,
   `is_active` boolean NOT NULL DEFAULT true,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
@@ -212,6 +214,19 @@ CREATE TABLE `employee_branch_access` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
+);
+
+CREATE TABLE `employee_emergency_contacts` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `employee_id` bigint unsigned NOT NULL,
+  `person_id` bigint unsigned NOT NULL,
+  `relationship_id` bigint unsigned NOT NULL,
+  `is_active` boolean NOT NULL DEFAULT true,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `employee_emergency_contacts_employee_id_index` (`employee_id`),
+  KEY `employee_emergency_contacts_person_id_index` (`person_id`)
 );
 
 -- ===== TABLAS DE MODELOS =====
@@ -672,6 +687,8 @@ ALTER TABLE `cash_movements` ADD CONSTRAINT `cash_movements_payment_id_foreign` 
 
 -- Relaciones de Asistencia
 ALTER TABLE `employee_branch_access` ADD CONSTRAINT `employee_branch_access_employee_id_foreign` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`);
+ALTER TABLE `employee_emergency_contacts` ADD CONSTRAINT `employee_emergency_contacts_employee_id_foreign` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`);
+ALTER TABLE `employee_emergency_contacts` ADD CONSTRAINT `employee_emergency_contacts_person_id_foreign` FOREIGN KEY (`person_id`) REFERENCES `people` (`id`);
 ALTER TABLE `attendance_records` ADD CONSTRAINT `attendance_records_employee_id_foreign` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`);
 ALTER TABLE `attendance_records` ADD CONSTRAINT `attendance_records_model_id_foreign` FOREIGN KEY (`model_id`) REFERENCES `models` (`id`);
 ALTER TABLE `attendance_records` ADD CONSTRAINT `attendance_records_branch_id_foreign` FOREIGN KEY (`branch_id`) REFERENCES `branches` (`id`);
@@ -723,6 +740,7 @@ ALTER TABLE `model_profiles` ADD CONSTRAINT `model_profiles_hair_color_id_foreig
 ALTER TABLE `model_profiles` ADD CONSTRAINT `model_profiles_eye_color_id_foreign` FOREIGN KEY (`eye_color_id`) REFERENCES `eye_colors` (`id`);
 ALTER TABLE `model_profiles` ADD CONSTRAINT `model_profiles_skin_color_id_foreign` FOREIGN KEY (`skin_color_id`) REFERENCES `skin_colors` (`id`);
 ALTER TABLE `guardians` ADD CONSTRAINT `guardians_relationship_id_foreign` FOREIGN KEY (`relationship_id`) REFERENCES `relationships` (`id`);
+ALTER TABLE `employee_emergency_contacts` ADD CONSTRAINT `employee_emergency_contacts_relationship_id_foreign` FOREIGN KEY (`relationship_id`) REFERENCES `relationships` (`id`);
 ALTER TABLE `model_images` ADD CONSTRAINT `model_images_model_id_foreign` FOREIGN KEY (`model_id`) REFERENCES `models` (`id`);
 ALTER TABLE `model_social_media` ADD CONSTRAINT `model_social_media_social_media_platform_id_foreign` FOREIGN KEY (`social_media_platform_id`) REFERENCES `social_media_platforms` (`id`);
 

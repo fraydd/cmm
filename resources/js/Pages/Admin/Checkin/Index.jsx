@@ -15,6 +15,11 @@ export default function CheckinIndex() {
         setLoading(true);
         setMessage(null);
         setError(null);
+        
+        // Debug logs
+        console.log('Branch ID enviado:', branchId);
+        console.log('Identification:', identification);
+        
         try {
             const response = await fetch('/admin/checkin', {
                 method: 'POST',

@@ -146,7 +146,14 @@ INSERT INTO `permissions` (`name`, `guard_name`, `created_at`, `updated_at`) VAL
 ('view_attendance', 'web', NOW(), NOW()),
 ('create_attendance', 'web', NOW(), NOW()),
 ('edit_attendance', 'web', NOW(), NOW()),
-('delete_attendance', 'web', NOW(), NOW());
+('delete_attendance', 'web', NOW(), NOW()),
+
+-- Gestión de empleados
+('view_employees', 'web', NOW(), NOW()),
+('create_employees', 'web', NOW(), NOW()),
+('edit_employees', 'web', NOW(), NOW()),
+('delete_employees', 'web', NOW(), NOW()),
+('assign_employee_branches', 'web', NOW(), NOW());
 
 -- ===== ASIGNACIÓN DE PERMISOS A ROLES =====
 
@@ -163,7 +170,8 @@ AND p.name IN (
     'delete_modelos',
     'view_attendance',
     'create_attendance',
-    'edit_attendance'
+    'edit_attendance',
+    'view_employees'
 );
 
 -- Admin: Todos los permisos

@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Admin\ModeloController;
+use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InvitationController;
 use App\Http\Controllers\AuthController;
@@ -52,6 +53,40 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     Route::middleware(['permission:view_modelos'])->group(function () {
         Route::resource('modelos', ModeloController::class);
         Route::post('modelos/upload-image', [ModeloController::class, 'uploadImage'])->name('modelos.upload-image');
+    });
+
+    // Rutas para el controlador de Empleados con permisos específicos
+    // Catálogos - solo requiere autenticación
+    Route::get('empleados/catalogs', [\App\Http\Controllers\Admin\EmployeeController::class, 'catalogs'])->name('empleados.catalogs')->middleware('auth');
+    
+    // Rutas de visualización
+    Route::middleware(['permission:view_employees'])->group(function () {
+        Route::get('empleados', [\App\Http\Controllers\Admin\EmployeeController::class, 'index'])->name('empleados.index');
+        Route::get('empleados/{id}', [\App\Http\Controllers\Admin\EmployeeController::class, 'show'])->name('empleados.show');
+    });
+    
+    // Rutas de creación
+    Route::middleware(['permission:create_employees'])->group(function () {
+        Route::get('empleados/create', [\App\Http\Controllers\Admin\EmployeeController::class, 'create'])->name('empleados.create');
+        Route::post('empleados', [\App\Http\Controllers\Admin\EmployeeController::class, 'store'])->name('empleados.store');
+    });
+    
+    // Rutas de edición
+    Route::middleware(['permission:edit_employees'])->group(function () {
+        Route::get('empleados/{id}/edit', [\App\Http\Controllers\Admin\EmployeeController::class, 'edit'])->name('empleados.edit');
+        Route::put('empleados/{id}', [\App\Http\Controllers\Admin\EmployeeController::class, 'update'])->name('empleados.update');
+        Route::patch('empleados/{id}', [\App\Http\Controllers\Admin\EmployeeController::class, 'update'])->name('empleados.patch');
+        Route::patch('empleados/{id}/toggle-status', [\App\Http\Controllers\Admin\EmployeeController::class, 'toggleStatus'])->name('empleados.toggle-status');
+    });
+    
+    // Rutas de eliminación
+    Route::middleware(['permission:delete_employees'])->group(function () {
+        Route::delete('empleados/{id}', [\App\Http\Controllers\Admin\EmployeeController::class, 'destroy'])->name('empleados.destroy');
+    });
+    
+    // Rutas de asignación de sedes
+    Route::middleware(['permission:assign_employee_branches'])->group(function () {
+        Route::post('empleados/{id}/assign-branches', [\App\Http\Controllers\Admin\EmployeeController::class, 'assignBranches'])->name('empleados.assign-branches');
     });
 
     // Rutas para el controlador de Invitaciones (solo admin)

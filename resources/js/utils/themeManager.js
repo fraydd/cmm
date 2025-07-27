@@ -27,11 +27,14 @@ const themes = {
     '--cmm-bg-header': '#ffffff',
     '--cmm-text-primary': '#213448',
     '--cmm-text-secondary': '#547792',
+    '--cmm-text-placeholder': '#94B4C1', // Color más tenue para placeholders
     '--cmm-text-sidebar': '#ECEFCA',
+    '--cmm-table-row': '#ffffff',
     '--cmm-table-hover': '#f1f5f9',
     '--cmm-table-header': '#e2e8f0',
     '--cmm-table-header-hover': '#cbd5e1',
     '--cmm-border-color': '#e2e8f0',
+    '--cmm-border-input': '#7A94B3',
     '--cmm-shadow-color': 'rgba(0, 0, 0, 0.1)',
   },
   dark: {
@@ -61,11 +64,14 @@ const themes = {
     '--cmm-bg-header': '#262626',     // Header oscuro
     '--cmm-text-primary': '#ffffff',  // Texto principal blanco
     '--cmm-text-secondary': '#d4d4d4', // Texto secundario gris claro
+    '--cmm-text-placeholder': '#737373', // Color más tenue para placeholders en modo oscuro
     '--cmm-text-sidebar': '#ffffff',  // Texto sidebar blanco
+    '--cmm-table-row': '#262626',     // Fila normal en modo oscuro
     '--cmm-table-hover': '#404040',   // Gris oscuro elegante para hover en modo oscuro
     '--cmm-table-header': '#171717',  // Header más oscuro que el fondo secundario
     '--cmm-table-header-hover': '#262626', // Hover del header en modo oscuro
     '--cmm-border-color': '#404040',  // Borde en modo oscuro
+    '--cmm-border-input': '#525252',  // Borde más visible para inputs en modo oscuro
     '--cmm-shadow-color': 'rgba(0, 0, 0, 0.3)', // Sombra más intensa en modo oscuro
   },
   blue: {
@@ -95,11 +101,14 @@ const themes = {
     '--cmm-bg-header': '#ffffff',
     '--cmm-text-primary': '#1e40af',
     '--cmm-text-secondary': '#3b82f6',
+    '--cmm-text-placeholder': '#60a5fa', // Color más tenue para placeholders en tema azul
     '--cmm-text-sidebar': '#fef3c7',
+    '--cmm-table-row': '#ffffff',
     '--cmm-table-hover': '#dbeafe',
     '--cmm-table-header': '#bfdbfe',
     '--cmm-table-header-hover': '#93c5fd',
     '--cmm-border-color': '#bfdbfe',
+    '--cmm-border-input': '#93c5fd',  // Borde más visible para inputs en tema azul
     '--cmm-shadow-color': 'rgba(59, 130, 246, 0.1)',
   },
 };

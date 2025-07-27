@@ -12,5 +12,9 @@ export function BranchProvider({ children }) {
 }
 
 export function useBranch() {
-  return useContext(BranchContext);
+  const context = useContext(BranchContext);
+  return {
+    ...context,
+    branchId: context.selectedBranch?.id
+  };
 } 

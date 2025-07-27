@@ -35,6 +35,7 @@
   --cmm-text-primary: var(--cmm-primary-800);
   --cmm-text-secondary: #86340b;
   --cmm-text-tertiary: var(--cmm-primary-400);
+  --cmm-text-placeholder: var(--cmm-primary-400);
   --cmm-text-sidebar: var(--cmm-accent);
   --cmm-text-light: #ffffff;
 
