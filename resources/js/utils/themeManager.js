@@ -25,6 +25,8 @@ const themes = {
     '--cmm-bg-secondary': '#ffffff',
     '--cmm-bg-sidebar': '#1a2a3a',
     '--cmm-bg-header': '#ffffff',
+    '--cmm-card-header-bg': '#f8fafc', // Nuevo: fondo elegante para headers de cards
+    '--cmm-card-header-border': '#e2e8f0', // Nuevo: borde sutil para headers
     '--cmm-text-primary': '#213448',
     '--cmm-text-secondary': '#547792',
     '--cmm-text-placeholder': '#94B4C1', // Color más tenue para placeholders
@@ -62,6 +64,8 @@ const themes = {
     '--cmm-bg-secondary': '#262626',  // Fondo secundario oscuro
     '--cmm-bg-sidebar': '#171717',    // Sidebar muy oscuro
     '--cmm-bg-header': '#262626',     // Header oscuro
+    '--cmm-card-header-bg': '#1f1f1f', // Header de cards en modo oscuro
+    '--cmm-card-header-border': '#404040', // Borde para headers en modo oscuro
     '--cmm-text-primary': '#ffffff',  // Texto principal blanco
     '--cmm-text-secondary': '#d4d4d4', // Texto secundario gris claro
     '--cmm-text-placeholder': '#737373', // Color más tenue para placeholders en modo oscuro
@@ -99,6 +103,8 @@ const themes = {
     '--cmm-bg-secondary': '#ffffff',
     '--cmm-bg-sidebar': '#1e3a8a',
     '--cmm-bg-header': '#ffffff',
+    '--cmm-card-header-bg': '#f0f8ff', // Header de cards en tema azul
+    '--cmm-card-header-border': '#bfdbfe', // Borde para headers en tema azul
     '--cmm-text-primary': '#1e40af',
     '--cmm-text-secondary': '#3b82f6',
     '--cmm-text-placeholder': '#60a5fa', // Color más tenue para placeholders en tema azul

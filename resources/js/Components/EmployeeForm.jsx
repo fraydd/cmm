@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import dayjs from 'dayjs';
 import { Form, Input, Select, Button, Space, Steps, DatePicker, InputNumber, Radio, Row, Col, Typography, Tooltip, message, theme, Checkbox, Divider } from 'antd';
 import { 
     PlusOutlined, 
@@ -23,7 +24,8 @@ const EmployeeForm = ({
     onFinish, 
     loading = false, 
     initialValues = {},
-    visible
+    visible,
+    employeeId // Nuevo prop opcional para modo edición
 }) => {
     const { token } = theme.useToken();
     const { selectedBranch } = useBranch();
@@ -38,11 +40,43 @@ const EmployeeForm = ({
         branches: [] // Sedes disponibles
     });
     const [loadingCatalogs, setLoadingCatalogs] = useState(true);
+    const [isEditMode, setIsEditMode] = useState(!!employeeId);
+    const [loadingEmployee, setLoadingEmployee] = useState(false);
+
 
     // Resetear el paso cuando el modal se abre
     useEffect(() => {
         if (visible) setCurrentStep(0);
     }, [visible]);
+
+    // Consultar datos del empleado cuando se abra en modo edición
+    useEffect(() => {
+        if (visible && employeeId) {
+            setLoadingEmployee(true);
+            fetch(`/admin/empleados/${employeeId}/edit`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.empleado) {
+                        const empleado = { ...data.empleado };
+                        if (empleado.birth_date) empleado.birth_date = dayjs(empleado.birth_date);
+                        if (empleado.hire_date) empleado.hire_date = dayjs(empleado.hire_date);
+                        if (empleado.end_date) empleado.end_date = dayjs(empleado.end_date);
+                        form.setFieldsValue(empleado);
+                        setFormData(empleado);
+                        setHasEmergencyContact(!!empleado.has_emergency_contact);
+                    }
+                })
+                .catch(() => {
+                    message.error('No se pudo cargar la información del empleado');
+                })
+                .finally(() => setLoadingEmployee(false));
+        } else if (visible && !employeeId) {
+            // Si es modo crear, limpiar el formulario
+            form.resetFields();
+            setFormData(initialValues || {});
+            setHasEmergencyContact(true);
+        }
+    }, [visible, employeeId, form, initialValues]);
 
     useEffect(() => {
         if (!selectedBranch) return;
@@ -59,9 +93,9 @@ const EmployeeForm = ({
     useEffect(() => {
         if (!visible) {
             setCurrentStep(0);
-            form.resetFields();
+            // No resetear los campos aquí, se hace en el otro useEffect
         }
-    }, [visible, form]);
+    }, [visible]);
 
     const steps = [
         {
@@ -90,16 +124,94 @@ const EmployeeForm = ({
 
     const next = async () => {
         try {
-            const values = await form.validateFields();
-            setFormData({ ...formData, ...values });
+            // Primero obtener todos los valores actuales del formulario
+            const allCurrentValues = form.getFieldsValue();
+            console.log('Valores actuales del formulario:', allCurrentValues);
+            
+            // Luego validar solo los campos del paso actual
+            let fieldsToValidate;
+            switch (currentStep) {
+                case 0: // Datos Personales
+                    fieldsToValidate = [
+                        'first_name', 'last_name', 'identification_type_id', 
+                        'identification_number', 'gender_id', 'birth_date', 
+                        'phone', 'email', 'address'
+                    ];
+                    break;
+                case 1: // Datos Laborales
+                    fieldsToValidate = [
+                        'role', 'hire_date', 'salary', 'branch_access'
+                    ];
+                    break;
+                case 2: // Contacto de Emergencia
+                    if (hasEmergencyContact) {
+                        fieldsToValidate = [
+                            'emergency_contact_name', 'emergency_contact_last_name',
+                            'emergency_contact_identification_type_id', 'emergency_contact_identification',
+                            'emergency_contact_relationship_id', 'emergency_contact_phone'
+                        ];
+                    } else {
+                        fieldsToValidate = [];
+                    }
+                    break;
+                default:
+                    fieldsToValidate = [];
+            }
+            
+            // Validar solo los campos necesarios
+            if (fieldsToValidate.length > 0) {
+                await form.validateFields(fieldsToValidate);
+            }
+            
+            // Actualizar formData con los valores actuales y avanzar
+            setFormData({ ...formData, ...allCurrentValues });
             setCurrentStep(currentStep + 1);
         } catch (errorInfo) {
-            console.log('Failed:', errorInfo);
+            console.log('Error de validación:', errorInfo);
         }
     };
 
     const prev = () => {
         setCurrentStep(currentStep - 1);
+    };
+
+    // Validador personalizado para evitar identificaciones duplicadas (contacto de emergencia)
+    const validateEmergencyContactIdentification = (_, value) => {
+        if (!hasEmergencyContact || !value) {
+            return Promise.resolve();
+        }
+        
+        const employeeIdentification = form.getFieldValue('identification_number');
+        if (value === employeeIdentification) {
+            return Promise.reject(new Error('El contacto de emergencia no puede tener la misma identificación que el empleado'));
+        }
+        
+        return Promise.resolve();
+    };
+
+    // Validador personalizado para evitar identificaciones duplicadas (empleado)
+    const validateEmployeeIdentification = (_, value) => {
+        if (!value) {
+            return Promise.resolve();
+        }
+        
+        const emergencyContactIdentification = form.getFieldValue('emergency_contact_identification');
+        if (hasEmergencyContact && value === emergencyContactIdentification) {
+            // Re-validar el campo del contacto de emergencia para mostrar/ocultar su error
+            setTimeout(() => {
+                form.validateFields(['emergency_contact_identification']).catch(() => {});
+            }, 100);
+            return Promise.reject(new Error('El empleado no puede tener la misma identificación que el contacto de emergencia'));
+        }
+        
+        // Re-validar el campo del contacto de emergencia para limpiar errores si ya no aplican
+        if (emergencyContactIdentification) {
+            setTimeout(() => {
+                form.validateFields(['emergency_contact_identification']).catch(() => {});
+            }, 100);
+        }
+        
+        return Promise.resolve();
     };
 
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -111,13 +223,35 @@ const EmployeeForm = ({
             return;
         }
 
+        // Validación adicional antes del envío para identificaciones duplicadas
+        if (hasEmergencyContact && 
+            values.identification_number && 
+            values.emergency_contact_identification && 
+            values.identification_number === values.emergency_contact_identification) {
+            
+            message.error('El empleado y el contacto de emergencia no pueden tener el mismo número de identificación');
+            // Ir al paso del contacto de emergencia
+            setCurrentStep(2);
+            // Marcar el campo del contacto de emergencia con error
+            form.setFields([
+                {
+                    name: 'emergency_contact_identification',
+                    errors: ['El contacto de emergencia no puede tener la misma identificación que el empleado']
+                }
+            ]);
+            return;
+        }
+
         try {
             setIsSubmitting(true);
             // Combinar todos los datos acumulados con los valores finales
             const allFormData = { ...formData, ...values };
+            // Adjuntar el employeeId si está en modo edición
+            if (employeeId) {
+                allFormData.employeeId = employeeId;
+            }
             console.log('Datos completos del formulario:', allFormData);
-            
-            // Llamar la función onFinish del padre con todos los datos
+            // Llamar la función onFinish del padre con todos los datos y el id si aplica
             await onFinish(allFormData);
         } catch (error) {
             console.error('Error al enviar formulario:', error);
@@ -176,7 +310,10 @@ const EmployeeForm = ({
                 <Form.Item
                     name="identification_number"
                     label="Número de Identificación"
-                    rules={[{ required: true, message: 'Ingresa el número de identificación' }]}
+                    rules={[
+                        { required: true, message: 'Ingresa el número de identificación' },
+                        { validator: validateEmployeeIdentification }
+                    ]}
                 >
                     <Input placeholder="123456789" />
                 </Form.Item>
@@ -284,18 +421,7 @@ const EmployeeForm = ({
                     />
                 </Form.Item>
             </Col>
-            <Col span={12}>
-                <Form.Item
-                    name="is_active"
-                    label="Estado"
-                    initialValue={true}
-                >
-                    <Radio.Group>
-                        <Radio value={true}>Activo</Radio>
-                        <Radio value={false}>Inactivo</Radio>
-                    </Radio.Group>
-                </Form.Item>
-            </Col>
+
             <Col span={24}>
                 <Form.Item
                     name="job_description"
@@ -347,6 +473,19 @@ const EmployeeForm = ({
                                     emergency_contact_phone: undefined,
                                     emergency_contact_email: undefined,
                                 });
+                                // Re-validar el campo de identificación del empleado para limpiar errores
+                                setTimeout(() => {
+                                    form.validateFields(['identification_number']).catch(() => {});
+                                }, 100);
+                            } else {
+                                // Si se activa, re-validar los campos para mostrar errores si aplican
+                                setTimeout(() => {
+                                    const employeeId = form.getFieldValue('identification_number');
+                                    const emergencyId = form.getFieldValue('emergency_contact_identification');
+                                    if (employeeId && emergencyId) {
+                                        form.validateFields(['identification_number', 'emergency_contact_identification']).catch(() => {});
+                                    }
+                                }, 100);
                             }
                         }}
                     >
@@ -403,7 +542,10 @@ const EmployeeForm = ({
                 <Form.Item
                     name="emergency_contact_identification"
                     label="Número de Identificación"
-                    rules={hasEmergencyContact ? [{ required: true, message: 'Ingresa el número de identificación' }] : []}
+                    rules={hasEmergencyContact ? [
+                        { required: true, message: 'Ingresa el número de identificación' },
+                        { validator: validateEmergencyContactIdentification }
+                    ] : []}
                 >
                     <Input 
                         placeholder="123456789"
@@ -467,11 +609,13 @@ const EmployeeForm = ({
             autoComplete="off"
         >
             <Steps current={currentStep} items={items} />
-            
             <div className={styles.employeeFormContent}>
-                {renderStepContent()}
+                {loadingEmployee ? (
+                    <div style={{ textAlign: 'center', padding: 32 }}>Cargando datos del empleado...</div>
+                ) : (
+                    renderStepContent()
+                )}
             </div>
-            
             <div className={styles.employeeFormButtons}>
                 {currentStep < steps.length - 1 && (
                     <Button type="primary" onClick={next} className={styles.employeeFormButton}>
@@ -482,11 +626,11 @@ const EmployeeForm = ({
                     <Button 
                         type="primary" 
                         htmlType="submit" 
-                        loading={loading || isSubmitting}
-                        disabled={loading || isSubmitting}
+                        loading={loading || isSubmitting || loadingEmployee}
+                        disabled={loading || isSubmitting || loadingEmployee}
                         className={styles.employeeFormButton}
                     >
-                        Crear Empleado
+                        {employeeId ? 'Actualizar' : 'Crear'}
                     </Button>
                 )}
                 {currentStep > 0 && (

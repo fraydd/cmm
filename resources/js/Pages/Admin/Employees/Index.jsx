@@ -188,12 +188,16 @@ export default function Index({ empleados = [] }) {
     const endIndex = startIndex + safePageSize;
     const paginatedData = Array.isArray(filteredData) ? filteredData.slice(startIndex, endIndex) : [];
     
+    const [editingEmployeeId, setEditingEmployeeId] = useState(null);
+
     const handleAddEmployee = () => {
+        setEditingEmployeeId(null); // Modo crear
         setIsModalVisible(true);
     };
 
     const handleModalCancel = () => {
         setIsModalVisible(false);
+        setEditingEmployeeId(null);
     };
 
     const handleModalSubmit = async (values) => {
@@ -218,17 +222,29 @@ export default function Index({ empleados = [] }) {
         // Obtener el token CSRF del meta tag
         const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         setLoading(true);
-        
         try {
-            // Petición real al backend usando fetch con CSRF
-            const response = await fetch('/admin/empleados', {
-                method: 'POST',
-                body: JSON.stringify(values),
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': token
-                }
-            });
+            let response, result;
+            if (editingEmployeeId) {
+                // Modo edición: PUT/PATCH
+                response = await fetch(`/admin/empleados/${editingEmployeeId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(values),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': token
+                    }
+                });
+            } else {
+                // Modo crear: POST
+                response = await fetch('/admin/empleados', {
+                    method: 'POST',
+                    body: JSON.stringify(values),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': token
+                    }
+                });
+            }
 
             if (!response.ok) {
                 let errorMsg = 'Error en la respuesta del servidor';
@@ -239,14 +255,15 @@ export default function Index({ empleados = [] }) {
                 throw new Error(errorMsg);
             }
 
-            const result = await response.json();
-            showSuccess('Empleado creado exitosamente!');
+            result = await response.json();
+            showSuccess(editingEmployeeId ? 'Empleado actualizado exitosamente!' : 'Empleado creado exitosamente!');
             setIsModalVisible(false);
-            // Recargar datos después de crear
+            setEditingEmployeeId(null);
+            // Recargar datos después de crear/editar
             await refreshData();
         } catch (error) {
-            console.error('Error al crear empleado:', error);
-            showError(error.message || 'Error al crear el empleado. Inténtalo de nuevo.');
+            console.error('Error al guardar empleado:', error);
+            showError(error.message || 'Error al guardar el empleado. Inténtalo de nuevo.');
         } finally {
             setLoading(false);
         }
@@ -532,7 +549,10 @@ export default function Index({ empleados = [] }) {
                             type="text"
                             icon={<EditOutlined />}
                             size="small"
-                            onClick={() => window.location.href = `/admin/empleados/${record.id}/edit`}
+                            onClick={() => {
+                                setEditingEmployeeId(record.id);
+                                setIsModalVisible(true);
+                            }}
                         />
                     </Tooltip>
                     <Tooltip title="Eliminar empleado">
@@ -745,6 +765,7 @@ export default function Index({ empleados = [] }) {
                     onSubmit={handleModalSubmit}
                     loading={loading}
                     title="Nuevo Empleado"
+                    employeeId={editingEmployeeId}
                 />
             </div>
         </AdminLayout>

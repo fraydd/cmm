@@ -6,6 +6,7 @@ const EmployeeModal = ({
     visible, 
     onCancel, 
     onSubmit, 
+    employeeId = null, // Nuevo prop para modo edición
     title = "Nuevo Empleado",
     initialValues = {},
     loading = false 
@@ -26,9 +27,12 @@ const EmployeeModal = ({
         }
     };
 
+    // Título dinámico
+    const modalTitle = employeeId ? 'Editar Empleado' : title;
+
     return (
         <Modal
-            title={title}
+            title={modalTitle}
             open={visible}
             onCancel={handleCancel}
             footer={null}
@@ -44,6 +48,7 @@ const EmployeeModal = ({
                 loading={loading}
                 initialValues={{}}
                 visible={visible}
+                employeeId={employeeId}
             />
         </Modal>
     );

@@ -1,0 +1,310 @@
+/* Vista de detalles del empleado */
+.employeeShowPage {
+    padding: 0;
+    min-height: 100vh;
+    background: var(--cmm-bg-color);
+}
+
+/* Header de la página */
+.headerSection {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding: 20px;
+    background: var(--cmm-card-bg-color);
+    border-radius: 8px;
+    border: 1px solid var(--cmm-border-color);
+}
+
+.headerContent {
+    margin-left: 16px;
+}
+
+/* Cards de información */
+.infoCard {
+    height: 100%;
+    border: 1px solid var(--cmm-border-color);
+    border-radius: 8px;
+    background: var(--cmm-bg-secondary);
+    transition: all 0.3s ease;
+    
+    :global(.ant-card-head) {
+        border-bottom: 1px solid var(--cmm-card-header-border);
+        background: var(--cmm-card-header-bg);
+        border-radius: 8px 8px 0 0;
+        padding: 16px 20px;
+        margin: 0;
+        
+        :global(.ant-card-head-title) {
+            color: var(--cmm-text-primary);
+            font-weight: 600;
+            font-size: 16px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    }
+    
+    :global(.ant-card-body) {
+        padding: 20px;
+        background: var(--cmm-bg-secondary);
+    }
+    
+    &:hover {
+        box-shadow: 0 4px 12px var(--cmm-shadow-color);
+        transform: translateY(-2px);
+    }
+}
+
+/* Sección del avatar */
+.avatarSection {
+    display: flex;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--cmm-border-color);
+}
+
+.employeeAvatar {
+    background: var(--cmm-primary-color);
+    margin-right: 16px;
+}
+
+.basicInfo {
+    flex: 1;
+}
+
+/* Descriptions personalizadas */
+.descriptions {
+    :global(.ant-descriptions-item-label) {
+        background: var(--cmm-bg-secondary);
+        color: var(--cmm-text-secondary);
+        font-weight: 500;
+        width: 35%;
+    }
+    
+    :global(.ant-descriptions-item-content) {
+        background: var(--cmm-card-bg-color);
+        color: var(--cmm-text-color);
+    }
+    
+    :global(.ant-descriptions-bordered .ant-descriptions-item) {
+        border-color: var(--cmm-border-color);
+    }
+}
+
+/* Sección de contacto de emergencia */
+.emergencySection {
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--cmm-border-color);
+    
+    h5 {
+        color: var(--cmm-text-color);
+        margin-bottom: 12px;
+    }
+}
+
+/* Sección de descripción del trabajo */
+.jobDescriptionSection {
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--cmm-border-color);
+    
+    h5 {
+        color: var(--cmm-text-color);
+        margin-bottom: 12px;
+    }
+}
+
+.jobDescription {
+    padding: 12px;
+    background: var(--cmm-bg-secondary);
+    border-radius: 6px;
+    border: 1px solid var(--cmm-border-color);
+    color: var(--cmm-text-color);
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+/* Grid de sedes */
+.branchesGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.branchCard {
+    padding: 16px;
+    border: 1px solid var(--cmm-border-color);
+    border-radius: 8px;
+    background: var(--cmm-bg-secondary);
+    transition: all 0.2s ease;
+    
+    // Hover coherente con el sistema de temas
+    &:hover {
+        border-color: var(--cmm-primary-400); // Color primario del tema actual
+        background: var(--cmm-table-hover);   // Mismo color de hover que las tablas
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px var(--cmm-shadow-color); // Sombra del tema actual
+    }
+}
+
+.branchHeader {
+    margin-bottom: 8px;
+}
+
+.branchDetails {
+    margin-top: 8px;
+    
+    div {
+        color: var(--cmm-text-secondary);
+        font-size: 12px;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+}
+
+/* Tabla de asistencias */
+.attendanceTable {
+    :global(.ant-table) {
+        background: var(--cmm-card-bg-color);
+        border-radius: 6px;
+    }
+    
+    :global(.ant-table-thead > tr > th) {
+        background: var(--cmm-bg-secondary);
+        color: var(--cmm-text-color);
+        border-bottom: 1px solid var(--cmm-border-color);
+        font-weight: 600;
+    }
+    
+    :global(.ant-table-tbody > tr > td) {
+        border-bottom: 1px solid var(--cmm-border-color);
+        color: var(--cmm-text-color);
+    }
+    
+    :global(.ant-table-tbody > tr:hover > td) {
+        background: var(--cmm-table-hover);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .headerSection {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+    }
+    
+    .avatarSection {
+        flex-direction: column;
+        text-align: center;
+        
+        .employeeAvatar {
+            margin-right: 0;
+            margin-bottom: 12px;
+        }
+    }
+    
+    .descriptions {
+        :global(.ant-descriptions-item-label) {
+            width: 40%;
+        }
+    }
+}
+
+/* Temas específicos - Solo overrides necesarios */
+:global([data-theme="dark"]) {
+    .infoCard {
+        :global(.ant-card-head) {
+            background: var(--cmm-card-header-bg, #1f1f1f);
+        }
+    }
+}
+
+/* Estados y tags */
+:global(.ant-tag) {
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+/* Botones */
+:global(.ant-btn) {
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    
+    &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+}
+
+/* Espaciado y layout general */
+.employeeShowPage {
+    :global(.ant-row) {
+        margin: 0;
+    }
+    
+    :global(.ant-col) {
+        padding: 0 12px;
+    }
+}
+
+/* Indicadores de estado: fondo transparente y colores de tema */
+:global(.ant-tag),
+:global(.ant-tag-success),
+:global(.ant-tag-error),
+:global(.ant-tag-warning),
+:global(.ant-tag-processing),
+:global(.ant-tag-blue),
+:global(.ant-tag-red),
+:global(.ant-tag-default) {
+    background: transparent !important;
+}
+
+:global(.ant-tag-success) {
+    border-color: var(--cmm-success) !important;
+    color: var(--cmm-success) !important;
+}
+:global(.ant-tag-error),
+:global(.ant-tag-red) {
+    border-color: var(--cmm-error) !important;
+    color: var(--cmm-error) !important;
+}
+:global(.ant-tag-warning) {
+    border-color: var(--cmm-warning) !important;
+    color: var(--cmm-warning) !important;
+}
+:global(.ant-tag-processing),
+:global(.ant-tag-blue) {
+    border-color: var(--cmm-info) !important;
+    color: var(--cmm-info) !important;
+}
+:global(.ant-tag-default) {
+    border-color: var(--cmm-border-color) !important;
+    color: var(--cmm-text-secondary) !important;
+}
+
+/* Tema oscuro: fondo transparente para todos los tags */
+:global() {
+    :global(.ant-tag),
+    :global(.ant-tag-success),
+    :global(.ant-tag-error),
+    :global(.ant-tag-warning),
+    :global(.ant-tag-processing),
+    :global(.ant-tag-blue),
+    :global(.ant-tag-red),
+    :global(.ant-tag-default) {
+        background: transparent !important;
+    }
+}

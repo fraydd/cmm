@@ -55,6 +55,7 @@
   transition: background var(--cmm-transition-normal);
   &:hover {
     background-color: var(--cmm-primary-700) !important;
+    color: var(--cmm-text-light) !important;
   }
 }
 /* Overrides para formularios usando variables CSS del tema */
