@@ -1,19 +1,46 @@
 import React, { useState } from 'react';
 import { Upload, message } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
+import { usePage } from '@inertiajs/react';
 
 const MAX_IMAGES = 10;
 
 const ModelImageUploader = ({ value = [], onChange }) => {
     const [fileList, setFileList] = useState(value);
+    const { props } = usePage();
 
     // Custom upload handler
     const customRequest = async ({ file, onSuccess, onError, onProgress }) => {
         const formData = new FormData();
         formData.append('image', file);
 
-        // CSRF token
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        // CSRF token: obtener desde Inertia, cookie o meta tag
+        let csrfToken = props.csrf_token; // Desde Inertia
+        
+        // Si no está en Inertia, obtener de la cookie XSRF-TOKEN decodificada
+        if (!csrfToken) {
+            // Función para obtener cookie por nombre
+            const getCookie = (name) => {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop().split(';').shift();
+            };
+
+            // Obtener token de la cookie XSRF-TOKEN y decodificar
+            const xsrfToken = getCookie('XSRF-TOKEN');
+            if (xsrfToken) {
+                try {
+                    csrfToken = decodeURIComponent(xsrfToken);
+                } catch (e) {
+                    console.error('Error decodificando XSRF token:', e);
+                }
+            }
+        }
+
+        // Si no hay token en cookie, intentar obtener del meta tag
+        if (!csrfToken) {
+            csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        }
 
         try {
             const response = await fetch('/admin/modelos/upload-image', {
@@ -23,7 +50,7 @@ const ModelImageUploader = ({ value = [], onChange }) => {
                     'X-Requested-With': 'XMLHttpRequest',
                     ...(csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {}),
                 },
-                credentials: 'include', // Importante para la cookie de sesión
+                credentials: 'same-origin', // Cambiar de 'include' a 'same-origin'
             });
 
             const res = await response.json();

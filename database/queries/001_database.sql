@@ -259,16 +259,16 @@ CREATE TABLE `model_profiles` (
 );
 
 -- Nueva tabla para múltiples imágenes de modelos
-CREATE TABLE `model_images` (
+CREATE TABLE `model_files` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `model_id` bigint unsigned NOT NULL,
   `file_path` varchar(500) NOT NULL,
   `file_name` varchar(255) NOT NULL,
-  `image_type` varchar(50) NOT NULL DEFAULT 'Portafolio',
+  `file_type` varchar(50) NULL DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `model_images_model_id_index` (`model_id`)
+  KEY `model_files_model_id_index` (`model_id`)
 );
 
 CREATE TABLE `social_media_platforms` (
@@ -741,7 +741,7 @@ ALTER TABLE `model_profiles` ADD CONSTRAINT `model_profiles_eye_color_id_foreign
 ALTER TABLE `model_profiles` ADD CONSTRAINT `model_profiles_skin_color_id_foreign` FOREIGN KEY (`skin_color_id`) REFERENCES `skin_colors` (`id`);
 ALTER TABLE `guardians` ADD CONSTRAINT `guardians_relationship_id_foreign` FOREIGN KEY (`relationship_id`) REFERENCES `relationships` (`id`);
 ALTER TABLE `employee_emergency_contacts` ADD CONSTRAINT `employee_emergency_contacts_relationship_id_foreign` FOREIGN KEY (`relationship_id`) REFERENCES `relationships` (`id`);
-ALTER TABLE `model_images` ADD CONSTRAINT `model_images_model_id_foreign` FOREIGN KEY (`model_id`) REFERENCES `models` (`id`);
+ALTER TABLE `model_files` ADD CONSTRAINT `model_files_model_id_foreign` FOREIGN KEY (`model_id`) REFERENCES `models` (`id`);
 ALTER TABLE `model_social_media` ADD CONSTRAINT `model_social_media_social_media_platform_id_foreign` FOREIGN KEY (`social_media_platform_id`) REFERENCES `social_media_platforms` (`id`);
 
 -- Relaciones de Suscripciones y Planes por Sede

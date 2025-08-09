@@ -19,6 +19,7 @@
         "@vitejs/plugin-react": "^4.6.0",
         "antd": "^5.26.4",
         "react": "^19.1.0",
-        "react-dom": "^19.1.0"
+        "react-dom": "^19.1.0",
+        "swiper": "^11.2.10"
     }
 }

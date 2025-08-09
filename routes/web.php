@@ -126,3 +126,12 @@ Route::prefix('admin')->middleware(['auth', 'verified'])->group(function () {
     Route::get('checkin', [\App\Http\Controllers\Admin\CheckinController::class, 'index'])->name('admin.checkin.index');
     Route::post('checkin', [\App\Http\Controllers\Admin\CheckinController::class, 'store'])->name('admin.checkin.store');
 });
+
+// Rutas de compras/facturación (admin)
+Route::prefix('admin')->middleware(['auth', 'verified'])->group(function () {
+    Route::get('compras', [\App\Http\Controllers\Admin\PurchaseController::class, 'index'])->name('admin.purchases.index');
+    Route::get('compras/{id}', [\App\Http\Controllers\Admin\PurchaseController::class, 'show'])->name('admin.purchases.show');
+    Route::post('compras', [\App\Http\Controllers\Admin\PurchaseController::class, 'store'])->name('admin.purchases.store');
+    Route::get('compras/{id}/pdf', [\App\Http\Controllers\Admin\PurchaseController::class, 'downloadPdf'])->name('admin.purchases.pdf');
+    // Puedes agregar put/patch/delete según necesidades futuras
+});

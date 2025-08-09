@@ -25,7 +25,11 @@ export default function Index({ modelos = [], debug_info }) {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [loading, setLoading] = useState(false);
     const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+    
+    // Estado para los modelos base (fuente de verdad)
+    const [baseModelos, setBaseModelos] = useState(Array.isArray(modelos) ? modelos : []);
     const [filteredData, setFilteredData] = useState(Array.isArray(modelos) ? modelos : []);
+    
     const [filters, setFilters] = useState({
         search: '',
         fechaDesde: null,
@@ -43,10 +47,20 @@ export default function Index({ modelos = [], debug_info }) {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [isUpdated, setIsUpdated] = useState(false);
 
-    // Actualizar datos filtrados cuando cambian los modelos
+    // Actualizar baseModelos cuando cambia la prop modelos
+    useEffect(() => {
+        const validModelos = Array.isArray(modelos) ? modelos.filter(model => 
+            model && 
+            typeof model === 'object' && 
+            (model.id !== undefined && model.id !== null && model.id !== '')
+        ) : [];
+        setBaseModelos(validModelos);
+    }, [modelos]);
+
+    // Actualizar datos filtrados cuando cambian los baseModelos
     useEffect(() => {
         // Validación robusta de datos
-        const validModelos = Array.isArray(modelos) ? modelos.filter(model => 
+        const validModelos = Array.isArray(baseModelos) ? baseModelos.filter(model => 
             model && 
             typeof model === 'object' && 
             (model.id !== undefined && model.id !== null && model.id !== '')
@@ -58,7 +72,7 @@ export default function Index({ modelos = [], debug_info }) {
             total: validModelos.length,
             current: Math.max(1, prev.current) // Asegurar que current nunca sea menor a 1
         }));
-    }, [modelos]);
+    }, [baseModelos]);
 
     // Función para aplicar ordenamiento global
     const applySorting = (data) => {
@@ -101,8 +115,8 @@ export default function Index({ modelos = [], debug_info }) {
 
     // Función para aplicar filtros con ordenamiento global
     const applyFilters = () => {
-        // Validación inicial de datos
-        const validModelos = Array.isArray(modelos) ? modelos.filter(model => 
+        // Validación inicial de datos - usar baseModelos en lugar de modelos
+        const validModelos = Array.isArray(baseModelos) ? baseModelos.filter(model => 
             model && 
             typeof model === 'object' && 
             (model.id !== undefined && model.id !== null && model.id !== '')
@@ -153,7 +167,7 @@ export default function Index({ modelos = [], debug_info }) {
     // Aplicar filtros cuando cambian los filtros o el ordenamiento
     useEffect(() => {
         applyFilters();
-    }, [filters, modelos, sorting]);
+    }, [filters, baseModelos, sorting]);
     
     // Calcular datos paginados con validación
     const startIndex = Math.max(0, (Math.max(1, pagination.current) - 1) * Math.max(1, pagination.pageSize));
@@ -239,12 +253,17 @@ export default function Index({ modelos = [], debug_info }) {
             }
 
             const result = await response.json();
+            
+            // Solo si llegamos aquí significa que fue exitoso
             showSuccess('Modelo creado exitosamente!');
-            setIsModalVisible(false);
+            setIsModalVisible(false); // Solo cerrar modal si es exitoso
             await refreshData();
         } catch (error) {
             console.error('Error al crear modelo:', error);
             showError(error.message || 'Error al crear el modelo. Inténtalo de nuevo.');
+            // Importante: NO cerrar el modal aquí - el usuario conserva sus datos
+            // setIsModalVisible(false); // <-- NO hacer esto
+            throw error; // Relanzar el error para que lo maneje el modal
         } finally {
             setLoading(false);
         }
@@ -346,20 +365,21 @@ export default function Index({ modelos = [], debug_info }) {
             }
 
             const data = await response.json();
+            console.log('Datos recibidos del servidor:', data); // Debug
             
-            // Validar los datos recibidos
-            const validData = Array.isArray(data.modelos) ? data.modelos.filter(model => 
+            // Validar los datos recibidos - acceder directamente a data.modelos
+            const receivedModelos = data.modelos || [];
+            const validData = Array.isArray(receivedModelos) ? receivedModelos.filter(model => 
                 model && 
                 typeof model === 'object' && 
                 (model.id !== undefined && model.id !== null && model.id !== '')
             ) : [];
             
-            setFilteredData(validData);
-            setPagination(prev => ({
-                ...prev,
-                total: validData.length,
-                current: 1 // Reset a la primera página
-            }));
+            console.log('Modelos válidos procesados:', validData); // Debug
+            
+            // Actualizar baseModelos - esto disparará los useEffect para actualizar filteredData
+            setBaseModelos(validData);
+            
             // Resetear ordenamiento al recargar datos
             setSorting({
                 field: null,
@@ -534,8 +554,8 @@ export default function Index({ modelos = [], debug_info }) {
                             size="small" 
                             icon={<EyeOutlined />}
                             onClick={() => {
-                                message.info('Ver detalles del modelo');
-                                // Aquí iría la navegación a la vista de detalles
+                                // Navegar a la vista completa del modelo
+                                window.location.href = `/admin/modelos/${record.id}`;
                             }}
                         />
                     </Tooltip>
@@ -581,7 +601,7 @@ export default function Index({ modelos = [], debug_info }) {
                             <UserOutlined style={{ marginRight: '8px' }} />
                             Lista de Modelos
                         </Title>
-                        <Text type="secondary">Gestiona todos los modelos registrados en el sistema • {Array.isArray(modelos) ? modelos.length : 0} total(es)</Text>
+                        <Text type="secondary">Gestiona todos los modelos registrados en el sistema • {Array.isArray(baseModelos) ? baseModelos.length : 0} total(es)</Text>
                     </div>
                 </div>
 

@@ -124,7 +124,9 @@ const ModeloForm = ({
                 setCurrentStep(currentStep + 1);
             } else {
                 // Último paso, mostrar mensaje de completado
-                const finalData = { ...formData, ...values };
+                // const finalData = { ...formData, ...values };
+                const finalData = { ...formData, ...values, branch_id: selectedBranch?.id };
+
                 message.success('¡Registro completado exitosamente!');
                 onFinish(finalData);
             }

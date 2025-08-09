@@ -244,8 +244,8 @@ const EmployeeForm = ({
 
         try {
             setIsSubmitting(true);
-            // Combinar todos los datos acumulados con los valores finales
-            const allFormData = { ...formData, ...values };
+            // Combinar todos los datos acumulados con los valores finales y branch_id
+            const allFormData = { ...formData, ...values, branch_id: selectedBranch?.id };
             // Adjuntar el employeeId si está en modo edición
             if (employeeId) {
                 allFormData.employeeId = employeeId;

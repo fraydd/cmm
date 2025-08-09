@@ -196,15 +196,42 @@ class ModeloController extends \App\Http\Controllers\Controller
                 'updated_at' => now(),
             ]);
 
-            // 4. Insertar imágenes
-            foreach ($imagesMeta as $img) {
-                DB::table('model_images')->insert([
-                    'model_id' => $modelId,
-                    'file_path' => $img['url'],
-                    'file_name' => $img['temp_id'],
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
+            // 4. Mover imágenes de temporal a definitivo y registrar en base de datos
+            if (!empty($imagesMeta)) {
+                // Crear directorio definitivo para las imágenes del modelo
+                $definitiveImagePath = 'storage/modelos/' . $modelId;
+                $fullDefinitivePath = public_path($definitiveImagePath);
+                
+                if (!file_exists($fullDefinitivePath)) {
+                    mkdir($fullDefinitivePath, 0755, true);
+                }
+
+                foreach ($imagesMeta as $img) {
+                    // Construir rutas - CORREGIDO: usar public/storage/temp/modelos
+                    $tempFilePath = public_path('storage/temp/modelos/' . $img['temp_id']);
+                    $definitiveFileName = $img['temp_id']; // Mantener el nombre temporal único
+                    $definitiveFilePath = $fullDefinitivePath . '/' . $definitiveFileName;
+                    $relativeDefinitivePath = $definitiveImagePath . '/' . $definitiveFileName;
+
+                    // Mover archivo de temporal a definitivo
+                    if (file_exists($tempFilePath)) {
+                        if (rename($tempFilePath, $definitiveFilePath)) {
+                            // Si se movió exitosamente, registrar en base de datos
+                            DB::table('model_files')->insert([
+                                'model_id' => $modelId,
+                                'file_path' => $relativeDefinitivePath, // Ruta definitiva
+                                'file_name' => $definitiveFileName,
+                                'file_type' => 'imagen', // Tipo por defecto
+                                'created_at' => now(),
+                                'updated_at' => now(),
+                            ]);
+                        } else {
+                            Log::warning("No se pudo mover la imagen temporal: {$tempFilePath}");
+                        }
+                    } else {
+                        Log::warning("Archivo temporal no encontrado: {$tempFilePath}");
+                    }
+                }
             }
 
             // 5. Insertar redes sociales
@@ -284,7 +311,7 @@ class ModeloController extends \App\Http\Controllers\Controller
             $startDate = \Carbon\Carbon::parse($data['fecha_vigencia']);
             $endDate = (clone $startDate)->addMonths($durationMonths);
 
-            DB::table('subscriptions')->insert([
+            $subscriptionId = DB::table('subscriptions')->insertGetId([
                 'model_id' => $modelId,
                 'branch_subscription_plan_id' => $branchPlan->id,
                 'start_date' => $startDate,
@@ -293,6 +320,70 @@ class ModeloController extends \App\Http\Controllers\Controller
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+
+            $total = ($branchPlan->custom_price ?? $plan->price) * $quantity;
+            $pagado = 0;
+            $estado = null;
+            if ($data['abonar_parte']) {
+                $pagado = $data['valor_abonar'];
+            } else {
+                $pagado = $total;
+            }
+
+            if ($pagado >= $total) {
+                $estado = 2;
+            }
+
+            if ($estado === null && $pagado > 0) {
+                $estado = 3;
+            } else {
+                $estado = 1;
+            }
+
+            // Registrar la factura
+            $invoiceId = DB::table('invoices')->insertGetId([
+                'branch_id' => $data['branch_id'],
+                'person_id' => $personId,
+                'invoice_date' => now(),
+                'total_amount' => $total,
+                'paid_amount' => $pagado,
+                'remaining_amount' => max(0, $total - $pagado),
+                'status_id' => $estado,
+                'invoice_type_id' => 1,
+                'observations' => $data['observaciones'] ?? null,
+                'created_by' => auth()->id(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            // registrar invoice_items
+            DB::table('invoice_items')->insert([
+                'invoice_id' => $invoiceId,
+                'item_type_id' => 2,
+                'subscription_id' => $subscriptionId,
+                'quantity' => $quantity,
+                'unit_price' => $branchPlan->custom_price ?? $plan->price,
+                'total_price' => $total,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            // se registra el pago
+            if ($pagado > 0) {
+                DB::table('payments')->insert([
+                    'branch_id' => $data['branch_id'],
+                    'invoice_id' => $invoiceId,
+                    'payment_method_id' => $data['medio_pago'],
+                    'amount' => $pagado,
+                    'created_by' => auth()->id(),
+                    'payment_date' => now(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+
+            // Limpiar archivos temporales que no se usaron
+            $this->cleanUpUnusedTempFiles($imagesMeta);
 
             DB::commit();
             return response()->json(['success' => true, 'message' => 'Modelo registrado correctamente']);
@@ -311,7 +402,326 @@ class ModeloController extends \App\Http\Controllers\Controller
      */
     public function show($id)
     {
-        //
+        try {
+            $resultado = $this->getModelData($id);
+            
+            if (isset($resultado['error'])) {
+                if (request()->ajax() || request()->wantsJson()) {
+                    return response()->json(['error' => $resultado['error']], $resultado['status']);
+                }
+                return redirect()->route('admin.modelos.index')->with('error', $resultado['error']);
+            }
+
+            // Si es petición AJAX, devolver JSON
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json($resultado);
+            }
+
+            // Si no, renderizar la vista de modelo completa (fuera del dashboard)
+            return Inertia::render('Modelos/Show', $resultado);
+
+        } catch (\Exception $e) {
+            Log::error('Error al obtener información del modelo: ' . $e->getMessage(), [
+                'model_id' => $id,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json(['error' => 'Error al cargar la información del modelo'], 500);
+            }
+            
+            return redirect()->route('admin.modelos.index')->with('error', 'Error al cargar la información del modelo');
+        }
+    }
+
+    /**
+     * Display the specified resource as JSON (for API/Postman testing).
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function showJson($id)
+    {
+        try {
+            $resultado = $this->getModelData($id);
+            
+            if (isset($resultado['error'])) {
+                return response()->json([
+                    'success' => false,
+                    'error' => $resultado['error']
+                ], $resultado['status']);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $resultado
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error al obtener información del modelo (JSON): ' . $e->getMessage(), [
+                'model_id' => $id,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'error' => 'Error al cargar la información del modelo',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtener todos los datos de un modelo (método privado reutilizable)
+     *
+     * @param  int  $id
+     * @return array
+     */
+    private function getModelData($id)
+    {
+        // Query principal para obtener información del modelo
+        $modelo = DB::table('models as m')
+            ->join('people as p', 'm.person_id', '=', 'p.id')
+            ->leftJoin('model_profiles as mp', 'm.id', '=', 'mp.model_id')
+            ->leftJoin('identification_types as it', 'p.identification_type_id', '=', 'it.id')
+            ->leftJoin('genders as g', 'p.gender_id', '=', 'g.id')
+            ->leftJoin('blood_types as bt', 'p.blood_type_id', '=', 'bt.id')
+            ->leftJoin('hair_colors as hc', 'mp.hair_color_id', '=', 'hc.id')
+            ->leftJoin('eye_colors as ec', 'mp.eye_color_id', '=', 'ec.id')
+            ->leftJoin('skin_colors as sc', 'mp.skin_color_id', '=', 'sc.id')
+            ->where('m.id', $id)
+            ->where('m.is_active', true)
+            ->select([
+                // Información básica del modelo
+                'm.id',
+                'm.person_id',
+                'm.created_at as fecha_registro',
+                
+                // Información personal
+                'p.first_name as nombres',
+                'p.last_name as apellidos',
+                DB::raw("CONCAT(p.first_name, ' ', p.last_name) as nombre_completo"),
+                'p.identification_number as numero_identificacion',
+                'it.name as tipo_identificacion',
+                'p.identification_place as lugar_expedicion',
+                'p.birth_date as fecha_nacimiento',
+                'p.address as direccion',
+                'p.phone as telefono',
+                'p.email',
+                'g.name as genero',
+                'bt.name as tipo_sangre',
+                
+                // Perfil físico
+                'mp.height as estatura',
+                'mp.bust as busto',
+                'mp.waist as cintura',
+                'mp.hips as cadera',
+                'hc.name as color_cabello',
+                'ec.name as color_ojos',
+                'sc.name as color_piel',
+                'mp.pants_size as talla_pantalon',
+                'mp.shirt_size as talla_camisa',
+                'mp.shoe_size as talla_calzado',
+            ])
+            ->first();
+
+        if (!$modelo) {
+            return ['error' => 'Modelo no encontrado', 'status' => 404];
+        }
+
+        // Obtener imágenes del modelo
+        $imagenes = DB::table('model_files')
+            ->where('model_id', $id)
+            ->where('file_type', 'imagen')
+            ->select('id', 'file_path', 'file_name', 'file_type', 'created_at')
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        // Obtener redes sociales
+        $redesSociales = DB::table('model_social_media as msm')
+            ->join('social_media_platforms as smp', 'msm.social_media_platform_id', '=', 'smp.id')
+            ->where('msm.model_id', $id)
+            ->where('msm.is_active', true)
+            ->select('smp.name as plataforma', 'msm.url')
+            ->get();
+
+        // Obtener información del acudiente/tutor
+        $acudiente = DB::table('guardians as g')
+            ->join('people as p', 'g.person_id', '=', 'p.id')
+            ->join('relationships as r', 'g.relationship_id', '=', 'r.id')
+            ->where('g.model_id', $id)
+            ->where('g.is_active', true)
+            ->select([
+                DB::raw("CONCAT(p.first_name, ' ', p.last_name) as nombre_completo"),
+                'p.identification_number as numero_identificacion',
+                'p.identification_place as lugar_expedicion',
+                'p.phone as telefono',
+                'p.address as direccion',
+                'r.name as parentesco'
+            ])
+            ->first();
+
+        // Obtener suscripciones activas y historial
+        $suscripciones = DB::table('subscriptions as s')
+            ->join('branch_subscription_plans as bsp', 's.branch_subscription_plan_id', '=', 'bsp.id')
+            ->join('subscription_plans as sp', 'bsp.subscription_plan_id', '=', 'sp.id')
+            ->join('branches as b', 'bsp.branch_id', '=', 'b.id')
+            ->where('s.model_id', $id)
+            ->select([
+                's.id',
+                'sp.name as plan_nombre',
+                'sp.description as plan_descripcion',
+                DB::raw('COALESCE(bsp.custom_price, sp.price) as precio'),
+                'sp.duration_months as duracion_meses',
+                's.start_date as fecha_inicio',
+                's.end_date as fecha_fin',
+                's.status as estado',
+                'b.name as sucursal'
+            ])
+            ->orderBy('s.created_at', 'desc')
+            ->get();
+
+        // Obtener facturas relacionadas
+        $facturas = DB::table('invoices as i')
+            ->join('invoice_statuses as ist', 'i.status_id', '=', 'ist.id')
+            ->join('branches as b', 'i.branch_id', '=', 'b.id')
+            ->where('i.person_id', $modelo->person_id)
+            ->select([
+                'i.id',
+                'i.invoice_date as fecha_factura',
+                'i.total_amount as total',
+                'i.paid_amount as pagado',
+                'i.remaining_amount as pendiente',
+                'ist.name as estado',
+                'b.name as sucursal',
+                'i.observations as observaciones'
+            ])
+            ->orderBy('i.invoice_date', 'desc')
+            ->get();
+
+        // Obtener pagos realizados
+        $pagos = DB::table('payments as p')
+            ->join('invoices as i', 'p.invoice_id', '=', 'i.id')
+            ->join('payment_methods as pm', 'p.payment_method_id', '=', 'pm.id')
+            ->join('branches as b', 'p.branch_id', '=', 'b.id')
+            ->where('i.person_id', $modelo->person_id)
+            ->select([
+                'p.id',
+                'p.payment_date as fecha_pago',
+                'p.amount as monto',
+                'pm.name as metodo_pago',
+                'b.name as sucursal',
+                'i.id as factura_id'
+            ])
+            ->orderBy('p.payment_date', 'desc')
+            ->get();
+
+        // Calcular estadísticas
+        $totalFacturado = $facturas->sum('total');
+        $totalPagado = $facturas->sum('pagado');
+        $totalPendiente = $facturas->sum('pendiente');
+        
+        $estadisticas = [
+            'total_facturado' => $totalFacturado,
+            'total_pagado' => $totalPagado,
+            'total_pendiente' => $totalPendiente,
+            'total_imagenes' => $imagenes->count(),
+            'total_suscripciones' => $suscripciones->count(),
+            'suscripcion_activa' => $suscripciones->where('estado', 'active')->isNotEmpty(),
+        ];
+
+        // Organizar datos para el frontend de manera más estructurada
+        return [
+            'modelo' => [
+                // Información básica
+                'id' => $modelo->id,
+                'nombre_completo' => $modelo->nombre_completo,
+                'nombres' => $modelo->nombres,
+                'apellidos' => $modelo->apellidos,
+                'fecha_registro' => $modelo->fecha_registro,
+                
+                // Campos directos para compatibilidad con el frontend actual
+                'altura' => $modelo->estatura ? $modelo->estatura * 100 : null, // Convertir metros a centímetros para altura
+                'medida_busto' => $modelo->busto,
+                'medida_cintura' => $modelo->cintura,
+                'medida_cadera' => $modelo->cadera,
+                'color_cabello' => $modelo->color_cabello,
+                'color_ojos' => $modelo->color_ojos,
+                'color_piel' => $modelo->color_piel,
+                
+                // Datos personales
+                'datos_personales' => [
+                    'numero_identificacion' => $modelo->numero_identificacion,
+                    'tipo_identificacion' => $modelo->tipo_identificacion,
+                    'lugar_expedicion' => $modelo->lugar_expedicion,
+                    'fecha_nacimiento' => $modelo->fecha_nacimiento,
+                    'edad' => $modelo->fecha_nacimiento ? now()->diffInYears($modelo->fecha_nacimiento) : null,
+                    'genero' => $modelo->genero,
+                    'tipo_sangre' => $modelo->tipo_sangre,
+                ],
+                
+                // Información de contacto
+                'contacto' => [
+                    'telefono' => $modelo->telefono,
+                    'email' => $modelo->email,
+                    'direccion' => $modelo->direccion,
+                ],
+                
+                // Perfil físico/medidas (estructura completa)
+                'medidas_fisicas' => [
+                    'estatura' => $modelo->estatura,
+                    'busto' => $modelo->busto,
+                    'cintura' => $modelo->cintura,
+                    'cadera' => $modelo->cadera,
+                    'medidas_completas' => ($modelo->busto && $modelo->cintura && $modelo->cadera) ? $modelo->busto . '-' . $modelo->cintura . '-' . $modelo->cadera : 'No registradas',
+                    'color_cabello' => $modelo->color_cabello,
+                    'color_ojos' => $modelo->color_ojos,
+                    'color_piel' => $modelo->color_piel,
+                    'talla_pantalon' => $modelo->talla_pantalon,
+                    'talla_camisa' => $modelo->talla_camisa,
+                    'talla_calzado' => $modelo->talla_calzado,
+                ],
+                
+                // Características adicionales para compatibilidad
+                'caracteristicas' => [
+                    'color_cabello' => $modelo->color_cabello,
+                    'color_ojos' => $modelo->color_ojos,
+                    'color_piel' => $modelo->color_piel,
+                ],
+            ],
+            'imagenes' => $imagenes,
+            'redes_sociales' => $redesSociales->map(function($red) {
+                return [
+                    'plataforma' => $red->plataforma,
+                    'url' => $red->url,
+                    'nombre_usuario' => $this->extractUsernameFromUrl($red->url, $red->plataforma)
+                ];
+            }),
+            'acudiente' => $acudiente,
+            'suscripciones' => $suscripciones->map(function($suscripcion) {
+                $hoy = now();
+                $fechaFin = \Carbon\Carbon::parse($suscripcion->fecha_fin);
+                $diasRestantes = $hoy->diffInDays($fechaFin, false);
+                
+                return [
+                    'id' => $suscripcion->id,
+                    'plan_nombre' => $suscripcion->plan_nombre,
+                    'plan_descripcion' => $suscripcion->plan_descripcion,
+                    'precio' => $suscripcion->precio,
+                    'duracion_meses' => $suscripcion->duracion_meses,
+                    'fecha_inicio' => $suscripcion->fecha_inicio,
+                    'fecha_fin' => $suscripcion->fecha_fin,
+                    'estado' => $suscripcion->estado,
+                    'sucursal' => $suscripcion->sucursal,
+                    'dias_restantes' => $diasRestantes,
+                    'esta_activa' => $suscripcion->estado === 'active' && $diasRestantes > 0,
+                    'esta_por_vencer' => $suscripcion->estado === 'active' && $diasRestantes <= 30 && $diasRestantes > 0,
+                ];
+            }),
+            'facturas' => $facturas,
+            'pagos' => $pagos,
+            'estadisticas' => $estadisticas
+        ];
     }
 
     /**
@@ -417,14 +827,14 @@ class ModeloController extends \App\Http\Controllers\Controller
             // Guardar archivo
             if ($file->move($fullPath, $fileName)) {
                 // Insertar en base de datos
-                DB::table('model_images')->insert([
+                DB::table('model_files')->insert([
                     'model_id' => $modelId,
                     'file_path' => $filePath,
                     'file_name' => $fileName,
                     'original_name' => $originalName,
                     'file_size' => $file->getSize(),
                     'mime_type' => $file->getMimeType(),
-                    'image_type' => $image['image_type'] ?? 'portfolio',
+                    'file_type' => $image['file_type'] ?? 'portfolio',
                     'is_primary' => $image['is_primary'] ?? false,
                     'sort_order' => $sortOrder++,
                     'created_at' => now(),
@@ -442,7 +852,7 @@ class ModeloController extends \App\Http\Controllers\Controller
      */
     public function getModelImages($modelId)
     {
-        $images = DB::table('model_images')
+        $images = DB::table('model_files')
             ->where('model_id', $modelId)
             ->orderBy('sort_order')
             ->orderBy('created_at')
@@ -460,7 +870,7 @@ class ModeloController extends \App\Http\Controllers\Controller
      */
     public function deleteModelImage($modelId, $imageId)
     {
-        $image = DB::table('model_images')
+        $image = DB::table('model_files')
             ->where('id', $imageId)
             ->where('model_id', $modelId)
             ->first();
@@ -476,7 +886,7 @@ class ModeloController extends \App\Http\Controllers\Controller
         }
 
         // Eliminar registro de base de datos
-        DB::table('model_images')->where('id', $imageId)->delete();
+        DB::table('model_files')->where('id', $imageId)->delete();
 
         return response()->json(['success' => true, 'message' => 'Imagen eliminada correctamente']);
     }
@@ -516,11 +926,88 @@ class ModeloController extends \App\Http\Controllers\Controller
 
         } catch (\Exception $e) {
             Log::error('Error en upload de imagen temporal: ' . $e->getMessage());
-            
             return response()->json([
                 'success' => false,
                 'message' => 'Error al subir la imagen: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Limpiar archivos temporales no utilizados
+     */
+    private function cleanUpUnusedTempFiles($processedImages)
+    {
+        try {
+            // CORREGIDO: usar la ruta correcta donde están las imágenes temporales
+            $tempDir = public_path('storage/temp/modelos');
+            
+            if (!is_dir($tempDir)) {
+                return;
+            }
+
+            // CORREGIDO: usar 'temp_id' en lugar de 'file_path'
+            $processedFiles = array_map(function($img) {
+                return $img['temp_id'];
+            }, $processedImages);
+
+            $files = glob($tempDir . '/*');
+            $cutoffTime = now()->subHour(); // Eliminar archivos de más de 1 hora
+
+            foreach ($files as $file) {
+                if (is_file($file)) {
+                    $fileName = basename($file);
+                    $fileTime = filemtime($file);
+                    
+                    // Si no está en los procesados Y es viejo, eliminarlo
+                    if (!in_array($fileName, $processedFiles) && $fileTime < $cutoffTime->timestamp) {
+                        unlink($file);
+                        Log::info("Archivo temporal eliminado: $fileName");
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error('Error limpiando archivos temporales: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Extraer nombre de usuario de URL de red social
+     *
+     * @param  string  $url
+     * @param  string  $platform
+     * @return string
+     */
+    private function extractUsernameFromUrl($url, $platform)
+    {
+        if (empty($url)) return '';
+        
+        // Remover protocolo y www
+        $cleanUrl = preg_replace('#^https?://(www\.)?#', '', $url);
+        
+        switch (strtolower($platform)) {
+            case 'instagram':
+                if (preg_match('#instagram\.com/([^/?]+)#', $cleanUrl, $matches)) {
+                    return '@' . $matches[1];
+                }
+                break;
+            case 'facebook':
+                if (preg_match('#facebook\.com/([^/?]+)#', $cleanUrl, $matches)) {
+                    return $matches[1];
+                }
+                break;
+            case 'twitter':
+                if (preg_match('#twitter\.com/([^/?]+)#', $cleanUrl, $matches)) {
+                    return '@' . $matches[1];
+                }
+                break;
+            case 'tiktok':
+                if (preg_match('#tiktok\.com/@?([^/?]+)#', $cleanUrl, $matches)) {
+                    return '@' . $matches[1];
+                }
+                break;
+        }
+        
+        return $url; // Si no se puede extraer, devolver la URL completa
     }
 }

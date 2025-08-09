@@ -624,12 +624,12 @@ Table cash_movements {
   }
 }
 // Nueva tabla para múltiples imágenes de modelos
-Table model_images {
+Table model_files {
   id bigint [pk]
   model_id bigint [not null]
   file_path varchar(500) [not null]
   file_name varchar(255) [not null]
-  image_type varchar(50) [not null]
+  file_type varchar(50) [not null]
   created_at timestamp [null]
   updated_at timestamp [null]
   
@@ -668,7 +668,7 @@ Ref: genders.id < people.gender_id
 Ref: blood_types.id < people.blood_type_id
 Ref: people.id < employees.person_id
 Ref: users.id < employees.user_id
-Ref: models.id < model_images.model_id
+Ref: models.id < model_files.model_id
 Ref: people.id < models.person_id
 Ref: models.id < model_profiles.model_id
 Ref: models.id < model_social_media.model_id

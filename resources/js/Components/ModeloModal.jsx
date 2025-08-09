@@ -20,9 +20,13 @@ const ModeloModal = ({
     const handleSubmit = async (values) => {
         try {
             await onSubmit(values);
+            // Solo resetear los campos si el submit fue exitoso
             form.resetFields();
         } catch (error) {
+            // Relanzar el error para que lo maneje el componente padre
+            // No resetear los campos aquí para preservar los datos del usuario
             console.error('Error al guardar modelo:', error);
+            throw error; // Importante: relanzar el error
         }
     };
 
