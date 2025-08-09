@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Modal, Form } from 'antd';
 import ModeloForm from './ModeloForm';
 
@@ -6,14 +6,21 @@ const ModeloModal = ({
     visible, 
     onCancel, 
     onSubmit, 
+    modeloId = null, // Nuevo prop para modo edición
     title = "Nuevo Modelo",
     initialValues = {},
     loading = false 
 }) => {
     const [form] = Form.useForm();
+    const modeloFormRef = useRef(null);
 
     const handleCancel = () => {
-        form.resetFields();
+        // Solo limpiar cuando el usuario cancela explícitamente
+        if (modeloFormRef.current && modeloFormRef.current.clearForm) {
+            modeloFormRef.current.clearForm();
+        } else {
+            form.resetFields();
+        }
         onCancel();
     };
 
@@ -21,18 +28,24 @@ const ModeloModal = ({
         try {
             await onSubmit(values);
             // Solo resetear los campos si el submit fue exitoso
-            form.resetFields();
+            if (modeloFormRef.current && modeloFormRef.current.clearForm) {
+                modeloFormRef.current.clearForm();
+            } else {
+                form.resetFields();
+            }
         } catch (error) {
-            // Relanzar el error para que lo maneje el componente padre
-            // No resetear los campos aquí para preservar los datos del usuario
+            // NO resetear los campos aquí para preservar los datos del usuario
             console.error('Error al guardar modelo:', error);
-            throw error; // Importante: relanzar el error
+            throw error; // Importante: relanzar el error para que se muestre al usuario
         }
     };
 
+    // Título dinámico
+    const modalTitle = modeloId ? 'Editar Modelo' : title;
+
     return (
         <Modal
-            title={title}
+            title={modalTitle}
             open={visible}
             onCancel={handleCancel}
             footer={null}
@@ -40,14 +53,17 @@ const ModeloModal = ({
             style={{ maxWidth: '80vw', minWidth: 320 }}
             centered={true}
             styles={{ body: { minHeight: '60vh', maxHeight: '90vh', padding: '2vw' } }}
-            destroyOnClose={true}
+            destroyOnHidden={true}
+
         >
             <ModeloForm
+                ref={modeloFormRef}
                 form={form}
                 onFinish={handleSubmit}
                 loading={loading}
                 initialValues={{}}
                 visible={visible}
+                modeloId={modeloId} // Pasar el ID del modelo al formulario
             />
         </Modal>
     );

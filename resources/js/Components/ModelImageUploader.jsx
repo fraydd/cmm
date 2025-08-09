@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Upload, message } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { usePage } from '@inertiajs/react';
@@ -8,6 +8,30 @@ const MAX_IMAGES = 10;
 const ModelImageUploader = ({ value = [], onChange }) => {
     const [fileList, setFileList] = useState(value);
     const { props } = usePage();
+
+    // Sincronizar fileList cuando cambie el value (para modo edición)
+    useEffect(() => {
+        // Solo logear si hay un cambio real en la cantidad de imágenes
+        if (value.length !== fileList.length) {
+            console.log(`SYNC UPLOADER: ${fileList.length} -> ${value.length} imágenes`);
+        }
+        
+        // Asegurar que las imágenes existentes mantengan sus marcadores
+        const processedValue = value.map(img => {
+            if (img.isExisting) {
+                return {
+                    ...img,
+                    status: 'done',
+                    // Asegurar que no se pierdan los IDs para imágenes existentes
+                    id: img.id || img.existingId,
+                    existingId: img.existingId || img.id
+                };
+            }
+            return img;
+        });
+        
+        setFileList(processedValue);
+    }, [value]);
 
     // Custom upload handler
     const customRequest = async ({ file, onSuccess, onError, onProgress }) => {
@@ -70,8 +94,16 @@ const ModelImageUploader = ({ value = [], onChange }) => {
 
     // Manejar cambios en la lista de archivos
     const handleChange = ({ file, fileList: newFileList }) => {
+        // Solo logear acciones importantes
+        if (file.status === 'done') {
+            console.log(`IMAGEN SUBIDA: ${file.name}`);
+        } else if (file.status === 'removed') {
+            console.log(`IMAGEN ELIMINADA: ${file.name}`);
+        }
+        
         // Actualizar status y url cuando la subida termina
         const updatedList = newFileList.map(f => {
+            // Si es una imagen nueva que se acaba de subir
             if (f.status === 'done' && f.response && f.response.success) {
                 return {
                     ...f,
@@ -79,12 +111,27 @@ const ModelImageUploader = ({ value = [], onChange }) => {
                     url: f.response.url,
                     name: f.response.original_name || f.name,
                     size: f.response.size || f.size,
+                    isNew: true,
+                };
+            }
+            // Si es una imagen existente (del modo edición), mantener sus datos
+            if (f.isExisting || (f.uid && f.url && !f.response && !f.originFileObj)) {
+                return {
+                    ...f,
+                    status: 'done',
+                    isExisting: true,
+                    id: f.id || f.existingId || f.uid,
+                    existingId: f.existingId || f.id || f.uid
                 };
             }
             return f;
         });
+        
+        console.log(`LISTA ACTUALIZADA: ${updatedList.length} total`);
         setFileList(updatedList);
-        if (onChange) onChange(updatedList);
+        if (onChange) {
+            onChange(updatedList);
+        }
     };
 
     // Validar antes de subir

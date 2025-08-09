@@ -126,7 +126,6 @@ const EmployeeForm = ({
         try {
             // Primero obtener todos los valores actuales del formulario
             const allCurrentValues = form.getFieldsValue();
-            console.log('Valores actuales del formulario:', allCurrentValues);
             
             // Luego validar solo los campos del paso actual
             let fieldsToValidate;
@@ -219,7 +218,6 @@ const EmployeeForm = ({
     const handleFinish = async (values) => {
         // Prevenir double submit
         if (isSubmitting || loading) {
-            console.log('Formulario ya se está procesando, ignorando segundo envío');
             return;
         }
 
@@ -250,7 +248,6 @@ const EmployeeForm = ({
             if (employeeId) {
                 allFormData.employeeId = employeeId;
             }
-            console.log('Datos completos del formulario:', allFormData);
             // Llamar la función onFinish del padre con todos los datos y el id si aplica
             await onFinish(allFormData);
         } catch (error) {

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import dayjs from 'dayjs';
 import { Form, Input, Select, Button, Space, Steps, DatePicker, Upload, InputNumber, Radio, Checkbox, Divider, Row, Col, Typography, Tooltip, message, theme } from 'antd';
 import { 
     PlusOutlined, 
@@ -22,17 +23,19 @@ const { Option } = Select;
 const { Title } = Typography;
 const { Step } = Steps;
 
-const ModeloForm = ({ 
+const ModeloForm = forwardRef(({ 
     form, 
     onFinish, 
     loading = false, 
     initialValues = {},
-    visible // <-- Asegúrate de pasar esta prop desde el modal
-}) => {
+    visible, // <-- Asegúrate de pasar esta prop desde el modal
+    modeloId // Nuevo prop opcional para modo edición
+}, ref) => {
     const { token } = theme.useToken();
     const { selectedBranch } = useBranch();
     const [currentStep, setCurrentStep] = useState(0);
     const [formData, setFormData] = useState(initialValues);
+    const [modelImages, setModelImages] = useState([]); // Estado separado para imágenes
     const [catalogs, setCatalogs] = useState({
         identification_types: [],
         genders: [],
@@ -45,11 +48,85 @@ const ModeloForm = ({
         subscription_plans: [],
     });
     const [loadingCatalogs, setLoadingCatalogs] = useState(true);
+    const [isEditMode, setIsEditMode] = useState(!!modeloId);
+    const [loadingModelo, setLoadingModelo] = useState(false);
+
+    // Función para limpiar el formulario (solo llamar tras éxito)
+    const clearForm = () => {
+        form.resetFields();
+        setFormData({});
+        setModelImages([]);
+        setCurrentStep(0);
+    };
+
+    // Exponer métodos al componente padre
+    useImperativeHandle(ref, () => ({
+        clearForm
+    }));
+
+    // Actualizar isEditMode cuando cambie modeloId
+    useEffect(() => {
+        setIsEditMode(!!modeloId);
+    }, [modeloId]);
 
     // Resetear el paso cuando el modal se abre
     useEffect(() => {
         if (visible) setCurrentStep(0);
     }, [visible]);
+
+    // Consultar datos del modelo cuando se abra en modo edición
+    useEffect(() => {
+        if (visible && modeloId) {
+            setLoadingModelo(true);
+            fetch(`/admin/modelos/${modeloId}/edit`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.modelo) {
+                        const modelo = { ...data.modelo };
+                        // Convertir fechas a objetos dayjs si existen
+                        if (modelo.fecha_nacimiento) modelo.fecha_nacimiento = dayjs(modelo.fecha_nacimiento);
+                        if (modelo.fecha_vigencia) modelo.fecha_vigencia = dayjs(modelo.fecha_vigencia);
+                        
+                        // Cargar imágenes existentes si las hay
+                        if (data.imagenes && data.imagenes.length > 0) {
+                            
+                            const imagenesExistentes = data.imagenes.map(img => ({
+                                uid: img.id,
+                                name: img.name,
+                                status: 'done',
+                                url: img.url,
+                                // NO asignar temp_id a imágenes existentes
+                                isExisting: true,
+                                existingId: img.id,
+                                id: img.id // Para el backend
+                            }));
+                            
+                            setModelImages(imagenesExistentes);
+                            modelo.model_images = imagenesExistentes;
+                        } else {
+                            setModelImages([]);
+                        }
+                        
+                        form.setFieldsValue(modelo);
+                        setFormData(modelo);
+                    }
+                })
+                .catch((error) => {
+                    console.error('=== ERROR CARGANDO MODELO ===', error);
+                    message.error('No se pudo cargar la información del modelo');
+                })
+                .finally(() => setLoadingModelo(false));
+        } else if (visible && !modeloId) {
+            // Si es modo crear, solo limpiar si es la primera vez que se abre
+            // No limpiar si el modal se abre tras un error
+            const hasFormData = Object.keys(formData).length > 0;
+            if (!hasFormData) {
+                form.resetFields();
+                setFormData(initialValues || {});
+                setModelImages([]);
+            }
+        }
+    }, [visible, modeloId, form, initialValues]);
 
     useEffect(() => {
         if (!selectedBranch) return;
@@ -66,11 +143,13 @@ const ModeloForm = ({
     useEffect(() => {
         if (!visible) {
             setCurrentStep(0);
-            form.resetFields(); // Limpia el formulario al cerrar
+            // NO limpiar datos del formulario ni imágenes aquí para evitar pérdida de datos
+            // Solo resetear cuando se complete exitosamente el registro (manejado desde el modal)
         }
-    }, [visible, form]);
+    }, [visible]);
 
-    const steps = [
+    // Configurar steps dinámicamente según el modo
+    const baseSteps = [
         {
             title: 'Datos Personales',
             subtitle: 'Información básica',
@@ -85,7 +164,12 @@ const ModeloForm = ({
             title: 'Datos de Acudiente',
             subtitle: 'Contacto de emergencia',
             icon: <ContactsOutlined />,
-        },
+        }
+    ];
+
+    // Solo agregar el paso de suscripción si NO está en modo edición
+    const steps = isEditMode ? baseSteps : [
+        ...baseSteps,
         {
             title: 'Suscripción',
             subtitle: 'Plan y pago',
@@ -102,36 +186,120 @@ const ModeloForm = ({
 
     const next = async () => {
         try {
-            const values = await form.validateFields();
+            // Primero obtener todos los valores actuales del formulario
+            const allCurrentValues = form.getFieldsValue();
             
-            // Limpiar datos de imágenes antes de enviar
-            if (values.model_images && Array.isArray(values.model_images)) {
-                values.model_images = values.model_images
-                    .filter(img => img.status === 'done' && img.temp_id) // Solo imágenes subidas exitosamente
-                    .map(img => ({
-                        temp_id: img.temp_id,
-                        url: img.url,
-                        name: img.name,
-                        size: img.size,
-                        original_name: img.name
-                    }));
-                
+            // Luego validar solo los campos del paso actual
+            let fieldsToValidate;
+            switch (currentStep) {
+                case 0: // Datos Personales
+                    fieldsToValidate = [
+                        'nombres', 'apellidos', 'numero_identificacion', 
+                        'identification_type_id', 'lugar_expedicion', 'fecha_nacimiento',
+                        'gender_id', 'blood_type_id', 'telefono', 'direccion', 'email'
+                    ];
+                    break;
+                case 1: // Datos Comerciales
+                    fieldsToValidate = [
+                        'estatura', 'busto', 'cintura', 'cadera', 
+                        'cabello', 'ojos', 'piel', 'calzado', 'pantalon', 'camisa'
+                    ];
+                    break;
+                case 2: // Datos de Acudiente
+                    fieldsToValidate = [
+                        'acudiente_nombres', 'acudiente_apellidos', 'acudiente_identificacion',
+                        'acudiente_tipo_identificacion', 'acudiente_lugar_expedicion', 
+                        'acudiente_parentesco', 'acudiente_telefono', 'acudiente_direccion'
+                    ];
+                    break;
+                case 3: // Suscripción (solo en modo creación)
+                    if (!isEditMode) {
+                        fieldsToValidate = [
+                            'subscription_plan_id', 'medio_pago', 'subscription_quantity', 'fecha_vigencia'
+                        ];
+                        // Agregar valor_abonar si está marcado el checkbox
+                        if (allCurrentValues.abonar_parte) {
+                            fieldsToValidate.push('valor_abonar');
+                        }
+                    } else {
+                        fieldsToValidate = [];
+                    }
+                    break;
+                default:
+                    fieldsToValidate = [];
             }
             
-            setFormData({ ...formData, ...values });
+            // Validar solo los campos necesarios del paso actual
+            if (fieldsToValidate.length > 0) {
+                await form.validateFields(fieldsToValidate);
+            }
+            
+            
+            // Usar el estado de imágenes en lugar del valor del formulario
+            allCurrentValues.model_images = modelImages;
+            
+            // Procesar imágenes para modo edición vs creación
+            if (allCurrentValues.model_images && Array.isArray(allCurrentValues.model_images)) {
+                if (isEditMode) {
+                    // En modo edición, separar imágenes nuevas y existentes
+                    const newImages = allCurrentValues.model_images
+                        .filter(img => {
+                            const cumple = img.isNew && img.temp_id && img.status === 'done';
+                            return cumple;
+                        })
+                        .map(img => ({
+                            temp_id: img.temp_id,
+                            url: img.url,
+                            name: img.name,
+                            size: img.size,
+                            original_name: img.name,
+                            isNew: true
+                        }));
+                    
+                    const existingImages = allCurrentValues.model_images
+                        .filter(img => {
+                            const cumple = img.isExisting && img.existingId;
+                            return cumple;
+                        })
+                        .map(img => ({
+                            id: img.existingId,
+                            name: img.name,
+                            url: img.url,
+                            isExisting: true
+                        }));
+                    
+                    
+                    allCurrentValues.model_images = [...newImages, ...existingImages];
+                } else {
+                    // En modo creación, solo imágenes nuevas
+                    allCurrentValues.model_images = allCurrentValues.model_images
+                        .filter(img => img.status === 'done' && img.temp_id)
+                        .map(img => ({
+                            temp_id: img.temp_id,
+                            url: img.url,
+                            name: img.name,
+                            size: img.size,
+                            original_name: img.name
+                        }));
+                }
+            }
+            
+            // Actualizar formData con los valores actuales y avanzar
+            setFormData({ ...formData, ...allCurrentValues });
             
             if (currentStep < steps.length - 1) {
                 setCurrentStep(currentStep + 1);
             } else {
-                // Último paso, mostrar mensaje de completado
-                // const finalData = { ...formData, ...values };
-                const finalData = { ...formData, ...values, branch_id: selectedBranch?.id };
+                // Último paso, enviar datos
+                const finalData = { ...formData, ...allCurrentValues, branch_id: selectedBranch?.id };
 
-                message.success('¡Registro completado exitosamente!');
-                onFinish(finalData);
+
+                // Llamar onFinish que manejará el éxito/error desde el modal
+                await onFinish(finalData);
             }
         } catch (error) {
-            console.error('Error de validación:', error);
+            console.error('Error de validación en paso', currentStep, ':', error);
+            // No limpiar datos aquí, mantener todo para que el usuario pueda corregir
         }
     };
 
@@ -286,8 +454,11 @@ const ModeloForm = ({
                             valuePropName="value"
                         >
                             <ModelImageUploader
-                                value={form.getFieldValue('model_images') || []}
-                                onChange={imgs => form.setFieldsValue({ model_images: imgs })}
+                                value={modelImages}
+                                onChange={(imgs) => {
+                                    setModelImages(imgs);
+                                    form.setFieldsValue({ model_images: imgs });
+                                }}
                             />
                         </Form.Item>
                     </div>
@@ -515,6 +686,19 @@ const ModeloForm = ({
                         <Row gutter={16}>
                             <Col span={8}>
                                 <Form.Item
+                                    label="Tipo de documento"
+                                    name="acudiente_tipo_identificacion"
+                                    rules={[{ required: true, message: 'Campo obligatorio' }]}
+                                >
+                                    <Select placeholder="Seleccione" loading={loadingCatalogs} allowClear>
+                                        {catalogs.identification_types.map(opt => (
+                                            <Option key={opt.id} value={opt.id}>{opt.name}</Option>
+                                        ))}
+                                    </Select>
+                                </Form.Item>
+                            </Col>
+                            <Col span={8}>
+                                <Form.Item
                                     label="Lugar de expedición"
                                     name="acudiente_lugar_expedicion"
                                     rules={[{ required: true, message: 'Campo obligatorio' }]}
@@ -535,6 +719,9 @@ const ModeloForm = ({
                                     </Select>
                                 </Form.Item>
                             </Col>
+                        </Row>
+
+                        <Row gutter={16}>
                             <Col span={8}>
                                 <Form.Item
                                     label="Teléfono"
@@ -543,6 +730,20 @@ const ModeloForm = ({
                                 >
                                     <Input placeholder="Teléfono" />
                                 </Form.Item>
+                            </Col>
+                            <Col span={8}>
+                                <Form.Item
+                                    label="Correo Electrónico"
+                                    name="acudiente_email"
+                                    rules={[
+                                        { type: 'email', message: 'Formato de email inválido' }
+                                    ]}
+                                >
+                                    <Input placeholder="correo@ejemplo.com" />
+                                </Form.Item>
+                            </Col>
+                            <Col span={8}>
+                                {/* Columna vacía para mantener simetría */}
                             </Col>
                         </Row>
 
@@ -557,6 +758,10 @@ const ModeloForm = ({
                 );
 
             case 3:
+                // En modo edición, no mostrar el paso de suscripción
+                if (isEditMode) {
+                    return null;
+                }
                 return (
                     <div key="step-3">
                         <Title level={4}>Suscripción Inicial</Title>
@@ -697,7 +902,7 @@ const ModeloForm = ({
                 )}
                 {currentStep === steps.length - 1 && (
                     <Button type="primary" onClick={() => next()} loading={loading} disabled={loading} className={styles.modeloFormButton}>
-                        Finalizar Registro
+                        {modeloId ? 'Actualizar Modelo' : 'Finalizar Registro'}
                     </Button>
                 )}
                 {currentStep > 0 && (
@@ -708,6 +913,6 @@ const ModeloForm = ({
             </div>
         </Form>
     );
-};
+});
 
 export default ModeloForm; 

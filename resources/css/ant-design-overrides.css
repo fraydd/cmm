@@ -182,3 +182,169 @@
 .ant-notification-notice-close:hover {
   color: var(--cmm-text-primary) !important;
 }
+
+/* =====================================================
+   OVERRIDES PARA SELECT - Todos los temas
+   ===================================================== */
+
+/* Select principal - usar variables CSS dinámicas */
+.ant-select {
+  color: var(--cmm-text-primary) !important;
+}
+
+.ant-select .ant-select-selector {
+  background-color: var(--cmm-bg-secondary) !important;
+  border-color: var(--cmm-border-input) !important;
+  color: var(--cmm-text-primary) !important;
+}
+
+.ant-select .ant-select-selection-placeholder {
+  color: var(--cmm-text-placeholder) !important;
+}
+
+/* Select hover state */
+.ant-select:not(.ant-select-disabled):hover .ant-select-selector {
+  border-color: var(--cmm-primary-500) !important;
+}
+
+/* Select focus state */
+.ant-select-focused .ant-select-selector {
+  border-color: var(--cmm-primary-500) !important;
+  box-shadow: 0 0 0 2px var(--cmm-primary-500)20 !important;
+}
+
+/* Select open state */
+.ant-select-open .ant-select-selector {
+  border-color: var(--cmm-primary-500) !important;
+  box-shadow: 0 0 0 2px var(--cmm-primary-500)20 !important;
+}
+
+/* Dropdown del Select */
+.ant-select-dropdown {
+  background-color: var(--cmm-bg-secondary) !important;
+  border: 1px solid var(--cmm-border-color) !important;
+  box-shadow: 0 4px 12px var(--cmm-shadow-color) !important;
+}
+
+/* Opciones del Select */
+.ant-select-item {
+  color: var(--cmm-text-primary) !important;
+  background-color: transparent !important;
+}
+
+/* Opción hover */
+.ant-select-item:hover {
+  background-color: var(--cmm-table-hover) !important;
+}
+
+/* Opción seleccionada */
+.ant-select-item-option-selected {
+  background-color: var(--cmm-primary-100) !important;
+  color: var(--cmm-text-primary) !important;
+  font-weight: 600 !important;
+}
+
+/* Opción activa (con teclado) */
+.ant-select-item-option-active {
+  background-color: var(--cmm-primary-50) !important;
+}
+
+/* Flecha del Select */
+.ant-select-arrow {
+  color: var(--cmm-text-secondary) !important;
+}
+
+/* Select múltiple - tags */
+.ant-select-multiple .ant-select-selection-item {
+  background-color: var(--cmm-primary-100) !important;
+  border: 1px solid var(--cmm-primary-200) !important;
+  color: var(--cmm-text-primary) !important;
+}
+
+.ant-select-multiple .ant-select-selection-item-remove {
+  color: var(--cmm-text-secondary) !important;
+}
+
+.ant-select-multiple .ant-select-selection-item-remove:hover {
+  color: var(--cmm-error) !important;
+}
+
+/* Overrides específicos para modo oscuro */
+[data-theme="dark"] .ant-select-item-option-selected,
+.dark-theme .ant-select-item-option-selected {
+  background-color: var(--cmm-primary-600) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .ant-select-item:hover,
+.dark-theme .ant-select-item:hover {
+  background-color: var(--cmm-primary-700) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .ant-select-item-option-active,
+.dark-theme .ant-select-item-option-active {
+  background-color: var(--cmm-primary-800) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .ant-select-multiple .ant-select-selection-item,
+.dark-theme .ant-select-multiple .ant-select-selection-item {
+  background-color: var(--cmm-primary-700) !important;
+  border-color: var(--cmm-primary-600) !important;
+  color: #ffffff !important;
+}
+
+/* Overrides específicos para tema azul */
+[data-theme="blue"] .ant-select-item-option-selected,
+.blue-theme .ant-select-item-option-selected {
+  background-color: var(--cmm-primary-500) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="blue"] .ant-select-item:hover,
+.blue-theme .ant-select-item:hover {
+  background-color: var(--cmm-primary-100) !important;
+}
+
+[data-theme="blue"] .ant-select-item-option-active,
+.blue-theme .ant-select-item-option-active {
+  background-color: var(--cmm-primary-50) !important;
+}
+
+/* Select disabled state */
+.ant-select-disabled .ant-select-selector {
+  background-color: var(--cmm-primary-50) !important;
+  border-color: var(--cmm-primary-200) !important;
+  color: var(--cmm-text-placeholder) !important;
+  cursor: not-allowed !important;
+}
+
+/* Select con error */
+.ant-select-status-error .ant-select-selector {
+  border-color: var(--cmm-error) !important;
+}
+
+.ant-select-status-error.ant-select-focused .ant-select-selector {
+  border-color: var(--cmm-error) !important;
+  box-shadow: 0 0 0 2px var(--cmm-error)20 !important;
+}
+
+/* Vacío/empty state */
+.ant-select-item-empty {
+  color: var(--cmm-text-placeholder) !important;
+}
+
+/* Loading state */
+.ant-select-item-option-loading {
+  color: var(--cmm-text-secondary) !important;
+}
+
+/* Clear button */
+.ant-select-clear {
+  color: var(--cmm-text-placeholder) !important;
+}
+
+.ant-select-clear:hover {
+  color: var(--cmm-text-secondary) !important;
+}

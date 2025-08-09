@@ -35,6 +35,18 @@ Route::post('/auth/login', [AuthController::class, 'login'])->name('auth.login')
 Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout'); // Ruta GET temporal para logout
 
+// Ruta para servir el logo
+Route::get('/admin/logo.png', function () {
+    $logoPath = storage_path('img/logo.png');
+    if (file_exists($logoPath)) {
+        return response()->file($logoPath, [
+            'Content-Type' => 'image/png',
+            'Cache-Control' => 'public, max-age=86400' // Cache por 1 día
+        ]);
+    }
+    abort(404);
+})->name('admin.logo');
+
 // Rutas de registro
 Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
 Route::post('/auth/register', [RegisterController::class, 'register'])->name('auth.register');

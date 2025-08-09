@@ -29,6 +29,7 @@ export default function Index({ modelos = [], debug_info }) {
     // Estado para los modelos base (fuente de verdad)
     const [baseModelos, setBaseModelos] = useState(Array.isArray(modelos) ? modelos : []);
     const [filteredData, setFilteredData] = useState(Array.isArray(modelos) ? modelos : []);
+    const [editingModeloId, setEditingModeloId] = useState(null);
     
     const [filters, setFilters] = useState({
         search: '',
@@ -180,11 +181,13 @@ export default function Index({ modelos = [], debug_info }) {
     const paginatedData = validFilteredData.slice(startIndex, endIndex);
     
     const handleAddModel = () => {
+        setEditingModeloId(null); // Modo crear
         setIsModalVisible(true);
     };
 
     const handleModalCancel = () => {
         setIsModalVisible(false);
+        setEditingModeloId(null);
     };
 
     const handleModalSubmit = async (values) => {
@@ -223,7 +226,11 @@ export default function Index({ modelos = [], debug_info }) {
                     url: img.url,
                     name: img.name,
                     size: img.size,
-                    original_name: img.original_name || img.name
+                    original_name: img.original_name || img.name,
+                    // Campos necesarios para el modo edición
+                    isExisting: img.isExisting || false,
+                    isNew: img.isNew || false,
+                    id: img.existingId || img.id // El backend busca por 'id', no 'existingId'
                 }));
                 formData.append('model_images_meta', JSON.stringify(imagesMeta));
                 
@@ -235,34 +242,60 @@ export default function Index({ modelos = [], debug_info }) {
             }
 
             const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-            const response = await fetch('/admin/modelos', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRF-TOKEN': token
-                }
-            });
+            let response, result;
+
+            if (editingModeloId) {
+                // Modo edición: PUT
+                // Si se está editando, agregar _method para Laravel
+                formData.append('_method', 'PUT');
+                response = await fetch(`/admin/modelos/${editingModeloId}`, {
+                    method: 'POST', // Laravel espera POST con _method=PUT para FormData
+                    body: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': token
+                    }
+                });
+            } else {
+                // Modo crear: POST
+                response = await fetch('/admin/modelos', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': token
+                    }
+                });
+            }
 
             if (!response.ok) {
                 let errorMsg = 'Error en la respuesta del servidor';
                 try {
                     const errorData = await response.json();
-                    errorMsg = errorData.message || errorMsg;
-                } catch {}
+                    
+                    // Manejar errores de validación específicos (422)
+                    if (response.status === 422 && errorData.errors) {
+                        // Mostrar el primer error de validación
+                        const firstError = Object.values(errorData.errors)[0];
+                        errorMsg = Array.isArray(firstError) ? firstError[0] : firstError;
+                    } else {
+                        errorMsg = errorData.message || errorMsg;
+                    }
+                } catch (parseError) {
+                    console.error('Error parsing response:', parseError);
+                }
                 throw new Error(errorMsg);
             }
 
-            const result = await response.json();
+            result = await response.json();
             
             // Solo si llegamos aquí significa que fue exitoso
-            showSuccess('Modelo creado exitosamente!');
-            setIsModalVisible(false); // Solo cerrar modal si es exitoso
+            showSuccess(editingModeloId ? 'Modelo actualizado exitosamente!' : 'Modelo creado exitosamente!');
+            setIsModalVisible(false);
+            setEditingModeloId(null);
             await refreshData();
         } catch (error) {
-            console.error('Error al crear modelo:', error);
-            showError(error.message || 'Error al crear el modelo. Inténtalo de nuevo.');
+            console.error('Error al guardar modelo:', error);
+            showError(error.message || 'Error al guardar el modelo. Inténtalo de nuevo.');
             // Importante: NO cerrar el modal aquí - el usuario conserva sus datos
-            // setIsModalVisible(false); // <-- NO hacer esto
             throw error; // Relanzar el error para que lo maneje el modal
         } finally {
             setLoading(false);
@@ -365,7 +398,6 @@ export default function Index({ modelos = [], debug_info }) {
             }
 
             const data = await response.json();
-            console.log('Datos recibidos del servidor:', data); // Debug
             
             // Validar los datos recibidos - acceder directamente a data.modelos
             const receivedModelos = data.modelos || [];
@@ -375,7 +407,6 @@ export default function Index({ modelos = [], debug_info }) {
                 (model.id !== undefined && model.id !== null && model.id !== '')
             ) : [];
             
-            console.log('Modelos válidos procesados:', validData); // Debug
             
             // Actualizar baseModelos - esto disparará los useEffect para actualizar filteredData
             setBaseModelos(validData);
@@ -565,8 +596,8 @@ export default function Index({ modelos = [], debug_info }) {
                             size="small" 
                             icon={<EditOutlined />}
                             onClick={() => {
-                                message.info('Editar modelo');
-                                // Aquí iría la apertura del modal de edición
+                                setEditingModeloId(record.id);
+                                setIsModalVisible(true);
                             }}
                         />
                     </Tooltip>
@@ -771,6 +802,7 @@ export default function Index({ modelos = [], debug_info }) {
                     onSubmit={handleModalSubmit}
                     loading={loading}
                     title="Nuevo Modelo"
+                    modeloId={editingModeloId}
                 />
             </div>
         </AdminLayout>

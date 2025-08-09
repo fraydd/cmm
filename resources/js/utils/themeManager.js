@@ -347,6 +347,43 @@ export function generateAntDesignTokens(themeName) {
         colorBorderSecondary: getColor('--cmm-primary-200'),
         borderRadius: 6,
       },
+
+      // Select - Configuración específica para cada tema
+      Select: {
+        colorBgContainer: getColor('--cmm-bg-secondary'),
+        colorBgElevated: getColor('--cmm-bg-secondary'),
+        colorBorder: getColor('--cmm-border-input'),
+        colorText: getColor('--cmm-text-primary'),
+        colorTextPlaceholder: getColor('--cmm-text-placeholder'),
+        // Estados de las opciones
+        optionSelectedBg: themeName === 'dark' 
+          ? getColor('--cmm-primary-600') 
+          : themeName === 'blue' 
+            ? getColor('--cmm-primary-500')
+            : getColor('--cmm-primary-100'),
+        optionSelectedColor: themeName === 'dark' || themeName === 'blue' 
+          ? '#ffffff' 
+          : getColor('--cmm-text-primary'),
+        optionActiveBg: themeName === 'dark' 
+          ? getColor('--cmm-primary-700') 
+          : themeName === 'blue' 
+            ? getColor('--cmm-primary-600')
+            : getColor('--cmm-primary-50'),
+        optionActiveColor: themeName === 'dark' || themeName === 'blue' 
+          ? '#ffffff' 
+          : getColor('--cmm-text-primary'),
+        // Hover state
+        optionHoverBg: themeName === 'dark' 
+          ? getColor('--cmm-primary-800') 
+          : themeName === 'blue' 
+            ? getColor('--cmm-primary-100')
+            : getColor('--cmm-primary-50'),
+        colorPrimaryHover: getColor('--cmm-primary-600'),
+        borderRadius: 6,
+        controlHeight: 32,
+        controlHeightLG: 40,
+        controlHeightSM: 24,
+      },
     },
   };
 }
@@ -364,6 +401,9 @@ export function setTheme(themeName) {
   Object.entries(theme).forEach(([property, value]) => {
     root.style.setProperty(property, value);
   });
+
+  // Agregar atributo data-theme para selectores CSS específicos
+  root.setAttribute('data-theme', themeName);
 
   // Guardar preferencia en localStorage
   localStorage.setItem('cmm-theme', themeName);

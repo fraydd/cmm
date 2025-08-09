@@ -102,7 +102,7 @@ export default function AdminLayout({ children, title = "Panel de Administració
                         {/* Usuario, sede y acciones alineados */}
                         <div className={styles.userAndBranchContainer}>
                             <Dropdown
-                                overlay={
+                                menu={
                                     <Menu>
                                         {branches.map(b => (
                                             <Menu.Item key={b.id} onClick={() => setSelectedBranch(b)}>
