@@ -29,7 +29,7 @@ export default function Welcome() {
           <img src="/favicon.ico" alt="CMM" style={{ width: 36, marginRight: 16 }} />
           <Title level={3} style={{ color: 'white', margin: 0, letterSpacing: 2 }}>CMM</Title>
         </div>
-        <Button type="primary" size="large" href="/admin" className={styles.adminButton}>
+        <Button type="primary" size="large" href="/login" className={styles.adminButton}>
           Acceder
         </Button>
       </Header>
