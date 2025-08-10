@@ -54,4 +54,9 @@
     justify-content: center !important;
     padding: 0 !important;
   }
+  
+  // Ocultar en pantallas pequeñas donde el sidebar es overlay
+  @media (max-width: 768px) {
+    display: none !important;
+  }
 } 

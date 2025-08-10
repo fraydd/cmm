@@ -1,8 +1,9 @@
 import React, { useRef } from 'react';
-import { Layout, Avatar, Space, Typography, ConfigProvider } from 'antd';
+import { Layout, Avatar, Space, Typography, ConfigProvider, Button } from 'antd';
 import { 
     UserOutlined,
-    LogoutOutlined
+    LogoutOutlined,
+    MenuOutlined
 } from '@ant-design/icons';
 import { usePage, router } from '@inertiajs/react';
 import Sidebar from '../Components/Sidebar';
@@ -11,7 +12,7 @@ import { useSidebarState } from '../hooks/useSidebarState';
 import { useBranch } from '../hooks/useBranch';
 import { useEffect, useState } from 'react';
 import styles from './AdminLayout.module.scss';
-import { Dropdown, Menu } from 'antd';
+import { Dropdown } from 'antd';
 import { ShopOutlined, DownOutlined } from '@ant-design/icons';
 import { Skeleton } from 'antd';
 
@@ -26,6 +27,31 @@ export default function AdminLayout({ children, title = "Panel de Administració
     const { selectedBranch, setSelectedBranch } = useBranch();
     const [branches, setBranches] = useState([]);
     const [loadingBranches, setLoadingBranches] = useState(true);
+    const [isMobile, setIsMobile] = useState(false);
+    const [sidebarVisible, setSidebarVisible] = useState(false);
+
+    // Detectar si es móvil
+    useEffect(() => {
+        const checkIsMobile = () => {
+            setIsMobile(window.innerWidth <= 768);
+            if (window.innerWidth > 768) {
+                setSidebarVisible(false);
+            }
+        };
+
+        checkIsMobile();
+        window.addEventListener('resize', checkIsMobile);
+        return () => window.removeEventListener('resize', checkIsMobile);
+    }, []);
+
+    // Manejar toggle del sidebar en móvil
+    const handleMobileToggle = () => {
+        if (isMobile) {
+            setSidebarVisible(!sidebarVisible);
+        } else {
+            handleToggleSidebar();
+        }
+    };
 
     useEffect(() => {
         fetch('/admin/branches/list')
@@ -88,12 +114,26 @@ export default function AdminLayout({ children, title = "Panel de Administració
                     ref={sidebarRef}
                     collapsed={collapsed} 
                     auth={auth} 
-                    onToggle={handleToggleSidebar}
+                    onToggle={handleMobileToggle}
+                    isMobile={isMobile}
+                    isVisible={isMobile ? sidebarVisible : true}
                 />
                 
                 <Layout>
                     {/* Header */}
                     <Header className={styles.header}>
+                        {/* Contenedor del botón hamburguesa (solo móvil) */}
+                        <div className={styles.mobileButtonContainer}>
+                            {isMobile && (
+                                <Button
+                                    type="text"
+                                    icon={<MenuOutlined />}
+                                    onClick={handleMobileToggle}
+                                    className={styles.mobileMenuButton}
+                                />
+                            )}
+                        </div>
+
                         <div className={styles.titleContainer}>
                             <Title level={4} className={styles.headerTitle}>
                                 {title}
@@ -102,16 +142,15 @@ export default function AdminLayout({ children, title = "Panel de Administració
                         {/* Usuario, sede y acciones alineados */}
                         <div className={styles.userAndBranchContainer}>
                             <Dropdown
-                                menu={
-                                    <Menu>
-                                        {branches.map(b => (
-                                            <Menu.Item key={b.id} onClick={() => setSelectedBranch(b)}>
-                                                <ShopOutlined style={{ marginRight: 8 }} />
-                                                {b.name}
-                                            </Menu.Item>
-                                        ))}
-                                    </Menu>
-                                }
+                                menu={{
+                                    items: branches.map(b => ({
+                                        key: b.id,
+                                        icon: <ShopOutlined />,
+                                        label: b.name,
+                                        onClick: () => setSelectedBranch(b),
+                                        className: selectedBranch && selectedBranch.id === b.id ? 'branch-selected' : ''
+                                    }))
+                                }}
                                 trigger={['click']}
                             >
                                 <span className={styles.branchSelector}>

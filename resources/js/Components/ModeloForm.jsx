@@ -324,7 +324,12 @@ const ModeloForm = forwardRef(({
                                     name="nombres"
                                     rules={[{ required: true, message: 'Campo obligatorio' }]}
                                 >
-                                    <Input placeholder="Nombres" />
+                                    <Input 
+                                        placeholder="Nombres" 
+                                        autoComplete="new-password"
+                                        role="presentation"
+                                        data-lpignore="true"
+                                    />
                                 </Form.Item>
                             </Col>
                             <Col span={8}>
@@ -333,7 +338,12 @@ const ModeloForm = forwardRef(({
                                     name="apellidos"
                                     rules={[{ required: true, message: 'Campo obligatorio' }]}
                                 >
-                                    <Input placeholder="Apellidos" />
+                                    <Input 
+                                        placeholder="Apellidos" 
+                                        autoComplete="new-password"
+                                        role="presentation"
+                                        data-lpignore="true"
+                                    />
                                 </Form.Item>
                             </Col>
                             <Col span={8}>
@@ -342,7 +352,12 @@ const ModeloForm = forwardRef(({
                                     name="numero_identificacion"
                                     rules={[{ required: true, message: 'Campo obligatorio' }]}
                                 >
-                                    <Input placeholder="Número de identificación" />
+                                    <Input 
+                                        placeholder="Número de identificación" 
+                                        autoComplete="new-password"
+                                        role="presentation"
+                                        data-lpignore="true"
+                                    />
                                 </Form.Item>
                             </Col>
                         </Row>
@@ -367,7 +382,12 @@ const ModeloForm = forwardRef(({
                                     name="lugar_expedicion"
                                     rules={[{ required: true, message: 'Campo obligatorio' }]}
                                 >
-                                    <Input placeholder="Ciudad" />
+                                    <Input 
+                                        placeholder="Ciudad" 
+                                        autoComplete="new-password"
+                                        role="presentation"
+                                        data-lpignore="true"
+                                    />
                                 </Form.Item>
                             </Col>
                             <Col span={8}>
@@ -418,7 +438,12 @@ const ModeloForm = forwardRef(({
                                     name="telefono"
                                     rules={[{ required: true, message: 'Campo obligatorio' }]}
                                 >
-                                    <Input placeholder="Teléfono" />
+                                    <Input 
+                                        placeholder="Teléfono" 
+                                        autoComplete="new-password"
+                                        role="presentation"
+                                        data-lpignore="true"
+                                    />
                                 </Form.Item>
                             </Col>
                         </Row>
@@ -430,7 +455,12 @@ const ModeloForm = forwardRef(({
                                     name="direccion"
                                     rules={[{ required: true, message: 'Campo obligatorio' }]}
                                 >
-                                    <Input placeholder="Dirección completa" />
+                                    <Input 
+                                        placeholder="Dirección completa" 
+                                        autoComplete="new-password"
+                                        role="presentation"
+                                        data-lpignore="true"
+                                    />
                                 </Form.Item>
                             </Col>
                             <Col span={12}>
@@ -442,7 +472,12 @@ const ModeloForm = forwardRef(({
                                         { type: 'email', message: 'Email inválido' }
                                     ]}
                                 >
-                                    <Input placeholder="correo@ejemplo.com" />
+                                    <Input 
+                                        placeholder="correo@ejemplo.com" 
+                                        autoComplete="new-password"
+                                        role="presentation"
+                                        data-lpignore="true"
+                                    />
                                 </Form.Item>
                             </Col>
                         </Row>
@@ -574,7 +609,7 @@ const ModeloForm = forwardRef(({
                                     name="calzado"
                                     rules={[{ required: true, message: 'Campo obligatorio' }]}
                                 >
-                                    <Input placeholder="Ej: 38, 8US, 25MX, etc." />
+                                    <Input placeholder="Ej: 38, 8US, 25MX, etc." autoComplete="off" />
                                 </Form.Item>
                             </Col>
                         </Row>
@@ -586,7 +621,7 @@ const ModeloForm = forwardRef(({
                                     name="pantalon"
                                     rules={[{ required: true, message: 'Campo obligatorio' }]}
                                 >
-                                    <Input placeholder="Ej: 28, S, 40, etc." />
+                                    <Input placeholder="Ej: 28, S, 40, etc." autoComplete="off" />
                                 </Form.Item>
                             </Col>
                             <Col span={8}>
@@ -595,7 +630,7 @@ const ModeloForm = forwardRef(({
                                     name="camisa"
                                     rules={[{ required: true, message: 'Campo obligatorio' }]}
                                 >
-                                    <Input placeholder="Ej: M, L, 38, etc." />
+                                    <Input placeholder="Ej: M, L, 38, etc." autoComplete="off" />
                                 </Form.Item>
                             </Col>
                         </Row>
@@ -608,7 +643,7 @@ const ModeloForm = forwardRef(({
                                     label="Facebook"
                                     name="facebook"
                                 >
-                                    <Input placeholder="ejemplo.123" />
+                                    <Input placeholder="ejemplo.123" autoComplete="off" />
                                 </Form.Item>
                             </Col>
                             <Col span={12}>
@@ -616,7 +651,7 @@ const ModeloForm = forwardRef(({
                                     label="Instagram"
                                     name="instagram"
                                 >
-                                    <Input placeholder="ejemplo.123" />
+                                    <Input placeholder="ejemplo.123" autoComplete="off" />
                                 </Form.Item>
                             </Col>
                         </Row>
@@ -627,7 +662,7 @@ const ModeloForm = forwardRef(({
                                     label="Twitter"
                                     name="twitter"
                                 >
-                                    <Input placeholder="@ejemplo12" />
+                                    <Input placeholder="@ejemplo12" autoComplete="off" />
                                 </Form.Item>
                             </Col>
                             <Col span={12}>
@@ -635,7 +670,7 @@ const ModeloForm = forwardRef(({
                                     label="TikTok"
                                     name="tiktok"
                                 >
-                                    <Input placeholder="@ejemplo12" />
+                                    <Input placeholder="@ejemplo12" autoComplete="off" />
                                 </Form.Item>
                             </Col>
                         </Row>
@@ -644,7 +679,7 @@ const ModeloForm = forwardRef(({
                             label="Otra red social"
                             name="otra_red_social"
                         >
-                            <Input placeholder="Red social, cuenta" />
+                            <Input placeholder="Red social, cuenta" autoComplete="off" />
                         </Form.Item>
                     </div>
                 );
@@ -660,7 +695,12 @@ const ModeloForm = forwardRef(({
                                     name="acudiente_nombres"
                                     rules={[{ required: true, message: 'Campo obligatorio' }]}
                                 >
-                                    <Input placeholder="Nombres del acudiente" />
+                                    <Input 
+                                        placeholder="Nombres del acudiente" 
+                                        autoComplete="new-password"
+                                        role="presentation"
+                                        data-lpignore="true"
+                                    />
                                 </Form.Item>
                             </Col>
                             <Col span={8}>
@@ -669,7 +709,12 @@ const ModeloForm = forwardRef(({
                                     name="acudiente_apellidos"
                                     rules={[{ required: true, message: 'Campo obligatorio' }]}
                                 >
-                                    <Input placeholder="Apellidos del acudiente" />
+                                    <Input 
+                                        placeholder="Apellidos del acudiente" 
+                                        autoComplete="new-password"
+                                        role="presentation"
+                                        data-lpignore="true"
+                                    />
                                 </Form.Item>
                             </Col>
                             <Col span={8}>
@@ -678,7 +723,12 @@ const ModeloForm = forwardRef(({
                                     name="acudiente_identificacion"
                                     rules={[{ required: true, message: 'Campo obligatorio' }]}
                                 >
-                                    <Input placeholder="Número de identificación" />
+                                    <Input 
+                                        placeholder="Número de identificación" 
+                                        autoComplete="new-password"
+                                        role="presentation"
+                                        data-lpignore="true"
+                                    />
                                 </Form.Item>
                             </Col>
                         </Row>
@@ -703,7 +753,12 @@ const ModeloForm = forwardRef(({
                                     name="acudiente_lugar_expedicion"
                                     rules={[{ required: true, message: 'Campo obligatorio' }]}
                                 >
-                                    <Input placeholder="Ciudad" />
+                                    <Input 
+                                        placeholder="Ciudad" 
+                                        autoComplete="new-password"
+                                        role="presentation"
+                                        data-lpignore="true"
+                                    />
                                 </Form.Item>
                             </Col>
                             <Col span={8}>
@@ -728,7 +783,12 @@ const ModeloForm = forwardRef(({
                                     name="acudiente_telefono"
                                     rules={[{ required: true, message: 'Campo obligatorio' }]}
                                 >
-                                    <Input placeholder="Teléfono" />
+                                    <Input 
+                                        placeholder="Teléfono" 
+                                        autoComplete="new-password"
+                                        role="presentation"
+                                        data-lpignore="true"
+                                    />
                                 </Form.Item>
                             </Col>
                             <Col span={8}>
@@ -739,7 +799,12 @@ const ModeloForm = forwardRef(({
                                         { type: 'email', message: 'Formato de email inválido' }
                                     ]}
                                 >
-                                    <Input placeholder="correo@ejemplo.com" />
+                                    <Input 
+                                        placeholder="correo@ejemplo.com" 
+                                        autoComplete="new-password"
+                                        role="presentation"
+                                        data-lpignore="true"
+                                    />
                                 </Form.Item>
                             </Col>
                             <Col span={8}>
@@ -752,7 +817,12 @@ const ModeloForm = forwardRef(({
                             name="acudiente_direccion"
                             rules={[{ required: true, message: 'Campo obligatorio' }]}
                         >
-                            <Input placeholder="Dirección completa" />
+                            <Input 
+                                placeholder="Dirección completa" 
+                                autoComplete="new-password"
+                                role="presentation"
+                                data-lpignore="true"
+                            />
                         </Form.Item>
                     </div>
                 );
@@ -869,6 +939,7 @@ const ModeloForm = forwardRef(({
                             <TextArea 
                                 rows={4} 
                                 placeholder="Observaciones adicionales..."
+                                autoComplete="off"
                             />
                         </Form.Item>
                     </div>
@@ -887,7 +958,26 @@ const ModeloForm = forwardRef(({
             layout="vertical"
             initialValues={initialValues}
             autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck="false"
         >
+            {/* Campos ocultos para confundir el autocompletado de Chrome */}
+            <input 
+                type="text" 
+                name="username" 
+                autoComplete="username" 
+                style={{ display: 'none' }}
+                tabIndex="-1"
+            />
+            <input 
+                type="password" 
+                name="password" 
+                autoComplete="new-password" 
+                style={{ display: 'none' }}
+                tabIndex="-1"
+            />
+            
             <Steps current={currentStep} items={items} />
             
             <div className={styles.modeloFormContent}>

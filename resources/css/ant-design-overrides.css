@@ -348,3 +348,49 @@
 .ant-select-clear:hover {
   color: var(--cmm-text-secondary) !important;
 }
+
+/* =====================================================
+   ANTI-AUTOCOMPLETADO - Deshabilitar sugerencias
+   ===================================================== */
+
+/* Ocultar cualquier dropdown de autocompletado del navegador */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px var(--cmm-bg-secondary) inset !important;
+  -webkit-text-fill-color: var(--cmm-text-primary) !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+
+/* Prevenir autocompletado en todos los inputs del formulario de modelos */
+.ant-form input[type="text"],
+.ant-form input[type="email"],
+.ant-form input[type="tel"],
+.ant-form input[type="number"],
+.ant-form textarea {
+  -webkit-autofill: false !important;
+  -webkit-autocomplete: off !important;
+  -moz-autocomplete: off !important;
+}
+
+/* Ocultar dropdowns de autocompletado específicos de Chrome */
+input::-webkit-contacts-auto-fill-button,
+input::-webkit-credentials-auto-fill-button {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  right: 0 !important;
+}
+
+/* Prevenir autocompletado para campos específicos */
+input[name*="nombre"],
+input[name*="apellido"],
+input[name*="identificacion"],
+input[name*="telefono"],
+input[name*="direccion"],
+input[name*="email"],
+input[name*="acudiente"] {
+  -webkit-autocomplete: off !important;
+}

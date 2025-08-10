@@ -21,7 +21,7 @@ import styles from './Sidebar.module.scss';
 const { Sider } = Layout;
 const { Title } = Typography;
 
-const Sidebar = forwardRef(({ collapsed, auth, onToggle }, ref) => {
+const Sidebar = forwardRef(({ collapsed, auth, onToggle, isMobile = false, isVisible = true }, ref) => {
     const { can } = usePermissions();
     const { url } = usePage();
     const [selectedKeys, setSelectedKeys] = useState(['dashboard']);
@@ -39,27 +39,27 @@ const Sidebar = forwardRef(({ collapsed, auth, onToggle }, ref) => {
     useEffect(() => {
         const path = url;
         
-        // Mapear rutas a claves del menú
+        // Mapear rutas a claves del menú (solo selección, no apertura automática)
         if (path.includes('/admin/dashboard')) {
             setSelectedKeys(['dashboard']);
         } else if (path.includes('/admin/modelos')) {
             setSelectedKeys(['modelos.index']);
-            setOpenKeys(['modelos']);
+            // No establecer openKeys automáticamente
         } else if (path.includes('/admin/empleados')) {
             setSelectedKeys(['empleados.index']);
-            setOpenKeys(['empleados']);
+            // No establecer openKeys automáticamente
         } else if (path.includes('/admin/invitaciones')) {
             setSelectedKeys(['empleados.invitaciones']);
-            setOpenKeys(['empleados']);
+            // No establecer openKeys automáticamente
         } else if (path.includes('/admin/caja')) {
             setSelectedKeys(['caja.index']);
-            setOpenKeys(['caja']);
+            // No establecer openKeys automáticamente
         } else if (path.includes('/admin/academia')) {
             setSelectedKeys(['academia.index']);
-            setOpenKeys(['academia']);
+            // No establecer openKeys automáticamente
         } else if (path.includes('/admin/settings')) {
             setSelectedKeys(['settings.users']);
-            setOpenKeys(['settings']);
+            // No establecer openKeys automáticamente
         } else {
             setSelectedKeys(['dashboard']);
         }
@@ -85,6 +85,26 @@ const Sidebar = forwardRef(({ collapsed, auth, onToggle }, ref) => {
             onClick: () => handleThemeChange(themeName),
             className: currentTheme === themeName ? styles.activeTheme : ''
         }))
+    };
+
+    // Manejar clics en elementos del menú en móvil
+    const handleMenuClick = (item) => {
+        if (item.onClick) {
+            item.onClick();
+            // En móvil, cerrar sidebar después de hacer clic
+            if (isMobile && onToggle) {
+                onToggle();
+            }
+        }
+    };
+
+    // Crear elementos del menú con manejo de clics
+    const createMenuItems = (items) => {
+        return items.map(item => ({
+            ...item,
+            onClick: () => handleMenuClick(item),
+            children: item.children ? createMenuItems(item.children) : undefined
+        }));
     };
 
     // Menú basado en permisos
@@ -211,14 +231,27 @@ const Sidebar = forwardRef(({ collapsed, auth, onToggle }, ref) => {
         return true;
     });
 
+    // Crear elementos del menú con manejo de clics para móvil
+    const processedMenuItems = createMenuItems(menuItems);
+
+    // Overlay para móvil
+    const overlay = isMobile && isVisible && (
+        <div 
+            className={styles.overlay} 
+            onClick={onToggle}
+        />
+    );
+
     return (
-        <Sider 
-            trigger={null} 
-            collapsible 
-            collapsed={collapsed}
-            width={250}
-            className={styles.sidebar}
-        >
+        <>
+            {overlay}
+            <Sider 
+                trigger={null} 
+                collapsible 
+                collapsed={collapsed}
+                width={250}
+                className={`${styles.sidebar} ${isMobile ? styles.mobile : ''} ${isVisible ? styles.visible : styles.hidden}`}
+            >
             {/* Logo */}
             <div className={styles.logoContainer}>
                 <Title 
@@ -244,10 +277,11 @@ const Sidebar = forwardRef(({ collapsed, auth, onToggle }, ref) => {
                 openKeys={openKeys}
                 onOpenChange={setOpenKeys}
                 inlineCollapsed={collapsed}
-                items={menuItems}
+                items={processedMenuItems}
                 className={styles.menu}
             />
         </Sider>
+        </>
     );
 });
 

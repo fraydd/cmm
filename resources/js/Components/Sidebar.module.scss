@@ -1,5 +1,16 @@
+// Variables SCSS para breakpoints (para usar en media queries)
+$breakpoint-xs: 480px;    // Extra pequeño (móviles pequeños)
+$breakpoint-sm: 576px;    // Pequeño (móviles)
+$breakpoint-md: 768px;    // Mediano (tablets)
+$breakpoint-lg: 992px;    // Grande (desktops pequeños)
+$breakpoint-xl: 1200px;   // Extra grande (desktops)
+$breakpoint-xxl: 1600px;  // Extra extra grande (pantallas grandes)
+
 // Variables
 $logo-height: 64px;
+$logo-height-mobile: 56px;
+$sidebar-width: 250px;
+$sidebar-width-collapsed: 80px;
 $transition-duration: var(--cmm-transition-normal);
 
 // Mixins
@@ -46,6 +57,72 @@ $transition-duration: var(--cmm-transition-normal);
 
 // Contenedor principal del sidebar
 .sidebar {
+  transition: all $transition-duration var(--cmm-ease-in-out);
+  height: 100vh;
+  position: relative;
+  z-index: 100;
+  
+  // Responsivo para diferentes tamaños
+  @media (max-width: $breakpoint-lg) {
+    width: clamp(200px, 20vw, 220px) !important;
+  }
+  
+  @media (max-width: $breakpoint-md) {
+    position: fixed !important;
+    left: 0;
+    top: 0;
+    width: clamp(240px, 70vw, 280px) !important;
+    z-index: 1001;
+    box-shadow: var(--cmm-shadow-lg);
+    transform: translateX(-100%);
+    
+    &.visible {
+      transform: translateX(0);
+    }
+    
+    &.hidden {
+      transform: translateX(-100%);
+    }
+  }
+  
+  @media (max-width: $breakpoint-sm) {
+    width: clamp(220px, 80vw, 260px) !important;
+  }
+  
+  @media (max-width: $breakpoint-xs) {
+    width: 100vw !important;
+  }
+  
+  // Modo móvil específico
+  &.mobile {
+    position: fixed !important;
+    left: 0;
+    top: 0;
+    z-index: 1001;
+    box-shadow: var(--cmm-shadow-lg);
+    
+    @media (min-width: 769px) {
+      position: relative !important;
+      transform: none !important;
+      box-shadow: none;
+    }
+  }
+}
+
+// Overlay para móvil
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+  
+  @media (min-width: 769px) {
+    display: none;
+  }
 }
 
 // Contenedor del logo/título
@@ -55,6 +132,16 @@ $transition-duration: var(--cmm-transition-normal);
   border-bottom: 1px solid var(--cmm-border-sidebar);
   position: relative;
   box-shadow: var(--cmm-shadow-sm);
+  
+  @media (max-width: $breakpoint-md) {
+    height: $logo-height-mobile;
+    padding: 0 var(--cmm-spacing-sm);
+  }
+  
+  @media (max-width: $breakpoint-sm) {
+    height: $logo-height-mobile;
+    padding: 0 var(--cmm-spacing-xs);
+  }
 }
 
 // Título del logo
@@ -67,11 +154,32 @@ $transition-duration: var(--cmm-transition-normal);
   display: block;
   color: var(--cmm-text-light) !important;
   font-weight: 600 !important;
+  font-size: clamp(1rem, 2.5vw, 1.25rem);
+  
+  @media (max-width: $breakpoint-lg) {
+    font-size: clamp(0.9rem, 3vw, 1.1rem);
+  }
+  
+  @media (max-width: $breakpoint-md) {
+    font-size: clamp(0.85rem, 4vw, 1rem);
+  }
+  
+  @media (max-width: $breakpoint-sm) {
+    font-size: clamp(0.8rem, 4.5vw, 0.95rem);
+  }
   
   // Cuando está colapsado
   &.collapsed {
     opacity: 0.9;
     transform: scale(0.9);
+    
+    @media (max-width: $breakpoint-lg) {
+      transform: scale(0.85);
+    }
+    
+    @media (max-width: $breakpoint-md) {
+      transform: scale(0.8);
+    }
   }
   
   // Cuando está expandido
@@ -85,6 +193,50 @@ $transition-duration: var(--cmm-transition-normal);
 .menu {
   border-right: 0;
   margin-top: var(--cmm-spacing-lg);
+  font-size: clamp(13px, 1.5vw, 14px);
+  
+  @media (max-width: $breakpoint-lg) {
+    margin-top: var(--cmm-spacing-md);
+    font-size: clamp(12px, 2vw, 13px);
+  }
+  
+  @media (max-width: $breakpoint-md) {
+    margin-top: var(--cmm-spacing-sm);
+    font-size: clamp(11px, 2.5vw, 12px);
+    padding: 0 var(--cmm-spacing-xs);
+  }
+  
+  @media (max-width: $breakpoint-sm) {
+    font-size: clamp(10px, 3vw, 11px);
+    padding: 0 var(--cmm-spacing-xs);
+  }
+  
+  // Ajustar altura de elementos del menú en móvil
+  :global(.ant-menu-item),
+  :global(.ant-menu-submenu-title) {
+    @media (max-width: $breakpoint-md) {
+      height: clamp(36px, 8vw, 40px);
+      line-height: clamp(36px, 8vw, 40px);
+      margin: 2px 0;
+    }
+    
+    @media (max-width: $breakpoint-sm) {
+      height: clamp(32px, 10vw, 36px);
+      line-height: clamp(32px, 10vw, 36px);
+      margin: 1px 0;
+    }
+  }
+  
+  // Ajustar iconos en móvil
+  :global(.anticon) {
+    @media (max-width: $breakpoint-md) {
+      font-size: clamp(12px, 3vw, 14px) !important;
+    }
+    
+    @media (max-width: $breakpoint-sm) {
+      font-size: clamp(11px, 3.5vw, 13px) !important;
+    }
+  }
 }
 
 // Tema activo en el menú de temas
@@ -96,6 +248,39 @@ $transition-duration: var(--cmm-transition-normal);
   &:hover {
     background-color: var(--cmm-primary-700) !important;
   }
+}
+
+// Estilos para submenús (items múltiples cuando se despliegan)
+:global(.ant-menu-sub) {
+  background-color: var(--cmm-bg-sidebar) !important;
+}
+
+:global(.ant-menu-submenu-open .ant-menu-sub) {
+  background-color: var(--cmm-bg-sidebar) !important;
+}
+
+:global(.ant-menu-inline .ant-menu-sub) {
+  background-color: var(--cmm-bg-sidebar) !important;
+}
+
+// Hover para los items del submenú
+:global(.ant-menu-sub .ant-menu-item:hover) {
+  background-color: var(--cmm-primary-600) !important;
+}
+
+:global(.ant-menu-inline .ant-menu-item:hover) {
+  background-color: var(--cmm-primary-600) !important;
+}
+
+// Item seleccionado en el submenú
+:global(.ant-menu-sub .ant-menu-item-selected) {
+  background-color: var(--cmm-primary-500) !important;
+  color: #ffffff !important;
+}
+
+:global(.ant-menu-inline .ant-menu-item-selected) {
+  background-color: var(--cmm-primary-500) !important;
+  color: #ffffff !important;
 }
 
 // Los estilos del botón ahora están en SidebarToggleButton.module.scss 

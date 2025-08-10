@@ -25,6 +25,8 @@ export default function Index({ modelos = [], debug_info }) {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [loading, setLoading] = useState(false);
     const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+    const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+    const [containerHeight, setContainerHeight] = useState(0);
     
     // Estado para los modelos base (fuente de verdad)
     const [baseModelos, setBaseModelos] = useState(Array.isArray(modelos) ? modelos : []);
@@ -47,6 +49,61 @@ export default function Index({ modelos = [], debug_info }) {
     });
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [isUpdated, setIsUpdated] = useState(false);
+
+    // Hook para manejar el redimensionamiento de ventana y contenedor
+    useEffect(() => {
+        const calculateContainerHeight = () => {
+            const cardContainer = document.querySelector('[class*="cardContainer"]');
+            const filtersSection = document.querySelector('[class*="filtersSection"]');
+            const bulkActionsSection = document.querySelector('[class*="bulkActionsSection"]');
+            const paginationContainer = document.querySelector('[class*="paginationContainer"]');
+            
+            if (cardContainer && filtersSection && bulkActionsSection && paginationContainer) {
+                const cardContainerRect = cardContainer.getBoundingClientRect();
+                const filtersHeight = filtersSection.getBoundingClientRect().height;
+                const bulkActionsHeight = bulkActionsSection.getBoundingClientRect().height;
+                const paginationHeight = paginationContainer.getBoundingClientRect().height;
+                
+                // Calcular altura disponible para la tabla
+                // Restar las alturas de otros elementos + márgenes/padding (aprox 40px)
+                const availableHeight = cardContainerRect.height - filtersHeight - bulkActionsHeight - paginationHeight - 40;
+                
+                setContainerHeight(Math.max(200, availableHeight)); // Mínimo 200px
+            }
+        };
+
+        const handleResize = () => {
+            setWindowWidth(window.innerWidth);
+            // Usar setTimeout para permitir que el DOM se actualice antes de medir
+            setTimeout(calculateContainerHeight, 100);
+        };
+
+        // Calcular altura inicial
+        setTimeout(calculateContainerHeight, 100);
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    // Función para calcular la altura de la tabla basándose en el contenedor real
+    const getTableHeight = () => {
+        if (containerHeight > 0) {
+            // Usar altura calculada dinámicamente con buffer adicional para scroll horizontal
+            const bufferForHorizontalScroll = windowWidth <= 768 ? 50 : 35;
+            return Math.max(200, containerHeight - bufferForHorizontalScroll);
+        }
+        
+        // Fallback si no se ha calculado aún el contenedor
+        if (windowWidth <= 576) {
+            return 'calc(48vh - 60px)';
+        } else if (windowWidth <= 768) {
+            return 'calc(50vh - 80px)';
+        } else if (windowWidth <= 992) {
+            return 'calc(65vh - 180px)';
+        } else {
+            return 'calc(65vh - 200px)';
+        }
+    };
 
     // Actualizar baseModelos cuando cambia la prop modelos
     useEffect(() => {
@@ -169,6 +226,29 @@ export default function Index({ modelos = [], debug_info }) {
     useEffect(() => {
         applyFilters();
     }, [filters, baseModelos, sorting]);
+
+    // Recalcular altura del contenedor cuando cambian los datos o filtros
+    useEffect(() => {
+        const recalculateHeight = () => {
+            const cardContainer = document.querySelector('[class*="cardContainer"]');
+            const filtersSection = document.querySelector('[class*="filtersSection"]');
+            const bulkActionsSection = document.querySelector('[class*="bulkActionsSection"]');
+            const paginationContainer = document.querySelector('[class*="paginationContainer"]');
+            
+            if (cardContainer && filtersSection && bulkActionsSection && paginationContainer) {
+                const cardContainerRect = cardContainer.getBoundingClientRect();
+                const filtersHeight = filtersSection.getBoundingClientRect().height;
+                const bulkActionsHeight = bulkActionsSection.getBoundingClientRect().height;
+                const paginationHeight = paginationContainer.getBoundingClientRect().height;
+                
+                const availableHeight = cardContainerRect.height - filtersHeight - bulkActionsHeight - paginationHeight - 40;
+                setContainerHeight(Math.max(200, availableHeight));
+            }
+        };
+
+        // Usar setTimeout para permitir que el DOM se actualice
+        setTimeout(recalculateHeight, 50);
+    }, [filteredData, pagination]);
     
     // Calcular datos paginados con validación
     const startIndex = Math.max(0, (Math.max(1, pagination.current) - 1) * Math.max(1, pagination.pageSize));
@@ -482,7 +562,8 @@ export default function Index({ modelos = [], debug_info }) {
             title: 'Nombre',
             dataIndex: 'nombre',
             key: 'nombre',
-            width: 200,
+            width: windowWidth <= 576 ? 120 : windowWidth <= 768 ? 150 : 200,
+            fixed: 'left', // Columna fija a la izquierda
             render: (text) => <Text strong>{text || 'N/A'}</Text>,
             sorter: {
                 compare: (a, b) => 0, // Función dummy, el sorting real se hace en applySorting
@@ -498,7 +579,7 @@ export default function Index({ modelos = [], debug_info }) {
             title: 'Descripción',
             dataIndex: 'descripcion',
             key: 'descripcion',
-            width: 250,
+            width: windowWidth <= 576 ? 150 : windowWidth <= 768 ? 200 : 250,
             ellipsis: true,
             render: (text) => text || 'N/A',
             sorter: {
@@ -514,7 +595,7 @@ export default function Index({ modelos = [], debug_info }) {
             title: 'Versión',
             dataIndex: 'version',
             key: 'version',
-            width: 100,
+            width: windowWidth <= 576 ? 70 : windowWidth <= 768 ? 80 : 100,
             render: (text) => text || 'N/A',
             sorter: {
                 compare: (a, b) => 0, // Función dummy, el sorting real se hace en applySorting
@@ -526,10 +607,10 @@ export default function Index({ modelos = [], debug_info }) {
             }),
         },
         {
-            title: 'Fecha último registro',
+            title: windowWidth <= 576 ? 'Fecha' : 'Fecha último registro',
             dataIndex: 'fecha_creacion',
             key: 'fecha_creacion',
-            width: 140,
+            width: windowWidth <= 576 ? 90 : windowWidth <= 768 ? 120 : 140,
             render: (text) => text || 'N/A',
             sorter: {
                 compare: (a, b) => 0, // Función dummy, el sorting real se hace en applySorting
@@ -544,7 +625,7 @@ export default function Index({ modelos = [], debug_info }) {
             title: 'Estado',
             dataIndex: 'estado',
             key: 'estado',
-            width: 120,
+            width: windowWidth <= 576 ? 80 : windowWidth <= 768 ? 100 : 120,
             render: (estado) => {
                 const colorMap = {
                     'Activo': 'success',
@@ -553,7 +634,13 @@ export default function Index({ modelos = [], debug_info }) {
                 };
                 const estadoText = estado || 'N/A';
                 return (
-                    <Tag color={colorMap[estado] || 'default'}>
+                    <Tag 
+                        color={colorMap[estado] || 'default'}
+                        style={{
+                            fontSize: windowWidth <= 576 ? '10px' : '12px',
+                            padding: windowWidth <= 576 ? '2px 4px' : '4px 8px'
+                        }}
+                    >
                         {estadoText.toUpperCase()}
                     </Tag>
                 );
@@ -576,13 +663,13 @@ export default function Index({ modelos = [], debug_info }) {
         {
             title: 'Acciones',
             key: 'actions',
-            width: 120,
+            width: windowWidth <= 576 ? 80 : windowWidth <= 768 ? 100 : 120,
             render: (_, record) => (
-                <Space size="small">
+                <Space size={windowWidth <= 576 ? "small" : "middle"}>
                     <Tooltip title="Ver detalles del modelo">
                         <Button 
                             type="text" 
-                            size="small" 
+                            size={windowWidth <= 768 ? "small" : "middle"} 
                             icon={<EyeOutlined />}
                             onClick={() => {
                                 // Navegar a la vista completa del modelo
@@ -593,7 +680,7 @@ export default function Index({ modelos = [], debug_info }) {
                     <Tooltip title="Editar modelo">
                         <Button 
                             type="text" 
-                            size="small" 
+                            size={windowWidth <= 768 ? "small" : "middle"} 
                             icon={<EditOutlined />}
                             onClick={() => {
                                 setEditingModeloId(record.id);
@@ -611,7 +698,7 @@ export default function Index({ modelos = [], debug_info }) {
                         >
                             <Button 
                                 type="text" 
-                                size="small" 
+                                size={windowWidth <= 768 ? "small" : "middle"} 
                                 danger 
                                 icon={<DeleteOutlined />}
                             />
@@ -647,18 +734,20 @@ export default function Index({ modelos = [], debug_info }) {
                             onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                             allowClear
                         />
-                        <DatePicker
-                            placeholder="Desde"
-                            value={filters.fechaDesde}
-                            onChange={(date) => setFilters({ ...filters, fechaDesde: date })}
-                            style={{ width: '100%' }}
-                        />
-                        <DatePicker
-                            placeholder="Hasta"
-                            value={filters.fechaHasta}
-                            onChange={(date) => setFilters({ ...filters, fechaHasta: date })}
-                            style={{ width: '100%' }}
-                        />
+                        <div className={styles.dateFilters}>
+                            <DatePicker
+                                placeholder="Desde"
+                                value={filters.fechaDesde}
+                                onChange={(date) => setFilters({ ...filters, fechaDesde: date })}
+                                style={{ width: '100%' }}
+                            />
+                            <DatePicker
+                                placeholder="Hasta"
+                                value={filters.fechaHasta}
+                                onChange={(date) => setFilters({ ...filters, fechaHasta: date })}
+                                style={{ width: '100%' }}
+                            />
+                        </div>
                         <Space>
                             <Button 
                                 icon={<ClearOutlined />}
@@ -738,10 +827,16 @@ export default function Index({ modelos = [], debug_info }) {
                                     ]
                                 }}
                                 pagination={false}
-                                scroll={{ x: 900, y: 'calc(100vh - 400px)' }}
-                                sticky={{ offsetHeader: 0 }}
+                                scroll={{ 
+                                    x: 'max-content', // Scroll horizontal automático
+                                    y: getTableHeight() // Altura dinámica según el tamaño de pantalla
+                                }}
+                                sticky={{
+                                    offsetHeader: 0, // Header fijo en la parte superior
+                                }}
                                 showSorterTooltip={false}
                                 sortDirections={['ascend', 'descend']}
+                                size={windowWidth <= 768 ? "small" : "middle"}
                             />
                         ) : (
                             <Empty
