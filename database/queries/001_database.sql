@@ -201,6 +201,7 @@ CREATE TABLE `employees` (
   `end_date` date NULL,
   `salary` decimal(10,2) NULL,
   `job_description` text NULL,
+  `role_id` bigint unsigned NOT NULL,
   `is_active` boolean NOT NULL DEFAULT true,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
@@ -616,6 +617,7 @@ ALTER TABLE `invitations` ADD CONSTRAINT `invitations_accepted_by_foreign` FOREI
 ALTER TABLE `model_has_permissions` ADD CONSTRAINT `model_has_permissions_permission_id_foreign` FOREIGN KEY (`permission_id`) REFERENCES `permissions` (`id`) ON DELETE CASCADE;
 ALTER TABLE `role_has_permissions` ADD CONSTRAINT `role_has_permissions_permission_id_foreign` FOREIGN KEY (`permission_id`) REFERENCES `permissions` (`id`) ON DELETE CASCADE;
 ALTER TABLE `model_has_roles` ADD CONSTRAINT `model_has_roles_role_id_foreign` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE;
+ALTER TABLE `model_has_roles` ADD CONSTRAINT `model_has_roles_user_id_foreign` FOREIGN KEY (`model_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 ALTER TABLE `role_has_permissions` ADD CONSTRAINT `role_has_permissions_role_id_foreign` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE;
 
 -- Relaciones de Personas y Catálogos
@@ -626,6 +628,7 @@ ALTER TABLE `people` ADD CONSTRAINT `people_blood_type_id_foreign` FOREIGN KEY (
 -- Relaciones de Personas y Empleados
 ALTER TABLE `employees` ADD CONSTRAINT `employees_person_id_foreign` FOREIGN KEY (`person_id`) REFERENCES `people` (`id`);
 ALTER TABLE `employees` ADD CONSTRAINT `employees_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+ALTER TABLE `employees` ADD CONSTRAINT `employees_role_id_foreign` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`);
 
 -- Relaciones de Personas y Modelos
 ALTER TABLE `models` ADD CONSTRAINT `models_person_id_foreign` FOREIGN KEY (`person_id`) REFERENCES `people` (`id`);

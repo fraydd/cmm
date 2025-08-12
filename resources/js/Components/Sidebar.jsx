@@ -57,6 +57,9 @@ const Sidebar = forwardRef(({ collapsed, auth, onToggle, isMobile = false, isVis
         } else if (path.includes('/admin/academia')) {
             setSelectedKeys(['academia.index']);
             // No establecer openKeys automáticamente
+        } else if (path.includes('/admin/permisos')) {
+            setSelectedKeys(['settings.permissions']);
+            // No establecer openKeys automáticamente
         } else if (path.includes('/admin/settings')) {
             setSelectedKeys(['settings.users']);
             // No establecer openKeys automáticamente
@@ -212,6 +215,11 @@ const Sidebar = forwardRef(({ collapsed, auth, onToggle, isMobile = false, isVis
                     label: 'Usuarios',
                     onClick: () => router.visit('/admin/settings/users')
                 },
+                ...(can('view_permissions') ? [{ 
+                    key: 'settings.permissions', 
+                    label: 'Permisos',
+                    onClick: () => router.visit('/admin/permisos')
+                }] : []),
                 { 
                     key: 'settings.roles', 
                     label: 'Roles y Permisos',

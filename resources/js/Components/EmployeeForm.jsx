@@ -16,7 +16,7 @@ import styles from './EmployeeForm.module.scss';
 
 const { TextArea } = Input;
 const { Option } = Select;
-const { Title } = Typography;
+const { Title, Text } = Typography;
 const { Step } = Steps;
 
 const EmployeeForm = ({ 
@@ -37,7 +37,8 @@ const EmployeeForm = ({
         genders: [],
         relationships: [],
         positions: [], // Cargos de empleados
-        branches: [] // Sedes disponibles
+        branches: [], // Sedes disponibles
+        roles: [] // Roles del sistema
     });
     const [loadingCatalogs, setLoadingCatalogs] = useState(true);
     const [isEditMode, setIsEditMode] = useState(!!employeeId);
@@ -139,7 +140,7 @@ const EmployeeForm = ({
                     break;
                 case 1: // Datos Laborales
                     fieldsToValidate = [
-                        'role', 'hire_date', 'salary', 'branch_access'
+                        'role_id', 'hire_date', 'salary', 'branch_access'
                     ];
                     break;
                 case 2: // Contacto de Emergencia
@@ -272,25 +273,25 @@ const EmployeeForm = ({
 
     const renderPersonalDataStep = () => (
         <Row gutter={[16, 16]}>
-            <Col span={12}>
+            <Col xs={24} sm={12} md={12} lg={12}>
                 <Form.Item
                     name="first_name"
                     label="Nombres"
                     rules={[{ required: true, message: 'Por favor ingresa los nombres' }]}
                 >
-                    <Input prefix={<UserOutlined />} placeholder="Nombres del empleado" />
+                    <Input prefix={<UserOutlined />} placeholder="Nombres del empleado" autoComplete="new-password" />
                 </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12} md={12} lg={12}>
                 <Form.Item
                     name="last_name"
                     label="Apellidos"
                     rules={[{ required: true, message: 'Por favor ingresa los apellidos' }]}
                 >
-                    <Input placeholder="Apellidos del empleado" />
+                    <Input placeholder="Apellidos del empleado" autoComplete="new-password" />
                 </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12} md={12} lg={12}>
                 <Form.Item
                     name="identification_type_id"
                     label="Tipo de Identificación"
@@ -303,7 +304,7 @@ const EmployeeForm = ({
                     </Select>
                 </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12} md={12} lg={12}>
                 <Form.Item
                     name="identification_number"
                     label="Número de Identificación"
@@ -312,10 +313,10 @@ const EmployeeForm = ({
                         { validator: validateEmployeeIdentification }
                     ]}
                 >
-                    <Input placeholder="123456789" />
+                    <Input placeholder="123456789" autoComplete="new-password" />
                 </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12} md={12} lg={12}>
                 <Form.Item
                     name="gender_id"
                     label="Género"
@@ -328,7 +329,7 @@ const EmployeeForm = ({
                     </Select>
                 </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12} md={12} lg={12}>
                 <Form.Item
                     name="birth_date"
                     label="Fecha de Nacimiento"
@@ -341,16 +342,16 @@ const EmployeeForm = ({
                     />
                 </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12} md={12} lg={12}>
                 <Form.Item
                     name="phone"
                     label="Teléfono"
                     rules={[{ required: true, message: 'Ingresa el teléfono' }]}
                 >
-                    <Input placeholder="300 123 4567" />
+                    <Input placeholder="300 123 4567" autoComplete="new-password" />
                 </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12} md={12} lg={12}>
                 <Form.Item
                     name="email"
                     label="Email"
@@ -359,16 +360,16 @@ const EmployeeForm = ({
                         { required: true, message: 'Ingresa el email' }
                     ]}
                 >
-                    <Input placeholder="empleado@empresa.com" />
+                    <Input placeholder="empleado@empresa.com" autoComplete="new-password" />
                 </Form.Item>
             </Col>
-            <Col span={24}>
+            <Col xs={24} sm={24} md={24} lg={24}>
                 <Form.Item
                     name="address"
                     label="Dirección"
                     rules={[{ required: true, message: 'Ingresa la dirección' }]}
                 >
-                    <TextArea rows={2} placeholder="Dirección completa de residencia" />
+                    <TextArea rows={2} placeholder="Dirección completa de residencia" autoComplete="new-password" />
                 </Form.Item>
             </Col>
         </Row>
@@ -376,22 +377,20 @@ const EmployeeForm = ({
 
     const renderWorkDataStep = () => (
         <Row gutter={[16, 16]}>
-            <Col span={12}>
+            <Col xs={24} sm={12} md={12} lg={12}>
                 <Form.Item
-                    name="role"
-                    label="Cargo"
-                    rules={[{ required: true, message: 'Selecciona el cargo' }]}
+                    name="role_id"
+                    label="Rol del Sistema"
+                    rules={[{ required: true, message: 'Selecciona el rol' }]}
                 >
-                    <Select placeholder="Selecciona cargo">
-                        <Option value="recepcionista">Recepcionista</Option>
-                        <Option value="fotografo">Fotógrafo</Option>
-                        <Option value="editor">Editor</Option>
-                        <Option value="administrador">Administrador</Option>
-                        <Option value="gerente">Gerente</Option>
+                    <Select placeholder="Selecciona rol" loading={loadingCatalogs}>
+                        {catalogs.roles && catalogs.roles.map(role => (
+                            <Option key={role.id} value={role.id}>{role.nombre}</Option>
+                        ))}
                     </Select>
                 </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12} md={12} lg={12}>
                 <Form.Item
                     name="hire_date"
                     label="Fecha de Contratación"
@@ -404,7 +403,7 @@ const EmployeeForm = ({
                     />
                 </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12} md={12} lg={12}>
                 <Form.Item
                     name="salary"
                     label="Salario"
@@ -419,15 +418,15 @@ const EmployeeForm = ({
                 </Form.Item>
             </Col>
 
-            <Col span={24}>
+            <Col xs={24} sm={24} md={24} lg={24}>
                 <Form.Item
                     name="job_description"
                     label="Descripción del Cargo"
                 >
-                    <TextArea rows={3} placeholder="Describe las responsabilidades del cargo..." />
+                    <TextArea rows={3} placeholder="Describe las responsabilidades del cargo..." autoComplete="off" />
                 </Form.Item>
             </Col>
-            <Col span={24}>
+            <Col xs={24} sm={24} md={24} lg={24}>
                 <Divider orientation="left">Sedes de Acceso</Divider>
                 <Form.Item
                     name="branch_access"
@@ -445,12 +444,27 @@ const EmployeeForm = ({
                     </Select>
                 </Form.Item>
             </Col>
+            <Col xs={24} sm={24} md={24} lg={24}>
+                <Divider orientation="left">Acceso al Sistema</Divider>
+                <Form.Item
+                    name="send_invitation"
+                    valuePropName="checked"
+                    initialValue={false}
+                >
+                    <Checkbox>
+                        Enviar invitación por correo para acceder al sistema
+                    </Checkbox>
+                </Form.Item>
+                <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginTop: '-10px' }}>
+                    Si activas esta opción, se enviará una invitación al correo del empleado para que pueda crear su cuenta y acceder al sistema.
+                </Text>
+            </Col>
         </Row>
     );
 
     const renderEmergencyContactStep = () => (
         <Row gutter={[16, 16]}>
-            <Col span={24}>
+            <Col xs={24} sm={24} md={24} lg={24}>
                 <Form.Item
                     name="has_emergency_contact"
                     valuePropName="checked"
@@ -491,7 +505,7 @@ const EmployeeForm = ({
                 </Form.Item>
             </Col>
             
-            <Col span={12}>
+            <Col xs={24} sm={12} md={12} lg={12}>
                 <Form.Item
                     name="emergency_contact_name"
                     label="Nombres del Contacto"
@@ -501,11 +515,12 @@ const EmployeeForm = ({
                         prefix={<ContactsOutlined />} 
                         placeholder="Nombres completos"
                         disabled={!hasEmergencyContact}
+                        autoComplete="new-password"
                     />
                 </Form.Item>
             </Col>
             
-            <Col span={12}>
+            <Col xs={24} sm={12} md={12} lg={12}>
                 <Form.Item
                     name="emergency_contact_last_name"
                     label="Apellidos del Contacto"
@@ -514,11 +529,12 @@ const EmployeeForm = ({
                     <Input 
                         placeholder="Apellidos completos"
                         disabled={!hasEmergencyContact}
+                        autoComplete="new-password"
                     />
                 </Form.Item>
             </Col>
             
-            <Col span={12}>
+            <Col xs={24} sm={12} md={12} lg={12}>
                 <Form.Item
                     name="emergency_contact_identification_type_id"
                     label="Tipo de Identificación"
@@ -535,7 +551,7 @@ const EmployeeForm = ({
                 </Form.Item>
             </Col>
             
-            <Col span={12}>
+            <Col xs={24} sm={12} md={12} lg={12}>
                 <Form.Item
                     name="emergency_contact_identification"
                     label="Número de Identificación"
@@ -547,11 +563,12 @@ const EmployeeForm = ({
                     <Input 
                         placeholder="123456789"
                         disabled={!hasEmergencyContact}
+                        autoComplete="new-password"
                     />
                 </Form.Item>
             </Col>
             
-            <Col span={12}>
+            <Col xs={24} sm={12} md={12} lg={12}>
                 <Form.Item
                     name="emergency_contact_relationship_id"
                     label="Relación"
@@ -568,7 +585,7 @@ const EmployeeForm = ({
                 </Form.Item>
             </Col>
             
-            <Col span={12}>
+            <Col xs={24} sm={12} md={12} lg={12}>
                 <Form.Item
                     name="emergency_contact_phone"
                     label="Teléfono de Emergencia"
@@ -577,11 +594,12 @@ const EmployeeForm = ({
                     <Input 
                         placeholder="300 123 4567"
                         disabled={!hasEmergencyContact}
+                        autoComplete="new-password"
                     />
                 </Form.Item>
             </Col>
             
-            <Col span={12}>
+            <Col xs={24} sm={12} md={12} lg={12}>
                 <Form.Item
                     name="emergency_contact_email"
                     label="Email de Emergencia"
@@ -590,6 +608,7 @@ const EmployeeForm = ({
                     <Input 
                         placeholder="contacto@email.com"
                         disabled={!hasEmergencyContact}
+                        autoComplete="new-password"
                     />
                 </Form.Item>
             </Col>
@@ -615,7 +634,7 @@ const EmployeeForm = ({
             </div>
             <div className={styles.employeeFormButtons}>
                 {currentStep < steps.length - 1 && (
-                    <Button type="primary" onClick={next} className={styles.employeeFormButton}>
+                    <Button type="primary" onClick={next} className={styles.employeeFormButtonPrimary}>
                         Siguiente
                     </Button>
                 )}
@@ -625,13 +644,13 @@ const EmployeeForm = ({
                         htmlType="submit" 
                         loading={loading || isSubmitting || loadingEmployee}
                         disabled={loading || isSubmitting || loadingEmployee}
-                        className={styles.employeeFormButton}
+                        className={styles.employeeFormButtonPrimary}
                     >
                         {employeeId ? 'Actualizar' : 'Crear'}
                     </Button>
                 )}
                 {currentStep > 0 && (
-                    <Button className={styles.employeeFormButton} style={{ margin: '0 8px' }} onClick={prev}>
+                    <Button className={styles.employeeFormButtonSecondary} onClick={prev}>
                         Anterior
                     </Button>
                 )}

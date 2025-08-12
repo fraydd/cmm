@@ -35,6 +35,8 @@ const Login = ({ errors }) => {
         post('/auth/login', {
             onSuccess: () => {
                 setLoading(false);
+                // Forzar recarga para obtener nuevo token CSRF y sesión limpia
+                window.location.reload();
             },
             onError: () => {
                 setLoading(false);

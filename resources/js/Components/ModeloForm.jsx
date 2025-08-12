@@ -197,6 +197,7 @@ const ModeloForm = forwardRef(({
                         'nombres', 'apellidos', 'numero_identificacion', 
                         'identification_type_id', 'lugar_expedicion', 'fecha_nacimiento',
                         'gender_id', 'blood_type_id', 'telefono', 'direccion', 'email'
+                        // Nota: 'model_images' no se incluye en validación ya que no es obligatorio
                     ];
                     break;
                 case 1: // Datos Comerciales
@@ -234,9 +235,9 @@ const ModeloForm = forwardRef(({
                 await form.validateFields(fieldsToValidate);
             }
             
-            
             // Usar el estado de imágenes en lugar del valor del formulario
-            allCurrentValues.model_images = modelImages;
+            // Asegurarse de que model_images siempre sea un array
+            allCurrentValues.model_images = Array.isArray(modelImages) ? modelImages : [];
             
             // Procesar imágenes para modo edición vs creación
             if (allCurrentValues.model_images && Array.isArray(allCurrentValues.model_images)) {
@@ -317,8 +318,8 @@ const ModeloForm = forwardRef(({
                 return (
                     <div key="step-0">
                         <Title level={4}>Datos Personales</Title>
-                        <Row gutter={16}>
-                            <Col span={8}>
+                        <Row gutter={[16, 16]}>
+                            <Col xs={24} sm={24} md={12} lg={8} xl={8}>
                                 <Form.Item
                                     label="Nombres"
                                     name="nombres"
@@ -332,7 +333,7 @@ const ModeloForm = forwardRef(({
                                     />
                                 </Form.Item>
                             </Col>
-                            <Col span={8}>
+                            <Col xs={24} sm={24} md={12} lg={8} xl={8}>
                                 <Form.Item
                                     label="Apellidos"
                                     name="apellidos"
@@ -346,7 +347,7 @@ const ModeloForm = forwardRef(({
                                     />
                                 </Form.Item>
                             </Col>
-                            <Col span={8}>
+                            <Col xs={24} sm={24} md={24} lg={8} xl={8}>
                                 <Form.Item
                                     label="Número de identificación"
                                     name="numero_identificacion"
@@ -362,8 +363,8 @@ const ModeloForm = forwardRef(({
                             </Col>
                         </Row>
 
-                        <Row gutter={16}>
-                            <Col span={8}>
+                        <Row gutter={[16, 16]}>
+                            <Col xs={24} sm={24} md={12} lg={8} xl={8}>
                                 <Form.Item
                                     label="Tipo de documento"
                                     name="identification_type_id"
@@ -376,7 +377,7 @@ const ModeloForm = forwardRef(({
                                     </Select>
                                 </Form.Item>
                             </Col>
-                            <Col span={8}>
+                            <Col xs={24} sm={24} md={12} lg={8} xl={8}>
                                 <Form.Item
                                     label="Lugar de expedición"
                                     name="lugar_expedicion"
@@ -390,7 +391,7 @@ const ModeloForm = forwardRef(({
                                     />
                                 </Form.Item>
                             </Col>
-                            <Col span={8}>
+                            <Col xs={24} sm={24} md={24} lg={8} xl={8}>
                                 <Form.Item
                                     label="Fecha de nacimiento"
                                     name="fecha_nacimiento"
@@ -405,8 +406,8 @@ const ModeloForm = forwardRef(({
                             </Col>
                         </Row>
 
-                        <Row gutter={16}>
-                            <Col span={8}>
+                        <Row gutter={[16, 16]}>
+                            <Col xs={24} sm={12} md={8} lg={8} xl={8}>
                                 <Form.Item
                                     label="Sexo"
                                     name="gender_id"
@@ -419,7 +420,7 @@ const ModeloForm = forwardRef(({
                                     </Select>
                                 </Form.Item>
                             </Col>
-                            <Col span={8}>
+                            <Col xs={24} sm={12} md={8} lg={8} xl={8}>
                                 <Form.Item
                                     label="G.S. RH"
                                     name="blood_type_id"
@@ -432,7 +433,7 @@ const ModeloForm = forwardRef(({
                                     </Select>
                                 </Form.Item>
                             </Col>
-                            <Col span={8}>
+                            <Col xs={24} sm={24} md={8} lg={8} xl={8}>
                                 <Form.Item
                                     label="Teléfono"
                                     name="telefono"
@@ -448,8 +449,8 @@ const ModeloForm = forwardRef(({
                             </Col>
                         </Row>
 
-                        <Row gutter={16}>
-                            <Col span={12}>
+                        <Row gutter={[16, 16]}>
+                            <Col xs={24} sm={24} md={12} lg={12} xl={12}>
                                 <Form.Item
                                     label="Dirección"
                                     name="direccion"
@@ -463,7 +464,7 @@ const ModeloForm = forwardRef(({
                                     />
                                 </Form.Item>
                             </Col>
-                            <Col span={12}>
+                            <Col xs={24} sm={24} md={12} lg={12} xl={12}>
                                 <Form.Item
                                     label="E-Mail"
                                     name="email"
@@ -482,20 +483,24 @@ const ModeloForm = forwardRef(({
                             </Col>
                         </Row>
 
-                        <Form.Item
-                            label="Imágenes del Modelo"
-                            name="model_images"
-                            rules={[]}
-                            valuePropName="value"
-                        >
-                            <ModelImageUploader
-                                value={modelImages}
-                                onChange={(imgs) => {
-                                    setModelImages(imgs);
-                                    form.setFieldsValue({ model_images: imgs });
-                                }}
-                            />
-                        </Form.Item>
+                        <Row gutter={[16, 16]}>
+                            <Col xs={24} sm={24} md={24} lg={24} xl={24}>
+                                <Form.Item
+                                    label="Imágenes del Modelo (Opcional)"
+                                    name="model_images"
+                                    rules={[]}
+                                    valuePropName="value"
+                                >
+                                    <ModelImageUploader
+                                        value={modelImages}
+                                        onChange={(imgs) => {
+                                            setModelImages(imgs || []);
+                                            form.setFieldsValue({ model_images: imgs || [] });
+                                        }}
+                                    />
+                                </Form.Item>
+                            </Col>
+                        </Row>
                     </div>
                 );
 
@@ -503,8 +508,8 @@ const ModeloForm = forwardRef(({
                 return (
                     <div key="step-1">
                         <Title level={4}>Datos Comerciales</Title>
-                        <Row gutter={16}>
-                            <Col span={6}>
+                        <Row gutter={[16, 16]}>
+                            <Col xs={24} sm={12} md={6} lg={6} xl={6}>
                                 <Form.Item
                                     label="Estatura (m)"
                                     name="estatura"
@@ -519,7 +524,7 @@ const ModeloForm = forwardRef(({
                                     />
                                 </Form.Item>
                             </Col>
-                            <Col span={6}>
+                            <Col xs={24} sm={12} md={6} lg={6} xl={6}>
                                 <Form.Item
                                     label="Busto (cm)"
                                     name="busto"
@@ -533,7 +538,7 @@ const ModeloForm = forwardRef(({
                                     />
                                 </Form.Item>
                             </Col>
-                            <Col span={6}>
+                            <Col xs={24} sm={12} md={6} lg={6} xl={6}>
                                 <Form.Item
                                     label="Cintura (cm)"
                                     name="cintura"
@@ -547,7 +552,7 @@ const ModeloForm = forwardRef(({
                                     />
                                 </Form.Item>
                             </Col>
-                            <Col span={6}>
+                            <Col xs={24} sm={12} md={6} lg={6} xl={6}>
                                 <Form.Item
                                     label="Cadera (cm)"
                                     name="cadera"
@@ -563,8 +568,8 @@ const ModeloForm = forwardRef(({
                             </Col>
                         </Row>
 
-                        <Row gutter={16}>
-                            <Col span={6}>
+                        <Row gutter={[16, 16]}>
+                            <Col xs={24} sm={12} md={8} lg={6} xl={6}>
                                 <Form.Item
                                     label="Cabello"
                                     name="cabello"
@@ -577,7 +582,7 @@ const ModeloForm = forwardRef(({
                                     </Select>
                                 </Form.Item>
                             </Col>
-                            <Col span={6}>
+                            <Col xs={24} sm={12} md={8} lg={6} xl={6}>
                                 <Form.Item
                                     label="Ojos"
                                     name="ojos"
@@ -590,7 +595,7 @@ const ModeloForm = forwardRef(({
                                     </Select>
                                 </Form.Item>
                             </Col>
-                            <Col span={6}>
+                            <Col xs={24} sm={12} md={8} lg={6} xl={6}>
                                 <Form.Item
                                     label="Piel"
                                     name="piel"
@@ -603,7 +608,7 @@ const ModeloForm = forwardRef(({
                                     </Select>
                                 </Form.Item>
                             </Col>
-                            <Col span={6}>
+                            <Col xs={24} sm={12} md={24} lg={6} xl={6}>
                                 <Form.Item
                                     label="Calzado"
                                     name="calzado"
@@ -614,8 +619,8 @@ const ModeloForm = forwardRef(({
                             </Col>
                         </Row>
 
-                        <Row gutter={16}>
-                            <Col span={8}>
+                        <Row gutter={[16, 16]}>
+                            <Col xs={24} sm={12} md={8} lg={8} xl={8}>
                                 <Form.Item
                                     label="Pantalón"
                                     name="pantalon"
@@ -624,7 +629,7 @@ const ModeloForm = forwardRef(({
                                     <Input placeholder="Ej: 28, S, 40, etc." autoComplete="off" />
                                 </Form.Item>
                             </Col>
-                            <Col span={8}>
+                            <Col xs={24} sm={12} md={8} lg={8} xl={8}>
                                 <Form.Item
                                     label="Camisa"
                                     name="camisa"
@@ -637,8 +642,8 @@ const ModeloForm = forwardRef(({
 
                         <Divider>Redes Sociales</Divider>
 
-                        <Row gutter={16}>
-                            <Col span={12}>
+                        <Row gutter={[16, 16]}>
+                            <Col xs={24} sm={24} md={12} lg={12} xl={12}>
                                 <Form.Item
                                     label="Facebook"
                                     name="facebook"
@@ -646,7 +651,7 @@ const ModeloForm = forwardRef(({
                                     <Input placeholder="ejemplo.123" autoComplete="off" />
                                 </Form.Item>
                             </Col>
-                            <Col span={12}>
+                            <Col xs={24} sm={24} md={12} lg={12} xl={12}>
                                 <Form.Item
                                     label="Instagram"
                                     name="instagram"
@@ -656,8 +661,8 @@ const ModeloForm = forwardRef(({
                             </Col>
                         </Row>
 
-                        <Row gutter={16}>
-                            <Col span={12}>
+                        <Row gutter={[16, 16]}>
+                            <Col xs={24} sm={24} md={12} lg={12} xl={12}>
                                 <Form.Item
                                     label="Twitter"
                                     name="twitter"
@@ -665,7 +670,7 @@ const ModeloForm = forwardRef(({
                                     <Input placeholder="@ejemplo12" autoComplete="off" />
                                 </Form.Item>
                             </Col>
-                            <Col span={12}>
+                            <Col xs={24} sm={24} md={12} lg={12} xl={12}>
                                 <Form.Item
                                     label="TikTok"
                                     name="tiktok"
@@ -675,12 +680,16 @@ const ModeloForm = forwardRef(({
                             </Col>
                         </Row>
 
-                        <Form.Item
-                            label="Otra red social"
-                            name="otra_red_social"
-                        >
-                            <Input placeholder="Red social, cuenta" autoComplete="off" />
-                        </Form.Item>
+                        <Row gutter={[16, 16]}>
+                            <Col xs={24} sm={24} md={24} lg={24} xl={24}>
+                                <Form.Item
+                                    label="Otra red social"
+                                    name="otra_red_social"
+                                >
+                                    <Input placeholder="Red social, cuenta" autoComplete="off" />
+                                </Form.Item>
+                            </Col>
+                        </Row>
                     </div>
                 );
 
@@ -688,8 +697,8 @@ const ModeloForm = forwardRef(({
                 return (
                     <div key="step-2">
                         <Title level={4}>Datos de Acudiente</Title>
-                        <Row gutter={16}>
-                            <Col span={8}>
+                        <Row gutter={[16, 16]}>
+                            <Col xs={24} sm={24} md={12} lg={8} xl={8}>
                                 <Form.Item
                                     label="Nombres"
                                     name="acudiente_nombres"
@@ -703,7 +712,7 @@ const ModeloForm = forwardRef(({
                                     />
                                 </Form.Item>
                             </Col>
-                            <Col span={8}>
+                            <Col xs={24} sm={24} md={12} lg={8} xl={8}>
                                 <Form.Item
                                     label="Apellidos"
                                     name="acudiente_apellidos"
@@ -717,7 +726,7 @@ const ModeloForm = forwardRef(({
                                     />
                                 </Form.Item>
                             </Col>
-                            <Col span={8}>
+                            <Col xs={24} sm={24} md={24} lg={8} xl={8}>
                                 <Form.Item
                                     label="Número de identificación"
                                     name="acudiente_identificacion"
@@ -733,8 +742,8 @@ const ModeloForm = forwardRef(({
                             </Col>
                         </Row>
 
-                        <Row gutter={16}>
-                            <Col span={8}>
+                        <Row gutter={[16, 16]}>
+                            <Col xs={24} sm={24} md={12} lg={8} xl={8}>
                                 <Form.Item
                                     label="Tipo de documento"
                                     name="acudiente_tipo_identificacion"
@@ -747,7 +756,7 @@ const ModeloForm = forwardRef(({
                                     </Select>
                                 </Form.Item>
                             </Col>
-                            <Col span={8}>
+                            <Col xs={24} sm={24} md={12} lg={8} xl={8}>
                                 <Form.Item
                                     label="Lugar de expedición"
                                     name="acudiente_lugar_expedicion"
@@ -761,7 +770,7 @@ const ModeloForm = forwardRef(({
                                     />
                                 </Form.Item>
                             </Col>
-                            <Col span={8}>
+                            <Col xs={24} sm={24} md={24} lg={8} xl={8}>
                                 <Form.Item
                                     label="Parentesco"
                                     name="acudiente_parentesco"
@@ -776,8 +785,8 @@ const ModeloForm = forwardRef(({
                             </Col>
                         </Row>
 
-                        <Row gutter={16}>
-                            <Col span={8}>
+                        <Row gutter={[16, 16]}>
+                            <Col xs={24} sm={12} md={8} lg={8} xl={8}>
                                 <Form.Item
                                     label="Teléfono"
                                     name="acudiente_telefono"
@@ -791,7 +800,7 @@ const ModeloForm = forwardRef(({
                                     />
                                 </Form.Item>
                             </Col>
-                            <Col span={8}>
+                            <Col xs={24} sm={12} md={8} lg={8} xl={8}>
                                 <Form.Item
                                     label="Correo Electrónico"
                                     name="acudiente_email"
@@ -807,23 +816,24 @@ const ModeloForm = forwardRef(({
                                     />
                                 </Form.Item>
                             </Col>
-                            <Col span={8}>
-                                {/* Columna vacía para mantener simetría */}
-                            </Col>
                         </Row>
 
-                        <Form.Item
-                            label="Dirección"
-                            name="acudiente_direccion"
-                            rules={[{ required: true, message: 'Campo obligatorio' }]}
-                        >
-                            <Input 
-                                placeholder="Dirección completa" 
-                                autoComplete="new-password"
-                                role="presentation"
-                                data-lpignore="true"
-                            />
-                        </Form.Item>
+                        <Row gutter={[16, 16]}>
+                            <Col xs={24} sm={24} md={24} lg={24} xl={24}>
+                                <Form.Item
+                                    label="Dirección"
+                                    name="acudiente_direccion"
+                                    rules={[{ required: true, message: 'Campo obligatorio' }]}
+                                >
+                                    <Input 
+                                        placeholder="Dirección completa" 
+                                        autoComplete="new-password"
+                                        role="presentation"
+                                        data-lpignore="true"
+                                    />
+                                </Form.Item>
+                            </Col>
+                        </Row>
                     </div>
                 );
 
@@ -835,8 +845,8 @@ const ModeloForm = forwardRef(({
                 return (
                     <div key="step-3">
                         <Title level={4}>Suscripción Inicial</Title>
-                        <Row gutter={16}>
-                            <Col span={12}>
+                        <Row gutter={[16, 16]}>
+                            <Col xs={24} sm={24} md={12} lg={12} xl={12}>
                                 <Form.Item
                                     label="Plan de suscripción"
                                     name="subscription_plan_id"
@@ -849,7 +859,7 @@ const ModeloForm = forwardRef(({
                                     </Select>
                                 </Form.Item>
                             </Col>
-                            <Col span={12}>
+                            <Col xs={24} sm={24} md={12} lg={12} xl={12}>
                                 <Form.Item
                                     label="Medio de pago"
                                     name="medio_pago"
@@ -864,26 +874,30 @@ const ModeloForm = forwardRef(({
                             </Col>
                         </Row>
 
-                        {/* Campo de cantidad, solo si hay plan seleccionado */}
-                        <Form.Item
-                            noStyle
-                            shouldUpdate={(prev, curr) => prev.subscription_plan_id !== curr.subscription_plan_id}
-                        >
-                            {({ getFieldValue }) =>
-                                getFieldValue('subscription_plan_id') ? (
-                                    <Form.Item
-                                        label="Cantidad"
-                                        name="subscription_quantity"
-                                        rules={[{ required: true, message: 'Ingrese la cantidad' }]}
-                                    >
-                                        <InputNumber min={1} placeholder="Cantidad" style={{ width: '100%' }} />
-                                    </Form.Item>
-                                ) : null
-                            }
-                        </Form.Item>
+                        <Row gutter={[16, 16]}>
+                            <Col xs={24} sm={24} md={24} lg={24} xl={24}>
+                                {/* Campo de cantidad, solo si hay plan seleccionado */}
+                                <Form.Item
+                                    noStyle
+                                    shouldUpdate={(prev, curr) => prev.subscription_plan_id !== curr.subscription_plan_id}
+                                >
+                                    {({ getFieldValue }) =>
+                                        getFieldValue('subscription_plan_id') ? (
+                                            <Form.Item
+                                                label="Cantidad"
+                                                name="subscription_quantity"
+                                                rules={[{ required: true, message: 'Ingrese la cantidad' }]}
+                                            >
+                                                <InputNumber min={1} placeholder="Cantidad" style={{ width: '100%' }} />
+                                            </Form.Item>
+                                        ) : null
+                                    }
+                                </Form.Item>
+                            </Col>
+                        </Row>
 
-                        <Row gutter={16}>
-                            <Col span={12}>
+                        <Row gutter={[16, 16]}>
+                            <Col xs={24} sm={24} md={12} lg={12} xl={12}>
                                 <Form.Item
                                     label="Fecha de entrada en vigencia"
                                     name="fecha_vigencia"
@@ -896,7 +910,7 @@ const ModeloForm = forwardRef(({
                                     />
                                 </Form.Item>
                             </Col>
-                            <Col span={12}>
+                            <Col xs={24} sm={24} md={12} lg={12} xl={12}>
                                 <Form.Item
                                     label="¿Abonar una parte?"
                                     name="abonar_parte"
@@ -907,41 +921,49 @@ const ModeloForm = forwardRef(({
                             </Col>
                         </Row>
 
-                        <Form.Item
-                            noStyle
-                            shouldUpdate={(prevValues, currentValues) => 
-                                prevValues.abonar_parte !== currentValues.abonar_parte
-                            }
-                        >
-                            {({ getFieldValue }) => 
-                                getFieldValue('abonar_parte') ? (
-                                    <Form.Item
-                                        label="Valor a abonar"
-                                        name="valor_abonar"
-                                        rules={[{ required: true, message: 'Campo obligatorio' }]}
-                                    >
-                                        <InputNumber 
-                                            placeholder="Valor en pesos" 
-                                            min={0}
-                                            formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                                            parser={value => value.replace(/\$\s?|(,*)/g, '')}
-                                            style={{ width: '100%' }}
-                                        />
-                                    </Form.Item>
-                                ) : null
-                            }
-                        </Form.Item>
+                        <Row gutter={[16, 16]}>
+                            <Col xs={24} sm={24} md={24} lg={24} xl={24}>
+                                <Form.Item
+                                    noStyle
+                                    shouldUpdate={(prevValues, currentValues) => 
+                                        prevValues.abonar_parte !== currentValues.abonar_parte
+                                    }
+                                >
+                                    {({ getFieldValue }) => 
+                                        getFieldValue('abonar_parte') ? (
+                                            <Form.Item
+                                                label="Valor a abonar"
+                                                name="valor_abonar"
+                                                rules={[{ required: true, message: 'Campo obligatorio' }]}
+                                            >
+                                                <InputNumber 
+                                                    placeholder="Valor en pesos" 
+                                                    min={0}
+                                                    formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                                                    parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                                                    style={{ width: '100%' }}
+                                                />
+                                            </Form.Item>
+                                        ) : null
+                                    }
+                                </Form.Item>
+                            </Col>
+                        </Row>
 
-                        <Form.Item
-                            label="Observaciones"
-                            name="observaciones"
-                        >
-                            <TextArea 
-                                rows={4} 
-                                placeholder="Observaciones adicionales..."
-                                autoComplete="off"
-                            />
-                        </Form.Item>
+                        <Row gutter={[16, 16]}>
+                            <Col xs={24} sm={24} md={24} lg={24} xl={24}>
+                                <Form.Item
+                                    label="Observaciones"
+                                    name="observaciones"
+                                >
+                                    <TextArea 
+                                        rows={4} 
+                                        placeholder="Observaciones adicionales..."
+                                        autoComplete="off"
+                                    />
+                                </Form.Item>
+                            </Col>
+                        </Row>
                     </div>
                 );
 
@@ -985,19 +1007,19 @@ const ModeloForm = forwardRef(({
             </div>
             
             <div className={styles.modeloFormButtons}>
+                {currentStep > 0 && (
+                    <Button onClick={() => prev()} className={styles.modeloFormButtonSecondary}>
+                        Anterior
+                    </Button>
+                )}
                 {currentStep < steps.length - 1 && (
-                    <Button type="primary" onClick={() => next()} className={styles.modeloFormButton}>
+                    <Button onClick={() => next()} className={styles.modeloFormButtonPrimary}>
                         Siguiente
                     </Button>
                 )}
                 {currentStep === steps.length - 1 && (
-                    <Button type="primary" onClick={() => next()} loading={loading} disabled={loading} className={styles.modeloFormButton}>
+                    <Button onClick={() => next()} loading={loading} disabled={loading} className={styles.modeloFormButtonPrimary}>
                         {modeloId ? 'Actualizar Modelo' : 'Finalizar Registro'}
-                    </Button>
-                )}
-                {currentStep > 0 && (
-                    <Button className={styles.modeloFormButton} style={{ margin: '0 8px' }} onClick={() => prev()}>
-                        Anterior
                     </Button>
                 )}
             </div>

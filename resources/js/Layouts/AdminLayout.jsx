@@ -54,7 +54,7 @@ export default function AdminLayout({ children, title = "Panel de Administració
     };
 
     useEffect(() => {
-        fetch('/admin/branches/list')
+        fetch('/admin/branches')
             .then(res => res.json())
             .then(data => {
                 setBranches(data);
@@ -100,9 +100,14 @@ export default function AdminLayout({ children, title = "Panel de Administració
             },
             {
                 key: 'logout',
-                icon: <LogoutOutlined />,
+                icon: <LogoutOutlined />, 
                 label: 'Cerrar Sesión',
-                onClick: () => router.post('/auth/logout')
+                onClick: () => {
+                    // Limpiar branch seleccionado y otros datos de sesión local si es necesario
+                    localStorage.removeItem('selectedBranchId');
+                    // Puedes limpiar aquí otros datos relacionados a la sesión si los usas
+                    router.post('/auth/logout');
+                }
             }
         ]
     };
@@ -183,7 +188,7 @@ export default function AdminLayout({ children, title = "Panel de Administració
                                                 {auth?.user?.name || 'Usuario'}
                                             </span>
                                             <span className={styles.userRole}>
-                                                Administrador
+                                                {auth?.user?.role || (auth?.user?.roles?.length ? auth.user.roles[0].name : 'NA')}
                                             </span>
                                         </div>
                                     </div>
@@ -202,4 +207,4 @@ export default function AdminLayout({ children, title = "Panel de Administració
             </Layout>
         </ConfigProvider>
     );
-} 
+}

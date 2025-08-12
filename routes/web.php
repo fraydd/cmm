@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Admin\ModeloController;
+use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InvitationController;
@@ -93,6 +94,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     
     // Rutas de eliminación
     Route::middleware(['permission:delete_employees'])->group(function () {
+        Route::delete('empleados/remove-access', [\App\Http\Controllers\Admin\EmployeeController::class, 'removeAccess'])->name('empleados.remove-access');
         Route::delete('empleados/{id}', [\App\Http\Controllers\Admin\EmployeeController::class, 'destroy'])->name('empleados.destroy');
     });
     
@@ -107,9 +109,25 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     Route::middleware(['permission:resend_invitations'])->post('invitaciones/{invitation}/resend', [\App\Http\Controllers\Admin\InvitationController::class, 'resend'])->name('invitaciones.resend');
     Route::middleware(['permission:cancel_invitations'])->delete('invitaciones/{invitation}/cancel', [\App\Http\Controllers\Admin\InvitationController::class, 'cancel'])->name('invitaciones.cancel');
     Route::middleware(['permission:create_invitations'])->post('invitaciones', [\App\Http\Controllers\Admin\InvitationController::class, 'store'])->name('admin.invitaciones.store');
+    
+    
+    Route::middleware(['auth', 'permission:view_permissions'])->group(function () {
+        Route::get('permisos/get-permissions', [\App\Http\Controllers\Admin\PermissionController::class, 'getPermissions'])->name('permisos.get-permissions');
+        Route::resource('permisos', \App\Http\Controllers\Admin\PermissionController::class);
+    });
+    
+    // Rutas para roles
+    Route::middleware(['auth', 'permission:view_permissions'])->group(function () {
+        Route::post('roles', [\App\Http\Controllers\Admin\PermissionController::class, 'store'])->name('roles.store');
+        Route::put('roles/{id}', [\App\Http\Controllers\Admin\PermissionController::class, 'update'])->name('roles.update');
+        Route::delete('roles/{id}', [\App\Http\Controllers\Admin\PermissionController::class, 'destroy'])->name('roles.destroy');
+    });
+
+    
     Route::middleware(['auth'])->group(function () {
-        Route::get('/branches/list', function() {
-            return response()->json(Controller::getBranches());
+        Route::get('/branches', function() {
+            $userId = auth()->id();
+            return response()->json(Controller::getBranches($userId));
         });
     });
 });

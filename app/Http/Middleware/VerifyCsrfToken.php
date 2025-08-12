@@ -12,8 +12,6 @@ class VerifyCsrfToken extends Middleware
      * @var array<int, string>
      */
     protected $except = [
-        'admin/modelos',
-        'admin/empleados'  // Temporal para pruebas con Postman
-        //
+        // No excluir rutas críticas del CSRF
     ];
 }

@@ -64,50 +64,14 @@ class InvitationController extends Controller
             'email.unique' => 'Este correo electrónico ya existe como usuario.'
         ]);
 
-        $email = $request->email;
-        $activeInvitation = Invitation::where('email', $email)->where('is_active', true)->first();
+        // Usar el método reutilizable para procesar la invitación
+        $result = self::createOrUpdateInvitation($request->email, 'invitation_store');
 
-        if ($activeInvitation) {
-            if ($activeInvitation->status === 'pending') {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Ya existe una invitación pendiente para este correo.'
-                ], 422);
-            }
-            if ($activeInvitation->status === 'accepted') {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Este correo ya fue aceptado en una invitación previa.'
-                ], 422);
-            }
-            // Renovar invitación expirada/cancelada
-            $activeInvitation->status = 'pending';
-            $activeInvitation->token = Invitation::generateToken();
-            $activeInvitation->expires_at = Carbon::now()->addDays(7);
-            $activeInvitation->invited_by = auth()->id();
-            $activeInvitation->save();
-            $this->sendInvitationEmail($activeInvitation);
-            return response()->json([
-                'success' => true,
-                'message' => 'Invitación renovada exitosamente a ' . $email,
-                'invitation' => $activeInvitation
-            ]);
-        }
-
-        // Crear la invitación
-        $invitation = Invitation::create([
-            'email' => $email,
-            'token' => Invitation::generateToken(),
-            'status' => 'pending',
-            'expires_at' => Carbon::now()->addDays(7),
-            'invited_by' => auth()->id()
-        ]);
-        $this->sendInvitationEmail($invitation);
         return response()->json([
-            'success' => true,
-            'message' => 'Invitación enviada exitosamente a ' . $email,
-            'invitation' => $invitation
-        ]);
+            'success' => $result['success'],
+            'message' => $result['message'],
+            'invitation' => $result['invitation']
+        ], $result['success'] ? 200 : 422);
     }
 
     /**
@@ -250,9 +214,89 @@ class InvitationController extends Controller
     }
 
     /**
-     * Enviar email de invitación
+     * Lógica reutilizable para crear o manejar invitaciones
+     * Este método puede ser llamado desde cualquier controlador
      */
-    private function sendInvitationEmail(Invitation $invitation)
+    public static function createOrUpdateInvitation($email, $context = 'general')
+    {
+        try {
+            // Verificar si ya existe una invitación activa para este correo
+            $activeInvitation = Invitation::where('email', $email)->where('is_active', true)->first();
+            
+            if ($activeInvitation) {
+                if ($activeInvitation->status === 'pending') {
+                    Log::info("Ya existe una invitación pendiente para {$email}, se omite el envío", ['context' => $context]);
+                    return [
+                        'success' => true,
+                        'message' => 'Ya existe una invitación pendiente para este correo.',
+                        'action' => 'skipped',
+                        'invitation' => $activeInvitation
+                    ];
+                } elseif ($activeInvitation->status === 'accepted') {
+                    Log::info("El correo {$email} ya fue aceptado en una invitación previa, se omite el envío", ['context' => $context]);
+                    return [
+                        'success' => true,
+                        'message' => 'Este correo ya fue aceptado en una invitación previa.',
+                        'action' => 'skipped',
+                        'invitation' => $activeInvitation
+                    ];
+                } else {
+                    // Renovar invitación expirada/cancelada
+                    $activeInvitation->status = 'pending';
+                    $activeInvitation->token = Invitation::generateToken();
+                    $activeInvitation->expires_at = Carbon::now()->addDays(7);
+                    $activeInvitation->invited_by = auth()->id();
+                    $activeInvitation->save();
+                    
+                    self::sendInvitationEmailStatic($activeInvitation);
+                    Log::info("Invitación renovada para {$email}", ['context' => $context]);
+                    
+                    return [
+                        'success' => true,
+                        'message' => 'Invitación renovada exitosamente a ' . $email,
+                        'action' => 'renewed',
+                        'invitation' => $activeInvitation
+                    ];
+                }
+            } else {
+                // Crear nueva invitación
+                $invitation = Invitation::create([
+                    'email' => $email,
+                    'token' => Invitation::generateToken(),
+                    'status' => 'pending',
+                    'expires_at' => Carbon::now()->addDays(7),
+                    'invited_by' => auth()->id()
+                ]);
+                
+                self::sendInvitationEmailStatic($invitation);
+                Log::info("Nueva invitación enviada para {$email}", ['context' => $context]);
+                
+                return [
+                    'success' => true,
+                    'message' => 'Invitación enviada exitosamente a ' . $email,
+                    'action' => 'created',
+                    'invitation' => $invitation
+                ];
+            }
+        } catch (\Exception $e) {
+            Log::error("Error al procesar invitación para {$email}: " . $e->getMessage(), [
+                'context' => $context,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return [
+                'success' => false,
+                'message' => 'Error al procesar la invitación: ' . $e->getMessage(),
+                'action' => 'error',
+                'invitation' => null
+            ];
+        }
+    }
+
+    /**
+     * Versión estática del método para enviar emails
+     */
+    private static function sendInvitationEmailStatic(Invitation $invitation)
     {
         $invitationUrl = url('/register?token=' . $invitation->token);
         
@@ -261,5 +305,13 @@ class InvitationController extends Controller
         
         // TODO: Implementar envío real de email
         // Mail::to($invitation->email)->send(new InvitationMail($invitation));
+    }
+
+    /**
+     * Enviar email de invitación (método de instancia para compatibilidad)
+     */
+    private function sendInvitationEmail(Invitation $invitation)
+    {
+        self::sendInvitationEmailStatic($invitation);
     }
 }

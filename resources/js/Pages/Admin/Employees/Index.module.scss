@@ -1,140 +1,661 @@
-/* CONTENEDOR PADRE - Grid Principal (5 columnas × 10 filas) */
+// Variables SCSS para breakpoints
+$breakpoint-xs: 480px;    // Extra pequeño (móviles pequeños)
+$breakpoint-sm: 576px;    // Pequeño (móviles)
+$breakpoint-md: 768px;    // Mediano (tablets)
+$breakpoint-lg: 992px;    // Grande (desktops pequeños)
+$breakpoint-xl: 1200px;   // Extra grande (desktops)
+$breakpoint-xxl: 1600px;  // Extra extra grande (pantallas grandes)
+
+// Variables de transición
+$transition-duration: var(--cmm-transition-normal);
+
+// Mixins para flexbox
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin flex-start {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+// Mixins para responsive typography
+@mixin responsive-title {
+  font-size: clamp(1.25rem, 3vw, 2rem);
+  line-height: 1.2;
+  
+  @media (max-width: $breakpoint-md) {
+    font-size: clamp(1.1rem, 4vw, 1.5rem);
+  }
+  
+  @media (max-width: $breakpoint-sm) {
+    font-size: clamp(1rem, 5vw, 1.3rem);
+  }
+}
+
+@mixin responsive-subtitle {
+  font-size: clamp(1rem, 2.5vw, 1.5rem);
+  line-height: 1.3;
+  
+  @media (max-width: $breakpoint-md) {
+    font-size: clamp(0.9rem, 3.5vw, 1.2rem);
+  }
+  
+  @media (max-width: $breakpoint-sm) {
+    font-size: clamp(0.85rem, 4vw, 1.1rem);
+  }
+}
+
+@mixin responsive-text {
+  font-size: clamp(0.875rem, 2vw, 1rem);
+  line-height: 1.5;
+  
+  @media (max-width: $breakpoint-md) {
+    font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+  }
+  
+  @media (max-width: $breakpoint-sm) {
+    font-size: clamp(0.75rem, 3vw, 0.85rem);
+  }
+}
+
+/* CONTENEDOR PADRE - Grid Principal optimizado para la tabla */
 .empleadosPage {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  grid-template-rows: repeat(10, 1fr);
-  grid-column-gap: 0px;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr; // Header compacto + contenido principal
   grid-row-gap: 0px;
   height: 100%;
   width: 100%;
   overflow: hidden;
+  
+  // Responsive breakpoints
+  @media (max-width: $breakpoint-md) {
+    gap: var(--cmm-spacing-sm);
+  }
+  
+  @media (max-width: $breakpoint-sm) {
+    padding: var(--cmm-spacing-xs);
+  }
+
+  /* CONTENEDOR A - Header principal compacto con typography responsive */
+  & .headerSection {
+    grid-area: 1 / 1 / 2 / 2; // Ajustado al nuevo grid
+    @include flex-between;
+    margin-bottom: var(--cmm-spacing-sm); // Reducido de lg a sm
+    padding: 0 16px;
+    min-height: auto; // Permitir altura automática
+    
+    // Typography responsive para el título
+    & h2 {
+      @include responsive-title;
+      margin: 0 !important;
+      
+      & .anticon {
+        font-size: clamp(1rem, 2.5vw, 1.5rem);
+        margin-right: clamp(4px, 1vw, 8px);
+      }
+    }
+    
+    // Typography responsive para el subtítulo/descripción
+    & span {
+      @include responsive-text;
+    }
+    
+    @media (max-width: $breakpoint-md) {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--cmm-spacing-xs);
+      text-align: left;
+      margin-bottom: var(--cmm-spacing-xs); // Aún más compacto en móvil
+    }
+    
+    @media (max-width: $breakpoint-sm) {
+      padding: 0 var(--cmm-spacing-xs);
+      margin-bottom: var(--cmm-spacing-xs);
+    }
+  }
+
+  /* CONTENEDOR B - Grid anidado optimizado para maximizar la tabla */
+  & .cardContainer {
+    grid-area: 2 / 1 / 3 / 2; // Ajustado al nuevo grid
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto 1fr auto; // Filtros compactos + acciones compactas + tabla expandida + paginación compacta
+    grid-row-gap: 0px;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    
+    @media (max-width: $breakpoint-md) {
+      gap: var(--cmm-spacing-xs); // Reducido de sm a xs para móvil
+    }
+
+    /* CONTENEDOR 1 - Filtros más compactos */
+    & .filtersSection {
+      grid-area: 1 / 1 / 2 / 2; // Ajustado al nuevo grid
+      padding: 12px 16px; // Reducido de 16px a 12px
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr 1fr; // Mantengo la estructura original de empleados
+      gap: 12px; // Reducido de 16px a 12px
+      align-items: center;
+      
+      @media (max-width: $breakpoint-lg) {
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        gap: var(--cmm-spacing-xs); // Más compacto
+      }
+      
+      @media (max-width: $breakpoint-md) {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto auto;
+        gap: var(--cmm-spacing-xs);
+        padding: var(--cmm-spacing-xs); // Más compacto
+      }
+      
+      @media (max-width: $breakpoint-sm) {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto auto auto;
+        gap: var(--cmm-spacing-xs);
+        padding: var(--cmm-spacing-xs);
+      }
+
+      /* Contenedor específico para los filtros de fecha */
+      & .dateFilters {
+        display: flex;
+        gap: var(--cmm-spacing-xs);
+        width: 100%;
+        
+        & > * {
+          flex: 1;
+          min-width: 0;
+        }
+        
+        @media (min-width: 577px) {
+          display: contents;
+        }
+      }
+
+      // Inputs con wrapper (como búsqueda y filtro por cargo)
+      & :global(.ant-input-affix-wrapper) {
+        border-color: var(--cmm-border-input) !important;
+        
+        &:hover {
+          border-color: var(--cmm-primary-400) !important;
+        }
+        
+        &.ant-input-affix-wrapper-focused {
+          border-color: var(--cmm-primary-500) !important;
+          box-shadow: 0 0 0 2px rgba(84, 119, 146, 0.1) !important;
+        }
+        
+        & .ant-input {
+          border: none !important;
+          box-shadow: none !important;
+          @include responsive-text;
+          
+          &::placeholder {
+            color: var(--cmm-text-placeholder) !important;
+          }
+        }
+        
+        // Responsive adjustments
+        @media (max-width: $breakpoint-md) {
+          padding: 8px 12px !important;
+        }
+        
+        @media (max-width: $breakpoint-sm) {
+          padding: 6px 10px !important;
+        }
+      }
+      
+      // Inputs simples (fallback)
+      & :global(.ant-input) {
+        border-color: var(--cmm-border-input) !important;
+        @include responsive-text;
+        
+        &::placeholder {
+          color: var(--cmm-text-placeholder) !important;
+        }
+        
+        &:hover {
+          border-color: var(--cmm-primary-400) !important;
+        }
+        
+        &:focus {
+          border-color: var(--cmm-primary-500) !important;
+          box-shadow: 0 0 0 2px rgba(84, 119, 146, 0.1) !important;
+        }
+      }
+      
+      // Select de filtros
+      & :global(.ant-select .ant-select-selector) {
+        border-color: var(--cmm-border-input) !important;
+        @include responsive-text;
+        
+        & .ant-select-selection-placeholder {
+          color: var(--cmm-text-placeholder) !important;
+        }
+        
+        &:hover {
+          border-color: var(--cmm-primary-400) !important;
+        }
+        
+        @media (max-width: $breakpoint-md) {
+          padding: 6px 8px !important;
+        }
+      }
+      
+      & :global(.ant-select-focused .ant-select-selector) {
+        border-color: var(--cmm-primary-500) !important;
+        box-shadow: 0 0 0 2px rgba(84, 119, 146, 0.1) !important;
+      }
+      
+      // DatePicker de filtros
+      & :global(.ant-picker) {
+        border-color: var(--cmm-border-input) !important;
+        @include responsive-text;
+        
+        & input::placeholder {
+          color: var(--cmm-text-placeholder) !important;
+        }
+        
+        &:hover {
+          border-color: var(--cmm-primary-400) !important;
+        }
+        
+        &.ant-picker-focused {
+          border-color: var(--cmm-primary-500) !important;
+          box-shadow: 0 0 0 2px rgba(84, 119, 146, 0.1) !important;
+        }
+        
+        @media (max-width: $breakpoint-md) {
+          padding: 8px 12px !important;
+        }
+        
+        @media (max-width: $breakpoint-sm) {
+          padding: 6px 10px !important;
+        }
+      }
+      
+      // Botón de limpiar filtros
+      & :global(.ant-btn) {
+        border-color: var(--cmm-border-input) !important;
+        @include responsive-text;
+        
+        &:hover {
+          border-color: var(--cmm-primary-400) !important;
+        }
+        
+        &:focus {
+          border-color: var(--cmm-primary-500) !important;
+          box-shadow: 0 0 0 2px rgba(84, 119, 146, 0.1) !important;
+        }
+        
+        @media (max-width: $breakpoint-md) {
+          padding: 8px 12px !important;
+        }
+        
+        @media (max-width: $breakpoint-sm) {
+          padding: 6px 10px !important;
+          
+          // Ocultar texto en botones muy pequeños, solo mostrar icono
+          & .ant-btn-content {
+            & .anticon + span:not(:empty) {
+              display: none;
+            }
+          }
+        }
+      }
+    }
+
+    /* CONTENEDOR 2 - Acciones masivas más compactas */
+    & .bulkActionsSection {
+      grid-area: 2 / 1 / 3 / 2; // Ajustado al nuevo grid
+      padding: 8px 16px; // Reducido de 12px a 8px
+      background: var(--cmm-bg-secondary);
+      @include flex-between;
+      min-height: auto; // Permitir altura automática más compacta
+      
+      @media (max-width: $breakpoint-md) {
+        padding: var(--cmm-spacing-xs);
+        flex-direction: column;
+        gap: var(--cmm-spacing-xs); // Reducido de sm a xs
+        align-items: stretch;
+      }
+      
+      @media (max-width: $breakpoint-sm) {
+        padding: var(--cmm-spacing-xs);
+      }
+
+      & .bulkActionsLeft {
+        display: flex;
+        align-items: center;
+        
+        @media (max-width: $breakpoint-md) {
+          justify-content: center;
+        }
+      }
+
+      & .bulkActionsRight {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        
+        @media (max-width: $breakpoint-md) {
+          justify-content: center;
+          flex-wrap: wrap;
+        }
+        
+        @media (max-width: $breakpoint-sm) {
+          gap: var(--cmm-spacing-xs);
+        }
+      }
+
+      // Botones de acciones de filtros (Limpiar, Recargar) con responsividad
+      & :global(.ant-btn) {
+        border-color: var(--cmm-border-input) !important;
+        @include responsive-text;
+        
+        &:hover {
+          border-color: var(--cmm-primary-400) !important;
+        }
+        
+        &:focus {
+          border-color: var(--cmm-primary-500) !important;
+          box-shadow: 0 0 0 2px rgba(84, 119, 146, 0.1) !important;
+        }
+        
+        @media (max-width: $breakpoint-md) {
+          padding: 8px 12px !important;
+          flex: 1;
+          max-width: none;
+        }
+        
+        @media (max-width: $breakpoint-sm) {
+          padding: 6px 10px !important;
+          
+          // En móvil pequeño, mostrar solo iconos en algunos botones
+          &:not(.ant-btn-primary) .ant-btn-content {
+            & .anticon + span:not(:empty) {
+              margin-left: 4px;
+              
+              @media (max-width: 400px) {
+                display: none;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    /* CONTENEDOR 3 - Tabla maximizada para aprovechamiento del espacio */
+    & .tableContainer {
+      grid-area: 3 / 1 / 4 / 2; // Ajustado al nuevo grid - ahora ocupa toda la fila 3
+      margin-top: 0px;
+      height: 100%;
+      width: 100%;
+      padding: 0 16px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden; // Importante: evita que la tabla se desborde
+      flex: 1; // Asegurar que ocupe todo el espacio disponible
+      
+      @media (max-width: $breakpoint-md) {
+        padding: 0 var(--cmm-spacing-sm);
+      }
+      
+      @media (max-width: $breakpoint-sm) {
+        padding: 0 var(--cmm-spacing-xs);
+      }
+
+      /* Wrapper de la tabla - debe ocupar todo el espacio disponible */
+      & :global(.ant-table-wrapper) {
+        flex: 1;
+        min-height: 0; // Importante para que funcione el scroll
+        overflow: hidden; // Evita el desbordamiento del wrapper
+      }
+
+      // Solo mantener los estilos de typography responsive, no tocar el layout
+      & :global(.ant-table) {
+        // Typography responsive para contenido de tabla
+        & .ant-table-tbody td {
+          @include responsive-text;
+        }
+        
+        & .ant-table-thead th {
+          @include responsive-text;
+          font-weight: 600;
+        }
+        
+        // Altura de filas responsive - más compactas en pantallas pequeñas
+        & .ant-table-tbody tr {
+          height: auto;
+          
+          @media (max-width: $breakpoint-lg) {
+            & td {
+              padding: 10px 12px !important;
+              line-height: 1.3 !important;
+            }
+          }
+          
+          @media (max-width: $breakpoint-md) {
+            & td {
+              padding: 8px 10px !important;
+              line-height: 1.2 !important;
+            }
+          }
+          
+          @media (max-width: $breakpoint-sm) {
+            & td {
+              padding: 6px 8px !important;
+              line-height: 1.1 !important;
+              font-size: clamp(11px, 2.5vw, 13px) !important;
+            }
+          }
+          
+          @media (max-width: $breakpoint-xs) {
+            & td {
+              padding: 4px 6px !important;
+              line-height: 1 !important;
+              font-size: clamp(10px, 2.2vw, 12px) !important;
+            }
+          }
+        }
+        
+        // Header también más compacto
+        & .ant-table-thead tr th {
+          @media (max-width: $breakpoint-lg) {
+            padding: 10px 12px !important;
+            line-height: 1.3 !important;
+          }
+          
+          @media (max-width: $breakpoint-md) {
+            padding: 8px 10px !important;
+            line-height: 1.2 !important;
+          }
+          
+          @media (max-width: $breakpoint-sm) {
+            padding: 6px 8px !important;
+            line-height: 1.1 !important;
+            font-size: clamp(11px, 2.5vw, 13px) !important;
+            font-weight: 600;
+          }
+          
+          @media (max-width: $breakpoint-xs) {
+            padding: 4px 6px !important;
+            line-height: 1 !important;
+            font-size: clamp(10px, 2.2vw, 12px) !important;
+            font-weight: 600;
+          }
+        }
+        
+        @media (max-width: $breakpoint-md) {
+          & .ant-table-tbody td,
+          & .ant-table-thead th {
+            padding: var(--cmm-spacing-xs) var(--cmm-spacing-sm) !important;
+          }
+        }
+        
+        @media (max-width: $breakpoint-sm) {
+          & .ant-table-tbody td,
+          & .ant-table-thead th {
+            padding: 6px 8px !important;
+          }
+        }
+      }
+
+      & :global(.ant-table-container) {
+        height: 100%;
+        overflow: auto;
+      }
+
+      // Botones de acción con variables CSS dinámicas y responsividad mejorada
+      & :global(.ant-btn-text) {
+        background-color: transparent !important;
+        
+        &:hover {
+          background-color: var(--cmm-table-hover) !important;
+          color: var(--cmm-primary-400) !important;
+        }
+        
+        &.ant-btn-dangerous:hover {
+          background-color: var(--cmm-table-hover) !important;
+          color: #ff7875 !important;
+        }
+        
+        // Responsividad para botones de acción
+        @media (max-width: $breakpoint-md) {
+          padding: 4px 6px !important;
+          
+          & .anticon {
+            font-size: 14px;
+          }
+        }
+        
+        @media (max-width: $breakpoint-sm) {
+          padding: 2px 4px !important;
+          
+          & .anticon {
+            font-size: 12px;
+          }
+        }
+      }
+    }
+
+    /* CONTENEDOR 4 - Paginación compacta */
+    & .paginationContainer {
+      grid-area: 4 / 1 / 5 / 2; // Ajustado al nuevo grid
+      padding: 12px 16px; // Reducido de 16px a 12px
+      @include flex-center;
+      min-height: auto; // Permitir altura automática más compacta
+      
+      @media (max-width: $breakpoint-md) {
+        padding: var(--cmm-spacing-xs); // Más compacto
+      }
+      
+      @media (max-width: $breakpoint-sm) {
+        padding: var(--cmm-spacing-xs);
+      }
+      
+      // Typography responsive para paginación
+      & :global(.ant-pagination) {
+        @include responsive-text;
+        
+        // Ajustes específicos para móvil
+        @media (max-width: $breakpoint-md) {
+          & .ant-pagination-item,
+          & .ant-pagination-prev,
+          & .ant-pagination-next {
+            min-width: 32px;
+            height: 32px;
+            line-height: 30px;
+          }
+        }
+        
+        @media (max-width: $breakpoint-sm) {
+          & .ant-pagination-item,
+          & .ant-pagination-prev,
+          & .ant-pagination-next {
+            min-width: 28px;
+            height: 28px;
+            line-height: 26px;
+            font-size: clamp(12px, 3vw, 14px);
+          }
+          
+          // Ocultar elementos no esenciales en móvil muy pequeño
+          & .ant-pagination-options {
+            display: none;
+          }
+          
+          & .ant-pagination-total-text {
+            display: none;
+          }
+        }
+      }
+    }
+  }
 }
 
-/* CONTENEDOR A - 2 filas, todo el ancho (20% del total) - Header principal */
-.headerSection {
-  grid-area: 1 / 1 / 2 / 6;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--cmm-spacing-lg);
-  padding: 0 16px;
+// Clases auxiliares para botones
+.visibleButton {
+  opacity: 1;
+  visibility: visible;
+  transition: all $transition-duration var(--cmm-ease-in-out);
 }
 
-/* CONTENEDOR B - Grid anidado, 8 filas restantes, todo el ancho (80% del total) */
-.cardContainer {
-  grid-area: 2 / 1 / 11 / 6;
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  grid-template-rows: repeat(10, 1fr);
-  grid-column-gap: 0px;
-  grid-row-gap: 0px;
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
+.hiddenButton {
+  opacity: 0;
+  visibility: hidden;
+  transition: all $transition-duration var(--cmm-ease-in-out);
 }
 
-/* CONTENEDOR 1 - 1 fila, todo el ancho (10% de B) - Filtros */
-.filtersSection {
-  grid-area: 1 / 1 / 2 / 6;
-  padding: 16px;
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
-  gap: 16px;
-  align-items: center;
+.selectedCount {
+  color: var(--cmm-primary-600);
+  @include responsive-text;
 }
 
-/* CONTENEDOR 2 - 1 fila, todo el ancho (10% de B) - Acciones masivas */
-.bulkActionsSection {
-  grid-area: 2 / 1 / 3 / 6;
-  padding: 12px 16px;
-  background: var(--cmm-bg-secondary);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.bulkActionsLeft {
-  display: flex;
-  align-items: center;
-}
-
-.bulkActionsRight {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-/* CONTENEDOR 3 - 7 filas, todo el ancho (70% de B) - Tabla */
-.tableContainer {
-  grid-area: 3 / 1 / 10 / 6;
-  margin-top: 0px;
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
-  padding: 0 16px;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Contenedor interno de la tabla para scroll */
-.tableContainer :global(.ant-table-wrapper) {
-  flex: 1;
-  overflow: hidden;
-}
-
-.tableContainer :global(.ant-table) {
-  height: 100%;
-}
-
-.tableContainer :global(.ant-table-container) {
-  height: 100%;
-  overflow: auto;
-}
-
-/* CONTENEDOR 4 - 1 fila restante, todo el ancho (10% de B) - Paginación */
-.paginationContainer {
-  grid-area: 10 / 1 / 11 / 6;
-  padding: 16px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
+/* ===== ESTILOS GLOBALES PARA COMPONENTES ANTD ===== */
 
 /* Estilos globales para evitar scroll en contenedores padres */
 :global(.ant-layout-content) {
   overflow: hidden !important;
   height: 100% !important;
+  
+  & > div {
+    overflow: hidden !important;
+    height: 100% !important;
+    width: 100% !important;
+  }
 }
 
-:global(.ant-layout-content > div) {
-  overflow: hidden !important;
-  height: 100% !important;
-  width: 100% !important;
-}
-
-// Overrides para la tabla usando variables CSS del tema
-// Header de la tabla - colores diferenciados del cuerpo
+/* Overrides para la tabla usando variables CSS del tema */
 :global(.ant-table-wrapper .ant-table-thead > tr > th),
 :global(.ant-table .ant-table-thead > tr > th) {
   background-color: var(--cmm-table-header) !important;
   color: var(--cmm-text-primary) !important;
   border-bottom: 1px solid var(--cmm-primary-200) !important;
-}
 
-:global(.ant-table-wrapper .ant-table-thead > tr > th:hover),
-:global(.ant-table .ant-table-thead > tr > th:hover) {
-  background-color: var(--cmm-table-header-hover) !important;
-}
+  &:hover {
+    background-color: var(--cmm-table-header-hover) !important;
+  }
 
-// Mantener el fondo del header cuando se ordena (ascendente/descendente)
-:global(.ant-table-wrapper .ant-table-thead > tr > th.ant-table-column-sort),
-:global(.ant-table .ant-table-thead > tr > th.ant-table-column-sort) {
-  background-color: var(--cmm-table-header) !important;
-}
+  // Mantener el fondo del header cuando se ordena (ascendente/descendente)
+  &.ant-table-column-sort {
+    background-color: var(--cmm-table-header) !important;
 
-:global(.ant-table-wrapper .ant-table-thead > tr > th.ant-table-column-sort:hover),
-:global(.ant-table .ant-table-thead > tr > th.ant-table-column-sort:hover) {
-  background-color: var(--cmm-table-header-hover) !important;
+    &:hover {
+      background-color: var(--cmm-table-header-hover) !important;
+    }
+  }
 }
 
 // Filas de la tabla - Forzar color base y controlar transiciones
@@ -142,41 +663,36 @@
 :global(.ant-table .ant-table-tbody > tr) {
   background-color: var(--cmm-table-row) !important;
   transition: background-color 0.1s ease !important;
-}
 
-:global(.ant-table-wrapper .ant-table-tbody > tr > td),
-:global(.ant-table .ant-table-tbody > tr > td) {
-  background-color: var(--cmm-table-row) !important;
-  transition: background-color 0.1s ease !important;
-}
+  & > td {
+    background-color: var(--cmm-table-row) !important;
+    border-bottom: 1px solid var(--cmm-border-light) !important;
+    transition: background-color 0.1s ease !important;
+  }
 
-:global(.ant-table-wrapper .ant-table-tbody > tr:hover > td.ant-table-column-sort),
-:global(.ant-table .ant-table-tbody > tr:hover > td.ant-table-column-sort) {
-  background-color: var(--cmm-table-hover) !important;
-  transition: background-color 0.1s ease !important;
-}
+  &:hover > td {
+    background-color: var(--cmm-table-hover) !important;
+    transition: background-color 0.1s ease !important;
+  }
 
-:global(.ant-table-wrapper .ant-table-tbody > tr:hover > td),
-:global(.ant-table .ant-table-tbody > tr:hover > td) {
-  background-color: var(--cmm-table-hover) !important;
-  transition: background-color 0.1s ease !important;
-}
+  &:hover > td.ant-table-column-sort {
+    background-color: var(--cmm-table-hover) !important;
+    transition: background-color 0.1s ease !important;
+  }
 
-:global(.ant-table-wrapper .ant-table-tbody > tr:hover),
-:global(.ant-table .ant-table-tbody > tr:hover) {
-  background-color: var(--cmm-table-hover) !important;
-  transition: background-color 0.1s ease !important;
-}
+  &:hover {
+    background-color: var(--cmm-table-hover) !important;
+    transition: background-color 0.1s ease !important;
+  }
 
-// Filas seleccionadas
-:global(.ant-table-wrapper .ant-table-tbody > tr.ant-table-row-selected > td),
-:global(.ant-table .ant-table-tbody > tr.ant-table-row-selected > td) {
-  background-color: var(--cmm-table-hover) !important;
-}
+  // Filas seleccionadas
+  &.ant-table-row-selected > td {
+    background-color: var(--cmm-table-hover) !important;
+  }
 
-:global(.ant-table-wrapper .ant-table-tbody > tr.ant-table-row-selected:hover > td),
-:global(.ant-table .ant-table-tbody > tr.ant-table-row-selected:hover > td) {
-  background-color: var(--cmm-table-hover) !important;
+  &.ant-table-row-selected:hover > td {
+    background-color: var(--cmm-table-hover) !important;
+  }
 }
 
 // Bordes de la tabla
@@ -185,31 +701,96 @@
   border: 1px solid var(--cmm-border-color) !important;
 }
 
-:global(.ant-table-wrapper .ant-table-tbody > tr > td),
-:global(.ant-table .ant-table-tbody > tr > td) {
-  border-bottom: 1px solid var(--cmm-border-light) !important;
-}
-
-// Paginación
+/* Estilos para paginación */
 :global(.ant-pagination) {
-  .ant-pagination-item {
+  & .ant-pagination-item {
     border-color: var(--cmm-border-color);
+    background-color: var(--cmm-bg-secondary) !important;
+    
+    & a {
+      color: var(--cmm-text-primary) !important;
+    }
+
+    &:hover {
+      border-color: var(--cmm-primary-400) !important;
+    }
     
     &.ant-pagination-item-active {
-      background-color: var(--cmm-primary-500);
-      border-color: var(--cmm-primary-500);
+      background-color: var(--cmm-primary-500) !important;
+      border-color: var(--cmm-primary-500) !important;
+      
+      & a {
+        color: var(--cmm-accent) !important;
+      }
     }
   }
   
-  .ant-pagination-prev,
-  .ant-pagination-next {
+  & .ant-pagination-prev,
+  & .ant-pagination-next {
     border-color: var(--cmm-border-color);
+    color: var(--cmm-text-primary) !important;
     
     &:hover {
-      color: var(--cmm-primary-500);
-      border-color: var(--cmm-primary-500);
+      color: var(--cmm-primary-500) !important;
+      border-color: var(--cmm-primary-500) !important;
     }
   }
+}
+
+/* Checkboxes de selección */
+:global(.ant-checkbox-inner) {
+  background-color: var(--cmm-bg-secondary) !important;
+  border-color: var(--cmm-primary-200) !important;
+}
+
+:global(.ant-checkbox-checked .ant-checkbox-inner) {
+  background-color: var(--cmm-primary-500) !important;
+  border-color: var(--cmm-primary-500) !important;
+}
+
+/* Select de paginación */
+:global(.ant-pagination-options .ant-select .ant-select-selector) {
+  background-color: var(--cmm-bg-secondary) !important;
+  border-color: var(--cmm-primary-200) !important;
+  color: var(--cmm-text-primary) !important;
+}
+
+/* Dropdown del selector de tamaño de página */
+:global(.ant-pagination-options .ant-select-dropdown) {
+  background-color: var(--cmm-bg-secondary) !important;
+  border-color: var(--cmm-primary-200) !important;
+  z-index: 1050 !important;
+
+  & .ant-select-item {
+    color: var(--cmm-text-primary) !important;
+    background-color: var(--cmm-bg-secondary) !important;
+
+    &:hover {
+      background-color: var(--cmm-table-hover) !important;
+    }
+
+    &-option-selected {
+      background-color: var(--cmm-primary-500) !important;
+      color: var(--cmm-accent) !important;
+    }
+
+    &-option-active {
+      background-color: var(--cmm-table-hover) !important;
+    }
+  }
+}
+
+:global(.ant-pagination-options .ant-select) {
+  min-width: 80px !important;
+
+  & .ant-select-selection-item {
+    color: var(--cmm-text-primary) !important;
+  }
+}
+
+:global(.ant-select-focused .ant-select-selector) {
+  border-color: var(--cmm-primary-500) !important;
+  box-shadow: 0 0 0 2px rgba(84, 119, 146, 0.1) !important;
 }
 
 // Estilos personalizados para los tags de estado

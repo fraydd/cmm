@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
+use App\Models\Invitation;
+use Carbon\Carbon;
 
 class EmployeeController extends \App\Http\Controllers\Controller
 {
@@ -89,6 +91,10 @@ class EmployeeController extends \App\Http\Controllers\Controller
                 'branches' => DB::table('branches')
                     ->where('is_active', true)
                     ->select('id', 'name as nombre')
+                    ->get(),
+
+                'roles' => \Spatie\Permission\Models\Role::orderBy('name', 'asc')
+                    ->select('id', 'name as nombre')
                     ->get()
             ];
             
@@ -124,14 +130,14 @@ class EmployeeController extends \App\Http\Controllers\Controller
             }
 
             // Procesar campos booleanos que pueden venir como string
-            $booleanFields = ['has_emergency_contact'];
+            $booleanFields = ['has_emergency_contact', 'send_invitation'];
             foreach ($booleanFields as $field) {
                 if (isset($data[$field]) && is_string($data[$field])) {
                     // Convertir string a booleano
                     $data[$field] = filter_var($data[$field], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-                    // Si no es un booleano válido, usar true por defecto
+                    // Si no es un booleano válido, usar false por defecto para send_invitation
                     if ($data[$field] === null) {
-                        $data[$field] = true;
+                        $data[$field] = $field === 'send_invitation' ? false : true;
                     }
                 }
             }
@@ -150,11 +156,15 @@ class EmployeeController extends \App\Http\Controllers\Controller
                 'identification_type_id' => 'required|exists:identification_types,id',
                 'phone' => 'required|string|max:20',
                 'email' => 'required|email|max:255', // El email NO es único
-                'role' => 'required|string|max:100',
+                'role_id' => 'required|exists:roles,id',
                 'hire_date' => 'required|date',
                 'branch_access' => 'required|array|min:1',
                 'branch_access.*' => 'exists:branches,id',
             ]);
+
+            // Obtener el nombre del rol para la columna temporal
+            $roleModel = \Spatie\Permission\Models\Role::find($data['role_id']);
+            $roleName = $roleModel ? $roleModel->name : 'Sin rol';
 
             // VALIDACIÓN ESPECÍFICA: El empleado y el contacto de emergencia no pueden tener la misma identificación
             if (!empty($data['has_emergency_contact']) && $data['has_emergency_contact'] && 
@@ -212,11 +222,12 @@ class EmployeeController extends \App\Http\Controllers\Controller
                 if ($inactiveEmployee) {
                     // Reactivar el empleado inactivo y actualizar sus datos
                     DB::table('employees')->where('id', $inactiveEmployee->id)->update([
-                        'role' => $data['role'],
+                        'role' => $roleName,
                         'hire_date' => $data['hire_date'],
                         'salary' => $data['salary'] ?? null,
                         'job_description' => $data['job_description'] ?? null,
                         'end_date' => $data['end_date'] ?? null,
+                        'role_id' => $data['role_id'],
                         'is_active' => true,
                         'updated_at' => now(),
                     ]);
@@ -226,11 +237,12 @@ class EmployeeController extends \App\Http\Controllers\Controller
                     $employeeId = DB::table('employees')->insertGetId([
                         'person_id' => $personId,
                         'user_id' => null, // Los usuarios se crean mediante invitaciones
-                        'role' => $data['role'],
+                        'role' => $roleName,
                         'hire_date' => $data['hire_date'],
                         'salary' => $data['salary'] ?? null,
                         'job_description' => $data['job_description'] ?? null,
                         'end_date' => $data['end_date'] ?? null,
+                        'role_id' => $data['role_id'],
                         'is_active' => true,
                         'created_at' => now(),
                         'updated_at' => now(),
@@ -255,11 +267,12 @@ class EmployeeController extends \App\Http\Controllers\Controller
                 $employeeId = DB::table('employees')->insertGetId([
                     'person_id' => $personId,
                     'user_id' => null, // Los usuarios se crean mediante invitaciones
-                    'role' => $data['role'],
+                    'role' => $roleName,
                     'hire_date' => $data['hire_date'],
                     'salary' => $data['salary'] ?? null,
                     'job_description' => $data['job_description'] ?? null,
                     'end_date' => $data['end_date'] ?? null,
+                    'role_id' => $data['role_id'],
                     'is_active' => true,
                     'created_at' => now(),
                     'updated_at' => now(),
@@ -341,6 +354,21 @@ class EmployeeController extends \App\Http\Controllers\Controller
                 ]);
                 
             } else {
+            }
+
+            // ENVIAR INVITACIÓN SI SE SOLICITÓ
+            if (!empty($data['send_invitation']) && $data['send_invitation']) {
+                $email = $data['email'];
+                
+                // Usar el método reutilizable para procesar la invitación
+                $result = InvitationController::createOrUpdateInvitation($email, 'employee_creation');
+                
+                if (!$result['success']) {
+                    Log::warning("Error al enviar invitación durante creación de empleado", [
+                        'email' => $email,
+                        'error' => $result['message']
+                    ]);
+                }
             }
 
             DB::commit();
@@ -478,6 +506,7 @@ class EmployeeController extends \App\Http\Controllers\Controller
                 ->select([
                     'e.id as employee_id',
                     'e.role',
+                    'e.role_id',
                     'e.hire_date',
                     'e.salary',
                     'e.job_description',
@@ -540,6 +569,7 @@ class EmployeeController extends \App\Http\Controllers\Controller
                 'email' => $empleado->email,
                 'gender_id' => $empleado->gender_id,
                 'role' => $empleado->role,
+                'role_id' => $empleado->role_id,
                 'hire_date' => $empleado->hire_date,
                 'salary' => $empleado->salary,
                 'job_description' => $empleado->job_description,
@@ -590,12 +620,12 @@ class EmployeeController extends \App\Http\Controllers\Controller
             }
 
             // Procesar campos booleanos que pueden venir como string
-            $booleanFields = ['has_emergency_contact'];
+            $booleanFields = ['has_emergency_contact', 'send_invitation'];
             foreach ($booleanFields as $field) {
                 if (isset($data[$field]) && is_string($data[$field])) {
                     $data[$field] = filter_var($data[$field], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
                     if ($data[$field] === null) {
-                        $data[$field] = true;
+                        $data[$field] = $field === 'send_invitation' ? false : true;
                     }
                 }
             }
@@ -621,11 +651,15 @@ class EmployeeController extends \App\Http\Controllers\Controller
                 'identification_type_id' => 'required|exists:identification_types,id',
                 'phone' => 'required|string|max:20',
                 'email' => 'required|email|max:255', // El email NO es único
-                'role' => 'required|string|max:100',
+                'role_id' => 'required|exists:roles,id',
                 'hire_date' => 'required|date',
                 'branch_access' => 'required|array|min:1',
                 'branch_access.*' => 'exists:branches,id',
             ]);
+
+            // Obtener el nombre del rol para la columna temporal
+            $roleModel = \Spatie\Permission\Models\Role::find($data['role_id']);
+            $roleName = $roleModel ? $roleModel->name : 'Sin rol';
 
             // VALIDACIÓN ESPECÍFICA: El empleado y el contacto de emergencia no pueden tener la misma identificación
             if (!empty($data['has_emergency_contact']) && $data['has_emergency_contact'] && 
@@ -657,11 +691,12 @@ class EmployeeController extends \App\Http\Controllers\Controller
 
             // 2. Actualizar datos del empleado
             $affectedEmployee = DB::table('employees')->where('id', $id)->update([
-                'role' => $data['role'],
+                'role' => $roleName,
                 'hire_date' => $data['hire_date'],
                 'salary' => $data['salary'] ?? null,
                 'job_description' => $data['job_description'] ?? null,
                 'end_date' => $data['end_date'] ?? null,
+                'role_id' => $data['role_id'],
                 'is_active' => true,
                 'updated_at' => now(),
             ]);
@@ -834,6 +869,57 @@ class EmployeeController extends \App\Http\Controllers\Controller
                 DB::table('employee_emergency_contacts')->where('employee_id', $id)->delete();
             }
 
+            // GESTIONAR INVITACIÓN EN MODO EDICIÓN SI SE SOLICITÓ
+            if (!empty($data['send_invitation']) && $data['send_invitation']) {
+                $email = $data['email'];
+                
+                // Verificar si el empleado ya tiene acceso a la plataforma
+                $hasUserAccount = DB::table('employees as e')
+                    ->join('people as p', 'e.person_id', '=', 'p.id')
+                    ->leftJoin('users as u', 'e.user_id', '=', 'u.id')
+                    ->where('e.id', $id)
+                    ->where('p.email', $email)
+                    ->whereNotNull('u.id') // Ya tiene usuario creado
+                    ->exists();
+
+                if ($hasUserAccount) {
+                    Log::info("El empleado ya tiene acceso a la plataforma, no se envía invitación", [
+                        'employee_id' => $id,
+                        'email' => $email
+                    ]);
+                } else {
+                    // Verificar si ya tiene una invitación activa
+                    $hasActiveInvitation = Invitation::where('email', $email)
+                        ->where('is_active', true)
+                        ->whereIn('status', ['pending', 'accepted'])
+                        ->exists();
+
+                    if ($hasActiveInvitation) {
+                        Log::info("El empleado ya tiene una invitación activa, no se envía nueva invitación", [
+                            'employee_id' => $id,
+                            'email' => $email
+                        ]);
+                    } else {
+                        // No tiene acceso ni invitación activa, enviar invitación
+                        $result = InvitationController::createOrUpdateInvitation($email, 'employee_update');
+                        
+                        if ($result['success']) {
+                            Log::info("Invitación enviada durante actualización de empleado", [
+                                'employee_id' => $id,
+                                'email' => $email,
+                                'action' => $result['action']
+                            ]);
+                        } else {
+                            Log::warning("Error al enviar invitación durante actualización de empleado", [
+                                'employee_id' => $id,
+                                'email' => $email,
+                                'error' => $result['message']
+                            ]);
+                        }
+                    }
+                }
+            }
+
             DB::commit();
             return response()->json(['success' => true, 'message' => 'Empleado actualizado correctamente']);
         } catch (\Throwable $e) {
@@ -989,4 +1075,140 @@ class EmployeeController extends \App\Http\Controllers\Controller
         $message = $newStatus ? 'Empleado activado correctamente' : 'Empleado desactivado correctamente';
         return response()->json(['success' => true, 'message' => $message]);
     }
+
+    /**
+     * Remove dashboard access from employees
+     * Maneja tanto eliminación individual como masiva usando la misma lógica que destroy
+     */
+    public function removeAccess()
+    {
+        try {
+            // Si se envía un array de IDs en el body, hacer eliminación masiva
+            if (request()->has('ids') && is_array(request()->input('ids'))) {
+                $ids = request()->input('ids');
+                
+                // Validar que todos los IDs sean números válidos
+                foreach ($ids as $employeeId) {
+                    if (!is_numeric($employeeId) || $employeeId <= 0) {
+                        return response()->json([
+                            'success' => false, 
+                            'message' => 'ID inválido: ' . $employeeId
+                        ], 400);
+                    }
+                }
+                
+                // Obtener empleados que tienen usuario asociado con JOIN a people para obtener email
+                $employees = DB::table('employees')
+                    ->join('people', 'employees.person_id', '=', 'people.id')
+                    ->whereIn('employees.id', $ids)
+                    ->whereNotNull('employees.user_id')
+                    ->select('employees.id', 'employees.user_id', 'people.email')
+                    ->get();
+
+                if ($employees->isEmpty()) {
+                    return response()->json([
+                        'success' => false, 
+                        'message' => 'No se encontraron empleados con acceso al dashboard'
+                    ], 404);
+                }
+
+                $removedCount = 0;
+                $userIds = [];
+                $emails = [];
+
+                foreach ($employees as $employee) {
+                    // Recopilar IDs de usuarios y emails para eliminar
+                    $userIds[] = $employee->user_id;
+                    $emails[] = $employee->email;
+                    
+                    // Limpiar user_id del empleado
+                    DB::table('employees')
+                        ->where('id', $employee->id)
+                        ->update([
+                            'user_id' => null,
+                            'updated_at' => now()
+                        ]);
+
+                    $removedCount++;
+                }
+
+                // Eliminar usuarios del sistema
+                if (!empty($userIds)) {
+                    DB::table('users')->whereIn('id', $userIds)->delete();
+                    
+                    // También eliminar invitaciones relacionadas por email (no solo cancelar)
+                    if (!empty($emails)) {
+                        DB::table('invitations')
+                            ->whereIn('email', $emails)
+                            ->delete(); // Eliminar completamente, no solo cancelar
+                    }
+                }
+                
+                $message = "Acceso eliminado a {$removedCount} empleados correctamente";
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                    'removed_count' => $removedCount
+                ]);
+            }
+            
+            // Si no hay array de IDs, buscar el primer ID del array (eliminación individual)
+            $singleId = request()->input('ids');
+            if (is_array($singleId)) {
+                $singleId = $singleId[0] ?? null;
+            }
+            
+            if (!$singleId || !is_numeric($singleId) || $singleId <= 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'ID de empleado no válido'
+                ], 400);
+            }
+            
+            // Eliminación individual con JOIN para obtener email
+            $employee = DB::table('employees')
+                ->join('people', 'employees.person_id', '=', 'people.id')
+                ->where('employees.id', $singleId)
+                ->whereNotNull('employees.user_id')
+                ->select('employees.id', 'employees.user_id', 'people.email')
+                ->first();
+                
+            if (!$employee) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Empleado no encontrado o no tiene acceso al dashboard'
+                ], 404);
+            }
+            
+            // Eliminar usuario del sistema
+            DB::table('users')->where('id', $employee->user_id)->delete();
+            
+            // Limpiar user_id del empleado
+            DB::table('employees')
+                ->where('id', $singleId)
+                ->update([
+                    'user_id' => null,
+                    'updated_at' => now()
+                ]);
+            
+            // Eliminar invitaciones relacionadas por email (no solo cancelar)
+            DB::table('invitations')
+                ->where('email', $employee->email)
+                ->delete(); // Eliminar completamente, no solo cancelar
+                
+            return response()->json([
+                'success' => true,
+                'message' => 'Acceso eliminado correctamente'
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error al eliminar acceso: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error interno del servidor'
+            ], 500);
+        }
+    }
+
 }

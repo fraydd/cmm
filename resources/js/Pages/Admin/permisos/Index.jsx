@@ -13,26 +13,25 @@ import {
     ReloadOutlined,
     CheckOutlined
 } from '@ant-design/icons';
-import { useNotifications } from '../../hooks/useNotifications.jsx';
-import { useBranch } from '../../hooks/useBranch.jsx'; // Importar hook de sede
-import ModeloModal from '../../Components/ModeloModal.jsx';
-import AdminLayout from '../../Layouts/AdminLayout';
+import { useNotifications } from '../../../hooks/useNotifications.jsx';
+import RoleModal from '../../../Components/RoleModal.jsx';
+import AdminLayout from '../../../Layouts/AdminLayout';
 import styles from './Index.module.scss';
+import ColumnGroup from 'antd/es/table/ColumnGroup.js';
 
 const { Title, Text } = Typography;
 
-export default function Index({ modelos = [], debug_info }) {
+export default function Index({ permisos = [], roles = [], debug_info }) {
     const { showSuccess, showError } = useNotifications();
-    const { selectedBranch } = useBranch(); // Hook para obtener sede seleccionada
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [loading, setLoading] = useState(false);
     const [selectedRowKeys, setSelectedRowKeys] = useState([]);
     const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
     const [containerHeight, setContainerHeight] = useState(0);
     
-    // Estado para los modelos base (fuente de verdad)
-    const [baseModelos, setBaseModelos] = useState(Array.isArray(modelos) ? modelos : []);
-    const [filteredData, setFilteredData] = useState(Array.isArray(modelos) ? modelos : []);
+    // Estado para los permisos base (fuente de verdad)
+    const [baseModelos, setBaseModelos] = useState(Array.isArray(permisos) ? permisos : []);
+    const [filteredData, setFilteredData] = useState(Array.isArray(permisos) ? permisos : []);
     const [editingModeloId, setEditingModeloId] = useState(null);
     
     const [filters, setFilters] = useState({
@@ -51,44 +50,6 @@ export default function Index({ modelos = [], debug_info }) {
     });
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [isUpdated, setIsUpdated] = useState(false);
-
-    // Función para recargar datos cuando cambie la sede
-    const reloadDataWithBranch = async () => {
-        if (!selectedBranch?.id) return;
-        
-        setIsRefreshing(true);
-        try {
-            const url = `/admin/modelos?branch_id=${selectedBranch.id}`;
-            const response = await fetch(url, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                }
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                setBaseModelos(data.modelos || []);
-                setFilteredData(data.modelos || []);
-                setIsUpdated(true);
-                
-                setTimeout(() => setIsUpdated(false), 2000);
-            }
-        } catch (error) {
-            console.error('Error recargando datos:', error);
-            showError('Error al recargar los datos');
-        } finally {
-            setIsRefreshing(false);
-        }
-    };
-
-    // Efecto para recargar datos cuando cambie la sede seleccionada
-    useEffect(() => {
-        if (selectedBranch?.id) {
-            reloadDataWithBranch();
-        }
-    }, [selectedBranch?.id]);
 
     // Hook para manejar el redimensionamiento de ventana y contenedor
     useEffect(() => {
@@ -145,15 +106,15 @@ export default function Index({ modelos = [], debug_info }) {
         }
     };
 
-    // Actualizar baseModelos cuando cambia la prop modelos
+    // Actualizar baseModelos cuando cambia la prop permisos
     useEffect(() => {
-        const validModelos = Array.isArray(modelos) ? modelos.filter(model => 
+        const validModelos = Array.isArray(permisos) ? permisos.filter(model => 
             model && 
             typeof model === 'object' && 
             (model.id !== undefined && model.id !== null && model.id !== '')
         ) : [];
         setBaseModelos(validModelos);
-    }, [modelos]);
+    }, [permisos]);
 
     // Actualizar datos filtrados cuando cambian los baseModelos
     useEffect(() => {
@@ -225,9 +186,8 @@ export default function Index({ modelos = [], debug_info }) {
         // Filtro de búsqueda
         if (filters.search) {
             filtered = filtered.filter(item =>
-                (item.nombre_completo || '').toLowerCase().includes(filters.search.toLowerCase()) ||
-                (item.numero_identificacion || '').toLowerCase().includes(filters.search.toLowerCase()) ||
-                (item.medidas_corporales || '').toLowerCase().includes(filters.search.toLowerCase())
+                (item.name || '').toLowerCase().includes(filters.search.toLowerCase()) ||
+                (item.guard_name || '').toLowerCase().includes(filters.search.toLowerCase())
             );
         }
 
@@ -314,107 +274,75 @@ export default function Index({ modelos = [], debug_info }) {
         setLoading(true);
         
         try {
-            // Convertir fechas a string si existen
-            if (values.fecha_nacimiento && typeof values.fecha_nacimiento === 'object' && values.fecha_nacimiento.format) {
-                values.fecha_nacimiento = values.fecha_nacimiento.format('YYYY-MM-DD');
-            }
-            if (values.fecha_vigencia && typeof values.fecha_vigencia === 'object' && values.fecha_vigencia.format) {
-                values.fecha_vigencia = values.fecha_vigencia.format('YYYY-MM-DD');
-            }
-
-            // Limpiar campos opcionales: convertir undefined a string vacío
-            Object.keys(values).forEach(key => {
-                if (values[key] === undefined) {
-                    values[key] = '';
-                }
-            });
-
-            // Crear FormData para enviar archivos
-            const formData = new FormData();
-            
-            // Agregar todos los campos de texto al FormData
-            Object.keys(values).forEach(key => {
-                if (key !== 'model_images' && values[key] !== undefined && values[key] !== null) {
-                    formData.append(key, values[key]);
-                }
-            });
-
-            // Agregar las imágenes como archivos
-            if (values.model_images && Array.isArray(values.model_images)) {
-                const imagesMeta = values.model_images.map(img => ({
-                    temp_id: img.temp_id,
-                    url: img.url,
-                    name: img.name,
-                    size: img.size,
-                    original_name: img.original_name || img.name,
-                    // Campos necesarios para el modo edición
-                    isExisting: img.isExisting || false,
-                    isNew: img.isNew || false,
-                    id: img.existingId || img.id // El backend busca por 'id', no 'existingId'
-                }));
-                formData.append('model_images_meta', JSON.stringify(imagesMeta));
-                
-                values.model_images.forEach((image, index) => {
-                    if (image.originFileObj) {
-                        formData.append(`model_images${index}`, image.originFileObj);
-                    }
-                });
-            }
-
             const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
             let response, result;
 
+            console.log('Enviando petición para crear/editar rol:', values);
+
             if (editingModeloId) {
                 // Modo edición: PUT
-                // Si se está editando, agregar _method para Laravel
-                formData.append('_method', 'PUT');
-                response = await fetch(`/admin/modelos/${editingModeloId}`, {
-                    method: 'POST', // Laravel espera POST con _method=PUT para FormData
-                    body: formData,
+                response = await fetch(`/admin/roles/${editingModeloId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(values),
                     headers: {
-                        'X-CSRF-TOKEN': token
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': token,
+                        'X-Requested-With': 'XMLHttpRequest'
                     }
                 });
             } else {
                 // Modo crear: POST
-                response = await fetch('/admin/modelos', {
+                response = await fetch('/admin/roles', {
                     method: 'POST',
-                    body: formData,
+                    body: JSON.stringify(values),
                     headers: {
-                        'X-CSRF-TOKEN': token
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': token,
+                        'X-Requested-With': 'XMLHttpRequest'
                     }
                 });
             }
+
+            console.log('Respuesta del servidor:', response.status, response.statusText);
 
             if (!response.ok) {
                 let errorMsg = 'Error en la respuesta del servidor';
                 try {
                     const errorData = await response.json();
+                    console.log('Error data:', errorData);
                     
                     // Manejar errores de validación específicos (422)
                     if (response.status === 422 && errorData.errors) {
-                        // Mostrar el primer error de validación
-                        const firstError = Object.values(errorData.errors)[0];
-                        errorMsg = Array.isArray(firstError) ? firstError[0] : firstError;
+                        // Si hay errores específicos de campos
+                        const fieldErrors = Object.entries(errorData.errors);
+                        if (fieldErrors.length > 0) {
+                            const [field, messages] = fieldErrors[0];
+                            errorMsg = Array.isArray(messages) ? messages[0] : messages;
+                        } else {
+                            errorMsg = errorData.message || 'Error de validación';
+                        }
                     } else {
-                        errorMsg = errorData.message || errorMsg;
+                        errorMsg = errorData.message || errorData.error || errorMsg;
                     }
                 } catch (parseError) {
                     console.error('Error parsing response:', parseError);
+                    const textResponse = await response.text();
+                    console.log('Raw response:', textResponse);
                 }
                 throw new Error(errorMsg);
             }
 
             result = await response.json();
+            console.log('Resultado exitoso:', result);
             
             // Solo si llegamos aquí significa que fue exitoso
-            showSuccess(editingModeloId ? 'Modelo actualizado exitosamente!' : 'Modelo creado exitosamente!');
+            showSuccess(editingModeloId ? 'Rol actualizado exitosamente!' : 'Rol creado exitosamente!');
             setIsModalVisible(false);
             setEditingModeloId(null);
             await refreshData();
         } catch (error) {
-            console.error('Error al guardar modelo:', error);
-            showError(error.message || 'Error al guardar el modelo. Inténtalo de nuevo.');
+            console.error('Error al guardar rol:', error);
+            showError(error.message || 'Error al guardar el rol. Inténtalo de nuevo.');
             // Importante: NO cerrar el modal aquí - el usuario conserva sus datos
             throw error; // Relanzar el error para que lo maneje el modal
         } finally {
@@ -422,14 +350,14 @@ export default function Index({ modelos = [], debug_info }) {
         }
     };
 
-    // Función para eliminar un modelo individual
-    const handleDeleteModel = async (modelId) => {
+    // Función para eliminar un rol individual
+    const handleDeleteModel = async (roleId) => {
         try {
             // Obtener el token CSRF del meta tag
             const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
             
-            // Llamada al backend para eliminar un modelo
-            const response = await fetch(`/admin/modelos/${modelId}`, {
+            // Llamada al backend para eliminar un rol
+            const response = await fetch(`/admin/roles/${roleId}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -440,7 +368,7 @@ export default function Index({ modelos = [], debug_info }) {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || 'Error al eliminar el modelo');
+                throw new Error(errorData.message || 'Error al eliminar el rol');
             }
 
             const result = await response.json();
@@ -448,8 +376,8 @@ export default function Index({ modelos = [], debug_info }) {
             // Recargar datos después de eliminar
             await refreshData();
         } catch (error) {
-            console.error('Error al eliminar modelo:', error);
-            showError(error.message || 'Error al eliminar el modelo');
+            console.error('Error al eliminar rol:', error);
+            showError(error.message || 'Error al eliminar el rol');
         }
     };
 
@@ -459,8 +387,8 @@ export default function Index({ modelos = [], debug_info }) {
             // Obtener el token CSRF del meta tag
             const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
             
-            // Llamada al backend para eliminar múltiples modelos
-            const response = await fetch(`/admin/modelos/${selectedRowKeys[0]}`, {
+            // Llamada al backend para eliminar múltiples roles
+            const response = await fetch(`/admin/roles/${selectedRowKeys[0]}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -474,7 +402,7 @@ export default function Index({ modelos = [], debug_info }) {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || 'Error al eliminar los modelos');
+                throw new Error(errorData.message || 'Error al eliminar los roles');
             }
 
             const result = await response.json();
@@ -483,8 +411,8 @@ export default function Index({ modelos = [], debug_info }) {
             // Recargar datos después de eliminar
             await refreshData();
         } catch (error) {
-            console.error('Error al eliminar modelos:', error);
-            showError(error.message || 'Error al eliminar los modelos seleccionados');
+            console.error('Error al eliminar roles:', error);
+            showError(error.message || 'Error al eliminar los roles seleccionados');
         }
     };
 
@@ -503,14 +431,9 @@ export default function Index({ modelos = [], debug_info }) {
 
     // Función para recargar datos dinámicamente
     const refreshData = async () => {
-        if (!selectedBranch?.id) {
-            console.warn('No hay sede seleccionada para cargar datos');
-            return;
-        }
-        
         setIsRefreshing(true);
         try {
-            const url = `/admin/modelos?branch_id=${selectedBranch.id}`;
+            const url = `/admin/permisos`;
             const response = await fetch(url, {
                 method: 'GET',
                 headers: {
@@ -525,12 +448,12 @@ export default function Index({ modelos = [], debug_info }) {
 
             const data = await response.json();
             
-            // Validar los datos recibidos - acceder directamente a data.modelos
-            const receivedModelos = data.modelos || [];
-            const validData = Array.isArray(receivedModelos) ? receivedModelos.filter(model => 
-                model && 
-                typeof model === 'object' && 
-                (model.id !== undefined && model.id !== null && model.id !== '')
+            // Validar los datos recibidos - acceder directamente a data.permisos
+            const receivedPermisos = data.permisos || [];
+            const validData = Array.isArray(receivedPermisos) ? receivedPermisos.filter(permiso => 
+                permiso && 
+                typeof permiso === 'object' && 
+                (permiso.id !== undefined && permiso.id !== null && permiso.id !== '')
             ) : [];
             
             
@@ -602,12 +525,12 @@ export default function Index({ modelos = [], debug_info }) {
     };
 
 
-    // Configuración de la tabla
+    // Configuración de la tabla de permisos
     const columns = [
         {
-            title: 'Nombre Completo',
-            dataIndex: 'nombre_completo',
-            key: 'nombre_completo',
+            title: 'Nombre del Permiso',
+            dataIndex: 'name',
+            key: 'name',
             width: windowWidth <= 576 ? 140 : windowWidth <= 768 ? 180 : 220,
             fixed: 'left', // Columna fija a la izquierda
             render: (text) => <Text strong>{text || 'N/A'}</Text>,
@@ -615,102 +538,46 @@ export default function Index({ modelos = [], debug_info }) {
                 compare: (a, b) => 0, // Función dummy, el sorting real se hace en applySorting
                 multiple: false
             },
-            sortOrder: sorting.field === 'nombre_completo' ? sorting.order : null,
+            sortOrder: sorting.field === 'name' ? sorting.order : null,
             onHeaderCell: () => ({
-                onClick: () => handleColumnSort('nombre_completo')
+                onClick: () => handleColumnSort('name')
             }),
             filterable: true,
         },
         {
-            title: 'Número de Identificación',
-            dataIndex: 'numero_identificacion',
-            key: 'numero_identificacion',
+            title: 'Guard',
+            dataIndex: 'guard_name',
+            key: 'guard_name',
             width: windowWidth <= 576 ? 120 : windowWidth <= 768 ? 150 : 180,
             render: (text) => text || 'N/A',
             sorter: {
                 compare: (a, b) => 0,
                 multiple: false
             },
-            sortOrder: sorting.field === 'numero_identificacion' ? sorting.order : null,
+            sortOrder: sorting.field === 'guard_name' ? sorting.order : null,
             onHeaderCell: () => ({
-                onClick: () => handleColumnSort('numero_identificacion')
+                onClick: () => handleColumnSort('guard_name')
             }),
         },
         {
-            title: 'Medidas Corporales',
-            dataIndex: 'medidas_corporales',
-            key: 'medidas_corporales',
-            width: windowWidth <= 576 ? 130 : windowWidth <= 768 ? 160 : 180,
-            render: (text) => {
-                if (text === 'No registradas') {
-                    return <Text type="secondary">{text}</Text>;
+            title: 'Roles Asociados',
+            dataIndex: 'roles',
+            key: 'roles',
+            width: windowWidth <= 576 ? 200 : windowWidth <= 768 ? 250 : 300,
+            render: (roles) => {
+                if (!roles || !Array.isArray(roles) || roles.length === 0) {
+                    return <Text type="secondary">Sin roles</Text>;
                 }
-                return <Text>{text}</Text>;
-            },
-            sorter: {
-                compare: (a, b) => 0,
-                multiple: false
-            },
-            sortOrder: sorting.field === 'medidas_corporales' ? sorting.order : null,
-            onHeaderCell: () => ({
-                onClick: () => handleColumnSort('medidas_corporales')
-            }),
-        },
-        {
-            title: windowWidth <= 576 ? 'Última Suscripción' : 'Fecha Última Suscripción',
-            dataIndex: 'fecha_ultima_suscripcion',
-            key: 'fecha_ultima_suscripcion',
-            width: windowWidth <= 576 ? 120 : windowWidth <= 768 ? 150 : 180,
-            render: (text) => text === 'N/A' ? <Text type="secondary">{text}</Text> : text,
-            sorter: {
-                compare: (a, b) => 0,
-                multiple: false
-            },
-            sortOrder: sorting.field === 'fecha_ultima_suscripcion' ? sorting.order : null,
-            onHeaderCell: () => ({
-                onClick: () => handleColumnSort('fecha_ultima_suscripcion')
-            }),
-        },
-        {
-            title: 'Estado Suscripción',
-            dataIndex: 'estado_suscripcion',
-            key: 'estado_suscripcion',
-            width: windowWidth <= 576 ? 100 : windowWidth <= 768 ? 130 : 150,
-            render: (estado) => {
-                const colorMap = {
-                    'Activo': 'success',
-                    'Vencido': 'error',
-                    'Inactivo': 'warning',
-                    'Sin suscripción': 'default'
-                };
-                const estadoText = estado || 'N/A';
                 return (
-                    <Tag 
-                        color={colorMap[estado] || 'default'}
-                        style={{
-                            fontSize: windowWidth <= 576 ? '10px' : '12px',
-                            padding: windowWidth <= 576 ? '2px 4px' : '4px 8px'
-                        }}
-                    >
-                        {estadoText.toUpperCase()}
-                    </Tag>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                        {roles.map((rol, index) => (
+                            <Tag key={index} color="blue" style={{ margin: '2px' }}>
+                                {rol}
+                            </Tag>
+                        ))}
+                    </div>
                 );
             },
-            filters: [
-                { text: 'Activo', value: 'Activo' },
-                { text: 'Vencido', value: 'Vencido' },
-                { text: 'Inactivo', value: 'Inactivo' },
-                { text: 'Sin suscripción', value: 'Sin suscripción' },
-            ],
-            onFilter: (value, record) => record?.estado_suscripcion === value,
-            sorter: {
-                compare: (a, b) => 0,
-                multiple: false
-            },
-            sortOrder: sorting.field === 'estado_suscripcion' ? sorting.order : null,
-            onHeaderCell: () => ({
-                onClick: () => handleColumnSort('estado_suscripcion')
-            }),
         },
         {
             title: 'Acciones',
@@ -718,18 +585,7 @@ export default function Index({ modelos = [], debug_info }) {
             width: windowWidth <= 576 ? 80 : windowWidth <= 768 ? 100 : 120,
             render: (_, record) => (
                 <Space size={windowWidth <= 576 ? "small" : "middle"}>
-                    <Tooltip title="Ver detalles del modelo">
-                        <Button 
-                            type="text" 
-                            size={windowWidth <= 768 ? "small" : "middle"} 
-                            icon={<EyeOutlined />}
-                            onClick={() => {
-                                // Navegar a la vista completa del modelo
-                                window.location.href = `/admin/modelos/${record.id}`;
-                            }}
-                        />
-                    </Tooltip>
-                    <Tooltip title="Editar modelo">
+                    <Tooltip title="Editar permiso">
                         <Button 
                             type="text" 
                             size={windowWidth <= 768 ? "small" : "middle"} 
@@ -740,9 +596,9 @@ export default function Index({ modelos = [], debug_info }) {
                             }}
                         />
                     </Tooltip>
-                    <Tooltip title="Eliminar modelo">
+                    <Tooltip title="Eliminar permiso">
                         <Popconfirm
-                            title="¿Estás seguro de eliminar este modelo?"
+                            title="¿Estás seguro de eliminar este permiso?"
                             description="Esta acción no se puede deshacer"
                             onConfirm={() => handleDeleteModel(record.id)}
                             okText="Sí, eliminar"
@@ -762,20 +618,17 @@ export default function Index({ modelos = [], debug_info }) {
     ];
     
     return (
-        <AdminLayout title="Gestión de Modelos">
+        <AdminLayout title="Gestión de Permisos">
             <div className={styles.modelosPage}>
                 {/* Header de la página */}
                 <div className={styles.headerSection}>
                     <div>
                         <Title level={2} style={{ margin: 0 }}>
                             <UserOutlined style={{ marginRight: '8px' }} />
-                            Lista de Modelos
+                            Lista de Permisos
                         </Title>
                         <Text type="secondary">
-                            Gestiona todos los modelos registrados en el sistema
-                            {selectedBranch?.id && (
-                                <span> • <strong>{selectedBranch.name}</strong></span>
-                            )}
+                            Gestiona todos los permisos registrados en el sistema
                             <span> • {Array.isArray(baseModelos) ? baseModelos.length : 0} total(es)</span>
                         </Text>
                     </div>
@@ -786,26 +639,12 @@ export default function Index({ modelos = [], debug_info }) {
                     {/* CONTENEDOR 1 - Filtros */}
                     <div className={styles.filtersSection}>
                         <Input
-                            placeholder="Buscar por nombre completo o número de identificación..."
+                            placeholder="Buscar por nombre de permiso o guard..."
                             prefix={<SearchOutlined />}
                             value={filters.search}
                             onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                             allowClear
                         />
-                        <div className={styles.dateFilters}>
-                            <DatePicker
-                                placeholder="Desde"
-                                value={filters.fechaDesde}
-                                onChange={(date) => setFilters({ ...filters, fechaDesde: date })}
-                                style={{ width: '100%' }}
-                            />
-                            <DatePicker
-                                placeholder="Hasta"
-                                value={filters.fechaHasta}
-                                onChange={(date) => setFilters({ ...filters, fechaHasta: date })}
-                                style={{ width: '100%' }}
-                            />
-                        </div>
                         <Space>
                             <Button 
                                 icon={<ClearOutlined />}
@@ -821,7 +660,7 @@ export default function Index({ modelos = [], debug_info }) {
                     <div className={styles.bulkActionsSection}>
                         <div className={styles.bulkActionsLeft}>
                             <Popconfirm
-                                title={`¿Estás seguro de eliminar ${selectedRowKeys.length} modelo(s)?`}
+                                title={`¿Estás seguro de eliminar ${selectedRowKeys.length} elemento(s)?`}
                                 onConfirm={handleBulkDelete}
                                 okText="Sí"
                                 cancelText="No"
@@ -852,7 +691,7 @@ export default function Index({ modelos = [], debug_info }) {
                                 icon={<PlusOutlined />}
                                 onClick={handleAddModel}
                             >
-                                Agregar Nuevo Modelo
+                                Nuevo Rol
                             </Button>
                         </div>
                     </div>
@@ -895,22 +734,12 @@ export default function Index({ modelos = [], debug_info }) {
                             />
                         ) : (
                             <Empty
-                                description={
-                                    selectedBranch?.id 
-                                        ? `No hay modelos con suscripciones en la sede "${selectedBranch.name}" que coincidan con los filtros`
-                                        : "No hay modelos registrados o debe seleccionar una sede"
-                                }
+                                description="No hay permisos registrados que coincidan con los filtros"
                                 image={Empty.PRESENTED_IMAGE_SIMPLE}
                             >
-                                {selectedBranch?.id ? (
-                                    <Button type="primary" onClick={handleAddModel}>
-                                        Agregar Primer Modelo
-                                    </Button>
-                                ) : (
-                                    <div>
-                                        <p>Seleccione una sede para ver los modelos con suscripciones activas</p>
-                                    </div>
-                                )}
+                                <Button type="primary" onClick={handleAddModel}>
+                                    Agregar Primer Rol
+                                </Button>
                             </Empty>
                         )}
                     </div>
@@ -927,7 +756,7 @@ export default function Index({ modelos = [], debug_info }) {
                                 showTotal={(total, range) => {
                                     const safeRange = Array.isArray(range) && range.length >= 2 ? range : [0, 0];
                                     const safeTotal = Number(total) || 0;
-                                    return `${safeRange[0]}-${safeRange[1]} de ${safeTotal} modelos`;
+                                    return `${safeRange[0]}-${safeRange[1]} de ${safeTotal} elementos`;
                                 }}
                                 pageSizeOptions={['10', '15', '20', '50']}
                                 size="default"
@@ -955,14 +784,14 @@ export default function Index({ modelos = [], debug_info }) {
                     </div>
                 </div>
 
-                {/* Modal para crear/editar modelo */}
-                <ModeloModal
+                {/* Modal para crear/editar rol */}
+                <RoleModal
                     visible={isModalVisible}
                     onCancel={handleModalCancel}
                     onSubmit={handleModalSubmit}
                     loading={loading}
-                    title="Nuevo Modelo"
-                    modeloId={editingModeloId}
+                    title="Nuevo Rol"
+                    roleId={editingModeloId}
                 />
             </div>
         </AdminLayout>

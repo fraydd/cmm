@@ -21,31 +21,32 @@ import { useNotifications } from '../../hooks/useNotifications';
 
 const { Title, Text } = Typography;
 
-const Register = ({ token, email, invitation, errors }) => {
+const Register = ({ token, email, invitation, employee, employee_name, errors }) => {
     const [loading, setLoading] = useState(false);
+    const [notificationShown, setNotificationShown] = useState(false);
     const { showInfo } = useNotifications();
     const { data, setData, post, processing, reset } = useForm({
         token: token,
-        name: '',
         email: email,
         password: '',
         password_confirmation: ''
     });
 
-    // Mostrar información de la invitación al cargar el componente
+    // Mostrar información de la invitación al cargar el componente (solo una vez)
     useEffect(() => {
-        if (invitation) {
+        if (invitation && employee && !notificationShown) {
             const inviterName = invitation?.inviter?.name || 'Administrador';
             const expiresAt = invitation?.expires_at ? 
                 new Date(invitation.expires_at).toLocaleDateString('es-ES') : 'N/A';
             
             showInfo(
                 'Invitación válida',
-                `Has sido invitado por: ${inviterName}\nFecha de expiración: ${expiresAt}`,
-                8 // Duración más larga para que el usuario pueda leer
+                `Bienvenido ${employee_name}\nInvitado por: ${inviterName}\nCargo: ${employee.role}\nFecha de expiración: ${expiresAt}`,
+                10 // Duración más larga para que el usuario pueda leer
             );
+            setNotificationShown(true);
         }
-    }, [invitation, showInfo]);
+    }, [invitation, employee, employee_name, notificationShown]);
 
     const handleSubmit = (values) => {
         setLoading(true);
@@ -131,8 +132,24 @@ const Register = ({ token, email, invitation, errors }) => {
                         Completar Registro
                     </Title>
                     <Text type="secondary" style={{ fontSize: '14px' }}>
-                        Completa tu información para acceder a CMM System
+                        {employee_name ? 
+                            `Bienvenido ${employee_name}, completa tu registro para atener acceso al dashboard` :
+                            'Completa tu información para acceder al dashboard'
+                        }
                     </Text>
+                    {employee && (
+                        <div style={{ 
+                            marginTop: '12px', 
+                            padding: '8px 16px', 
+                            background: 'rgba(102, 126, 234, 0.1)', 
+                            borderRadius: '8px',
+                            border: '1px solid rgba(102, 126, 234, 0.2)'
+                        }}>
+                            <Text style={{ fontSize: '12px', color: '#667eea', fontWeight: 500 }}>
+                                {employee.role}
+                            </Text>
+                        </div>
+                    )}
                 </div>
 
 
@@ -161,31 +178,8 @@ const Register = ({ token, email, invitation, errors }) => {
                     }}
                 >
                     <Form.Item
-                        name="name"
-                        label="Nombre Completo"
-                        rules={[
-                            { required: true, message: 'Por favor ingresa tu nombre completo' }
-                        ]}
-                        validateStatus={errors.name ? 'error' : ''}
-                        help={errors.name}
-                    >
-                        <Input
-                            prefix={<UserOutlined style={{ color: '#bfbfbf' }} />}
-                            placeholder="Tu nombre completo"
-                            value={data.name}
-                            onChange={(e) => setData('name', e.target.value)}
-                            autoComplete="off"
-                            style={{
-                                borderRadius: '8px',
-                                height: '48px',
-                                border: '1px solid #d9d9d9'
-                            }}
-                        />
-                    </Form.Item>
-
-                    <Form.Item
                         name="email"
-                        label="Correo Electrónico"
+                        label={<span style={{ color: '#333', fontWeight: 500 }}>Correo Electrónico</span>}
                         validateStatus={errors.email ? 'error' : ''}
                         help={errors.email}
                     >
@@ -200,14 +194,15 @@ const Register = ({ token, email, invitation, errors }) => {
                                 borderRadius: '8px',
                                 height: '48px',
                                 border: '1px solid #d9d9d9',
-                                background: '#f5f5f5'
+                                background: '#f5f5f5',
+                                color: '#333333'
                             }}
                         />
                     </Form.Item>
 
                     <Form.Item
                         name="password"
-                        label="Contraseña"
+                        label={<span style={{ color: '#333', fontWeight: 500 }}>Contraseña</span>}
                         rules={[
                             { required: true, message: 'Por favor ingresa una contraseña' },
                             { min: 8, message: 'La contraseña debe tener al menos 8 caracteres' }
@@ -225,14 +220,16 @@ const Register = ({ token, email, invitation, errors }) => {
                             style={{
                                 borderRadius: '8px',
                                 height: '48px',
-                                border: '1px solid #d9d9d9'
+                                border: '1px solid #d9d9d9',
+                                background: '#ffffff',
+                                color: '#333333'
                             }}
                         />
                     </Form.Item>
 
                     <Form.Item
                         name="password_confirmation"
-                        label="Confirmar Contraseña"
+                        label={<span style={{ color: '#333', fontWeight: 500 }}>Confirmar Contraseña</span>}
                         rules={[
                             { required: true, message: 'Por favor confirma tu contraseña' },
                             ({ getFieldValue }) => ({
@@ -257,7 +254,9 @@ const Register = ({ token, email, invitation, errors }) => {
                             style={{
                                 borderRadius: '8px',
                                 height: '48px',
-                                border: '1px solid #d9d9d9'
+                                border: '1px solid #d9d9d9',
+                                background: '#ffffff',
+                                color: '#333333'
                             }}
                         />
                     </Form.Item>
@@ -284,7 +283,7 @@ const Register = ({ token, email, invitation, errors }) => {
 
                 <div style={{ textAlign: 'center', marginTop: '24px' }}>
                     <Text type="secondary" style={{ fontSize: '12px' }}>
-                        Al completar el registro, aceptas los términos y condiciones de CMM System
+                        Al completar el registro, aceptas los términos y condiciones
                     </Text>
                 </div>
             </div>

@@ -153,7 +153,10 @@ INSERT INTO `permissions` (`name`, `guard_name`, `created_at`, `updated_at`) VAL
 ('create_employees', 'web', NOW(), NOW()),
 ('edit_employees', 'web', NOW(), NOW()),
 ('delete_employees', 'web', NOW(), NOW()),
-('assign_employee_branches', 'web', NOW(), NOW());
+('assign_employee_branches', 'web', NOW(), NOW()),
+
+-- permisos 
+('view_permissions', 'web', NOW(), NOW());
 
 -- ===== ASIGNACIÓN DE PERMISOS A ROLES =====
 

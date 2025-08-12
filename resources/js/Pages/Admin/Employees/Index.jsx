@@ -15,7 +15,8 @@ import {
     EyeOutlined,
     ReloadOutlined,
     CheckOutlined,
-    TeamOutlined
+    TeamOutlined,
+    UserDeleteOutlined
 } from '@ant-design/icons';
 import { useNotifications } from '../../../hooks/useNotifications.jsx';
 import EmployeeModal from '../../../Components/EmployeeModal.jsx';
@@ -30,6 +31,8 @@ export default function Index({ empleados = [] }) {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [loading, setLoading] = useState(false);
     const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+    const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+    const [containerHeight, setContainerHeight] = useState(0);
     const [data, setData] = useState(Array.isArray(empleados) ? empleados : []); // Datos originales
     const [filteredData, setFilteredData] = useState(Array.isArray(empleados) ? empleados : []);
     const [filters, setFilters] = useState({
@@ -63,6 +66,61 @@ export default function Index({ empleados = [] }) {
             total: validEmployees.length
         }));
     }, [empleados]);
+
+    // Hook para manejar el redimensionamiento de ventana y contenedor
+    useEffect(() => {
+        const calculateContainerHeight = () => {
+            const cardContainer = document.querySelector('[class*="cardContainer"]');
+            const filtersSection = document.querySelector('[class*="filtersSection"]');
+            const bulkActionsSection = document.querySelector('[class*="bulkActionsSection"]');
+            const paginationContainer = document.querySelector('[class*="paginationContainer"]');
+            
+            if (cardContainer && filtersSection && bulkActionsSection && paginationContainer) {
+                const cardContainerRect = cardContainer.getBoundingClientRect();
+                const filtersHeight = filtersSection.getBoundingClientRect().height;
+                const bulkActionsHeight = bulkActionsSection.getBoundingClientRect().height;
+                const paginationHeight = paginationContainer.getBoundingClientRect().height;
+                
+                // Calcular altura disponible para la tabla
+                // Restar las alturas de otros elementos + márgenes/padding (aprox 40px)
+                const availableHeight = cardContainerRect.height - filtersHeight - bulkActionsHeight - paginationHeight - 40;
+                
+                setContainerHeight(Math.max(200, availableHeight)); // Mínimo 200px
+            }
+        };
+
+        const handleResize = () => {
+            setWindowWidth(window.innerWidth);
+            // Usar setTimeout para permitir que el DOM se actualice antes de medir
+            setTimeout(calculateContainerHeight, 100);
+        };
+
+        // Calcular altura inicial
+        setTimeout(calculateContainerHeight, 100);
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    // Función para calcular la altura de la tabla basándose en el contenedor real
+    const getTableHeight = () => {
+        if (containerHeight > 0) {
+            // Usar altura calculada dinámicamente con buffer adicional para scroll horizontal
+            const bufferForHorizontalScroll = windowWidth <= 768 ? 50 : 35;
+            return Math.max(200, containerHeight - bufferForHorizontalScroll);
+        }
+        
+        // Fallback si no se ha calculado aún el contenedor
+        if (windowWidth <= 576) {
+            return 'calc(48vh - 60px)';
+        } else if (windowWidth <= 768) {
+            return 'calc(50vh - 80px)';
+        } else if (windowWidth <= 992) {
+            return 'calc(65vh - 180px)';
+        } else {
+            return 'calc(65vh - 200px)';
+        }
+    };
 
     // Función para aplicar ordenamiento global
     const applySorting = (data) => {
@@ -298,6 +356,89 @@ export default function Index({ empleados = [] }) {
         }
     };
 
+    // Función para eliminar acceso al dashboard de un empleado
+    const handleRemoveAccess = async (empleadoId) => {
+        try {
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            
+            if (!token) {
+                throw new Error('Token CSRF no encontrado');
+            }
+            
+            const response = await fetch(`/admin/empleados/remove-access`, {
+                method: 'DELETE',
+                body: JSON.stringify({ ids: [empleadoId] }), // Enviarlo como array
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                let errorData;
+                try {
+                    errorData = await response.json();
+                } catch {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+                throw new Error(errorData.message || 'Error al eliminar el acceso');
+            }
+
+            const result = await response.json();
+            showSuccess(result.message || 'Acceso eliminado correctamente');
+            
+            // Recargar datos después de eliminar acceso
+            await refreshData();
+        } catch (error) {
+            console.error('Error al eliminar acceso:', error);
+            showError(error.message || 'Error al eliminar el acceso. Inténtalo de nuevo.');
+        }
+    };
+
+    // Función para eliminar acceso al dashboard en masa
+    const handleBulkRemoveAccess = async () => {
+        if (selectedRowKeys.length === 0) return;
+
+        try {
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            
+            if (!token) {
+                throw new Error('Token CSRF no encontrado');
+            }
+            
+            const response = await fetch(`/admin/empleados/remove-access`, {
+                method: 'DELETE',
+                body: JSON.stringify({ ids: selectedRowKeys }),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                let errorData;
+                try {
+                    errorData = await response.json();
+                } catch {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+                throw new Error(errorData.message || 'Error al eliminar el acceso');
+            }
+
+            const result = await response.json();
+            showSuccess(result.message || 'Acceso eliminado correctamente');
+            setSelectedRowKeys([]);
+            
+            // Recargar datos después de eliminar acceso
+            await refreshData();
+        } catch (error) {
+            console.error('Error al eliminar acceso:', error);
+            showError(error.message || 'Error al eliminar el acceso. Inténtalo de nuevo.');
+        }
+    };
+
     // Función para eliminar empleados en masa
     const handleBulkDelete = async () => {
         if (selectedRowKeys.length === 0) return;
@@ -425,7 +566,8 @@ export default function Index({ empleados = [] }) {
             title: 'Nombre',
             dataIndex: 'nombre',
             key: 'nombre',
-            width: 200,
+            width: windowWidth <= 576 ? 120 : windowWidth <= 768 ? 150 : 200,
+            fixed: 'left', // Columna fija a la izquierda
             render: (text) => <Text strong>{text || 'N/A'}</Text>,
             sorter: {
                 compare: (a, b) => 0, // Función dummy, el sorting real se hace en applySorting
@@ -533,7 +675,7 @@ export default function Index({ empleados = [] }) {
         {
             title: 'Acciones',
             key: 'actions',
-            width: 120,
+            width: 160,
             render: (_, record) => (
                 <Space size="small">
                     <Tooltip title="Ver detalles">
@@ -555,6 +697,24 @@ export default function Index({ empleados = [] }) {
                             }}
                         />
                     </Tooltip>
+                    {record.tiene_usuario && (
+                        <Tooltip title="Eliminar acceso al dashboard">
+                            <Popconfirm
+                                title="¿Estás seguro de eliminar el acceso al dashboard?"
+                                description="El usuario no podrá acceder al sistema pero el empleado permanecerá registrado"
+                                onConfirm={() => handleRemoveAccess(record.id)}
+                                okText="Sí, eliminar acceso"
+                                cancelText="Cancelar"
+                            >
+                                <Button
+                                    type="text"
+                                    icon={<UserDeleteOutlined />}
+                                    size="small"
+                                    style={{ color: '#faad14' }}
+                                />
+                            </Popconfirm>
+                        </Tooltip>
+                    )}
                     <Tooltip title="Eliminar empleado">
                         <Popconfirm
                             title="¿Estás seguro de eliminar este empleado?"
@@ -608,18 +768,20 @@ export default function Index({ empleados = [] }) {
                             onChange={(e) => setFilters({...filters, cargo: e.target.value})}
                             allowClear
                         />
-                        <DatePicker
-                            placeholder="Fecha desde"
-                            value={filters.fechaDesde}
-                            onChange={(date) => setFilters({...filters, fechaDesde: date})}
-                            style={{ width: '100%' }}
-                        />
-                        <DatePicker
-                            placeholder="Fecha hasta"
-                            value={filters.fechaHasta}
-                            onChange={(date) => setFilters({...filters, fechaHasta: date})}
-                            style={{ width: '100%' }}
-                        />
+                        <div className={styles.dateFilters}>
+                            <DatePicker
+                                placeholder="Fecha desde"
+                                value={filters.fechaDesde}
+                                onChange={(date) => setFilters({...filters, fechaDesde: date})}
+                                style={{ width: '100%' }}
+                            />
+                            <DatePicker
+                                placeholder="Fecha hasta"
+                                value={filters.fechaHasta}
+                                onChange={(date) => setFilters({...filters, fechaHasta: date})}
+                                style={{ width: '100%' }}
+                            />
+                        </div>
                         <Space>
                             <Tooltip title="Limpiar Filtros">
                                 <Button 
@@ -639,21 +801,38 @@ export default function Index({ empleados = [] }) {
                     <div className={styles.bulkActionsSection}>
                         <div className={styles.bulkActionsLeft}>
                             {selectedRowKeys.length > 0 && (
-                                <Popconfirm
-                                    title={`¿Estás seguro de eliminar ${selectedRowKeys.length} empleado(s)?`}
-                                    description="Los empleados serán eliminados y no podrán acceder al sistema"
-                                    onConfirm={handleBulkDelete}
-                                    okText="Sí, eliminar"
-                                    cancelText="Cancelar"
-                                >
-                                    <Button 
-                                        size="small" 
-                                        danger 
-                                        icon={<DeleteOutlined />}
+                                <Space>
+                                    <Popconfirm
+                                        title={`¿Estás seguro de eliminar el acceso al dashboard de ${selectedRowKeys.length} empleado(s)?`}
+                                        description="Los usuarios no podrán acceder al sistema pero los empleados permanecerán registrados"
+                                        onConfirm={handleBulkRemoveAccess}
+                                        okText="Sí, eliminar acceso"
+                                        cancelText="Cancelar"
                                     >
-                                        Eliminar ({selectedRowKeys.length})
-                                    </Button>
-                                </Popconfirm>
+                                        <Button 
+                                            size="small" 
+                                            icon={<UserDeleteOutlined />}
+                                            style={{ color: '#faad14', borderColor: '#faad14' }}
+                                        >
+                                            Eliminar Acceso ({selectedRowKeys.length})
+                                        </Button>
+                                    </Popconfirm>
+                                    <Popconfirm
+                                        title={`¿Estás seguro de eliminar ${selectedRowKeys.length} empleado(s)?`}
+                                        description="Los empleados serán eliminados y no podrán acceder al sistema"
+                                        onConfirm={handleBulkDelete}
+                                        okText="Sí, eliminar"
+                                        cancelText="Cancelar"
+                                    >
+                                        <Button 
+                                            size="small" 
+                                            danger 
+                                            icon={<DeleteOutlined />}
+                                        >
+                                            Eliminar ({selectedRowKeys.length})
+                                        </Button>
+                                    </Popconfirm>
+                                </Space>
                             )}
                         </div>
                         <div className={styles.bulkActionsRight}>
@@ -703,10 +882,16 @@ export default function Index({ empleados = [] }) {
                                         }
                                     ]
                                 }}
-                                scroll={{ x: 1200, y: 'calc(100vh - 400px)' }}
-                                sticky={{ offsetHeader: 0 }}
+                                scroll={{ 
+                                    x: 'max-content', // Scroll horizontal automático
+                                    y: getTableHeight() // Altura dinámica según el tamaño de pantalla
+                                }}
+                                sticky={{
+                                    offsetHeader: 0, // Header fijo en la parte superior
+                                }}
                                 showSorterTooltip={false}
                                 sortDirections={['ascend', 'descend']}
+                                size={windowWidth <= 768 ? "small" : "middle"}
                             />
                         ) : (
                             <Empty

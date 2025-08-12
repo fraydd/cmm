@@ -6,32 +6,31 @@ import { usePage } from '@inertiajs/react';
 const MAX_IMAGES = 10;
 
 const ModelImageUploader = ({ value = [], onChange }) => {
-    const [fileList, setFileList] = useState(value);
+    const [fileList, setFileList] = useState([]);
     const { props } = usePage();
 
     // Sincronizar fileList cuando cambie el value (para modo edición)
     useEffect(() => {
-        // Solo logear si hay un cambio real en la cantidad de imágenes
-        if (value.length !== fileList.length) {
-            console.log(`SYNC UPLOADER: ${fileList.length} -> ${value.length} imágenes`);
+        // Solo actualizar si value realmente cambió y no es igual al actual
+        if (Array.isArray(value) && value.length > 0) {
+            const processedValue = value.map(img => {
+                if (img.isExisting) {
+                    return {
+                        ...img,
+                        status: 'done',
+                        id: img.id || img.existingId,
+                        existingId: img.existingId || img.id
+                    };
+                }
+                return img;
+            });
+            
+            setFileList(processedValue);
+            console.log(`SYNC UPLOADER: Inicializando con ${value.length} imágenes`);
+        } else if (value.length === 0) {
+            setFileList([]);
         }
-        
-        // Asegurar que las imágenes existentes mantengan sus marcadores
-        const processedValue = value.map(img => {
-            if (img.isExisting) {
-                return {
-                    ...img,
-                    status: 'done',
-                    // Asegurar que no se pierdan los IDs para imágenes existentes
-                    id: img.id || img.existingId,
-                    existingId: img.existingId || img.id
-                };
-            }
-            return img;
-        });
-        
-        setFileList(processedValue);
-    }, [value]);
+    }, [value.length]); // Solo depender de la longitud para evitar bucles
 
     // Custom upload handler
     const customRequest = async ({ file, onSuccess, onError, onProgress }) => {
@@ -95,7 +94,7 @@ const ModelImageUploader = ({ value = [], onChange }) => {
     // Manejar cambios en la lista de archivos
     const handleChange = ({ file, fileList: newFileList }) => {
         // Solo logear acciones importantes
-        if (file.status === 'done') {
+        if (file.status === 'done' && file.response) {
             console.log(`IMAGEN SUBIDA: ${file.name}`);
         } else if (file.status === 'removed') {
             console.log(`IMAGEN ELIMINADA: ${file.name}`);
@@ -127,7 +126,6 @@ const ModelImageUploader = ({ value = [], onChange }) => {
             return f;
         });
         
-        console.log(`LISTA ACTUALIZADA: ${updatedList.length} total`);
         setFileList(updatedList);
         if (onChange) {
             onChange(updatedList);
