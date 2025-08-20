@@ -22,80 +22,131 @@ class ModeloController extends \App\Http\Controllers\Controller
         
         Log::info('Accediendo a la lista de modelos');
         Log::debug('Parámetros de la petición:', request()->all());
-        
-        // Obtener branch_id del request o usar null si no se proporciona
+
+        // Obtener y validar branch_id
         $branchId = $request->query('branch_id');
-        
-        $modelos = DB::table('models as m')
-            ->join('people as p', 'm.person_id', '=', 'p.id')
-            ->leftJoin('model_profiles as mp', 'm.id', '=', 'mp.model_id')
-            ->leftJoin('subscriptions as s', function($join) use ($branchId) {
-                $join->on('m.id', '=', 's.model_id');
-                
-                if ($branchId) {
-                    // Si hay branch_id, filtrar suscripciones por sede específica
-                    $join->join('branch_subscription_plans as bsp', 's.branch_subscription_plan_id', '=', 'bsp.id')
-                         ->where('bsp.branch_id', '=', $branchId);
-                }
-                
-                // Obtener la suscripción más reciente de la sede (si se especifica) o general
-                $join->whereRaw('s.id = (
-                    SELECT MAX(s2.id) 
-                    FROM subscriptions s2 
-                    ' . ($branchId ? 
-                        'JOIN branch_subscription_plans bsp2 ON s2.branch_subscription_plan_id = bsp2.id 
-                         WHERE s2.model_id = m.id AND bsp2.branch_id = ' . $branchId :
-                        'WHERE s2.model_id = m.id'
-                    ) . '
-                )');
-            })
-            ->where('m.is_active', true)
-            ->where('p.is_active', true)
-            ->select([
-                'm.id',
-                // Nombre completo
-                DB::raw("CONCAT(p.first_name, ' ', p.last_name) as nombre_completo"),
-                // Número de identificación
-                'p.identification_number as numero_identificacion',
-                // Medidas corporales concatenadas (pecho/cintura/cadera)
-                DB::raw("CASE 
-                    WHEN mp.bust IS NOT NULL AND mp.waist IS NOT NULL AND mp.hips IS NOT NULL 
-                    THEN CONCAT(mp.bust, '/', mp.waist, '/', mp.hips)
-                    ELSE 'No registradas'
-                END as medidas_corporales"),
-                // Fecha del último registro de suscripción
-                's.created_at as fecha_ultima_suscripcion',
-                // Estado de la suscripción para la sede seleccionada
-                DB::raw("CASE 
-                    WHEN s.status IS NULL THEN 'Sin suscripción'
-                    WHEN s.status = 'active' AND s.end_date >= CURDATE() THEN 'Activo'
-                    WHEN s.status = 'active' AND s.end_date < CURDATE() THEN 'Vencido'
-                    WHEN s.status = 'inactive' THEN 'Inactivo'
-                    ELSE s.status
-                END as estado_suscripcion"),
-                // Campos adicionales para compatibilidad
-                'm.created_at as fecha_creacion'
-            ])
-            ->orderBy('m.created_at', 'desc')
-            ->get()
+
+        if (!$branchId) {
+            abort(400, 'El parámetro branch_id es obligatorio.');
+        }
+
+        // Validar que la sede existe
+        $branchExists = DB::table('branches')
+            ->where('id', $branchId)
+            ->where('is_active', true)
+            ->exists();
+
+        if (!$branchExists) {
+            abort(404, 'No se encontró la sucursal especificada.');
+        }
+
+        // Validar que el usuario autenticado tenga acceso a esta sede
+        $user = auth()->user();
+        if (!$user) {
+            abort(401, 'Usuario no autenticado.');
+        }
+
+        // Obtener el empleado asociado al usuario
+        $employee = DB::table('employees')
+            ->where('user_id', $user->id)
+            ->where('is_active', true)
+            ->first();
+
+        if ($employee) {
+            // Verificar que el empleado tenga acceso a la sede especificada
+            $hasAccess = DB::table('employee_branch_access')
+                ->where('employee_id', $employee->id)
+                ->where('branch_id', $branchId)
+                ->exists();
+
+            if (!$hasAccess) {
+                abort(403, 'No tiene permisos para acceder a los modelos de esta sede.');
+            }
+        }
+
+        // Consulta SQL con parámetro seguro
+        $sql = "
+        SELECT
+            m.id,
+            CONCAT(p.first_name, ' ', p.last_name) AS nombre_completo,
+            p.identification_number AS numero_identificacion,
+            CASE 
+                WHEN mp.bust IS NOT NULL AND mp.waist IS NOT NULL AND mp.hips IS NOT NULL 
+                THEN CONCAT(mp.bust, '-', mp.waist, '-', mp.hips)
+                ELSE 'No registradas'
+            END AS medidas_corporales,
+            sp.name AS plan_suscripcion,
+            CASE 
+                WHEN s.start_date IS NULL AND s.end_date IS NULL THEN 'Sin suscripción'
+                WHEN s.start_date > CURDATE() THEN 'Pronto'
+                WHEN s.start_date <= CURDATE() AND s.end_date >= CURDATE() THEN 'Activo'
+                WHEN s.end_date < CURDATE() THEN 'Vencido'
+                ELSE 'Sin suscripción'
+            END AS estado_suscripcion,
+            s.start_date AS fecha_inicio_suscripcion,
+            s.end_date AS fecha_fin_suscripcion
+        FROM models m
+        JOIN people p ON m.person_id = p.id
+        LEFT JOIN model_profiles mp ON m.id = mp.model_id
+        LEFT JOIN (
+            SELECT 
+                s1.model_id,
+                s1.id,
+                s1.subscription_plan_id,
+                s1.start_date,
+                s1.end_date,
+                s1.created_at,
+                ROW_NUMBER() OVER (
+                    PARTITION BY s1.model_id 
+                    ORDER BY 
+                        CASE 
+                            WHEN CURDATE() BETWEEN s1.start_date AND s1.end_date THEN 1  -- vigente
+                            WHEN s1.start_date > CURDATE() THEN 2  -- futura
+                            ELSE 3  -- vencida
+                        END,
+                        CASE 
+                            WHEN s1.start_date > CURDATE() THEN s1.start_date  -- futura (orden asc)
+                            ELSE NULL
+                        END ASC,
+                        CASE 
+                            WHEN CURDATE() BETWEEN s1.start_date AND s1.end_date THEN s1.start_date  -- vigente (orden desc)
+                            ELSE NULL
+                        END DESC,
+                        CASE 
+                            WHEN s1.end_date < CURDATE() THEN s1.end_date  -- vencida (orden desc)
+                            ELSE NULL
+                        END DESC
+                ) AS rn
+            FROM subscriptions s1
+            WHERE EXISTS (
+                SELECT 1 
+                FROM branch_subscription_plans bsp 
+                WHERE bsp.subscription_plan_id = s1.subscription_plan_id 
+                AND bsp.branch_id = :branch_id
+                AND bsp.is_active = TRUE
+            )
+        ) s ON m.id = s.model_id AND s.rn = 1
+        LEFT JOIN subscription_plans sp ON s.subscription_plan_id = sp.id
+        WHERE m.is_active = TRUE 
+        AND p.is_active = TRUE
+        ORDER BY m.created_at DESC
+        ";
+
+        $modelos = collect(DB::select($sql, ['branch_id' => $branchId]))
             ->map(function($modelo) {
                 return [
                     'id' => $modelo->id,
                     'nombre_completo' => $modelo->nombre_completo,
                     'numero_identificacion' => $modelo->numero_identificacion,
                     'medidas_corporales' => $modelo->medidas_corporales,
-                    'fecha_ultima_suscripcion' => $modelo->fecha_ultima_suscripcion ? date('Y-m-d', strtotime($modelo->fecha_ultima_suscripcion)) : 'N/A',
+                    'plan_suscripcion' => $modelo->plan_suscripcion ?? 'N/A',
                     'estado_suscripcion' => $modelo->estado_suscripcion,
-                    'fecha_creacion' => $modelo->fecha_creacion ? date('Y-m-d', strtotime($modelo->fecha_creacion)) : 'N/A',
+                    'fecha_inicio_suscripcion' => $modelo->fecha_inicio_suscripcion ? date('Y-m-d', strtotime($modelo->fecha_inicio_suscripcion)) : 'N/A',
+                    'fecha_fin_suscripcion' => $modelo->fecha_fin_suscripcion ? date('Y-m-d', strtotime($modelo->fecha_fin_suscripcion)) : 'N/A',
                 ];
             })
-            ->toArray();
-        
-        $totalModelos = count($modelos);
-        
-        // Cálculo de tiempo de ejecución
-        $tiempoEjecucion = microtime(true) - $inicio;
-        
+        ->toArray();
+
         // Si es una petición AJAX/fetch específica para recargar datos, devolver JSON
         if (request()->ajax() && request()->header('X-Requested-With') === 'XMLHttpRequest' && request()->header('Content-Type') === 'application/json') {
             return response()->json([
@@ -106,13 +157,7 @@ class ModeloController extends \App\Http\Controllers\Controller
         
         // Si no, devolver la vista Inertia normal
         return Inertia::render('Modelos/Index', [
-            'modelos' => $modelos,
-            'debug_info' => [
-                'total_modelos' => $totalModelos,
-                'branch_id' => $branchId,
-                'timestamp' => now()->toISOString(),
-                'tiempo_ejecucion' => round($tiempoEjecucion * 1000, 2) . 'ms'
-            ]
+            'modelos' => $modelos
         ]);
     }
 
@@ -127,7 +172,7 @@ class ModeloController extends \App\Http\Controllers\Controller
                 ->where('bsp.is_active', true)
                 ->where('sp.is_active', true)
                 ->orderBy('sp.name')
-                ->select('bsp.id', 'sp.name', 'sp.description', DB::raw('COALESCE(bsp.custom_price, sp.price) as price'), 'sp.duration_months')
+                ->select('sp.id', 'sp.name', 'sp.description', DB::raw('COALESCE(bsp.custom_price, sp.price) as price'), 'sp.duration_months')
                 ->get();
             
             // Formatear los planes con precio en pesos colombianos
@@ -510,32 +555,36 @@ class ModeloController extends \App\Http\Controllers\Controller
 
             // 6. Insertar suscripción
             // Obtener branch_subscription_plan y duración del plan
-            $branchPlan = DB::table('branch_subscription_plans')
+            $subscriptionPlan = DB::table('subscription_plans')
                 ->where('id', $data['subscription_plan_id'])
                 ->first();
-            if (!$branchPlan) {
+            if (!$subscriptionPlan) {
                 throw new \Exception('Plan de suscripción no encontrado');
             }
-            $plan = DB::table('subscription_plans')->where('id', $branchPlan->subscription_plan_id)->first();
-            if (!$plan) {
-                throw new \Exception('Datos del plan no encontrados');
+
+            $branchPlan = DB::table('branch_subscription_plans')
+                ->where('branch_id', $data['branch_id'])
+                ->where('subscription_plan_id', $data['subscription_plan_id'])
+                ->first();
+            if (!$branchPlan) {
+                throw new \Exception('Plan de suscripción de sucursal no encontrado');
             }
+
             $quantity = isset($data['subscription_quantity']) ? (int)$data['subscription_quantity'] : 1;
-            $durationMonths = $plan->duration_months * $quantity;
+            $durationMonths = $subscriptionPlan->duration_months * $quantity;
             $startDate = \Carbon\Carbon::parse($data['fecha_vigencia']);
             $endDate = (clone $startDate)->addMonths($durationMonths);
 
             $subscriptionId = DB::table('subscriptions')->insertGetId([
                 'model_id' => $modelId,
-                'branch_subscription_plan_id' => $branchPlan->id,
+                'subscription_plan_id' => $subscriptionPlan->id,
                 'start_date' => $startDate,
                 'end_date' => $endDate,
-                'status' => 'active',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
 
-            $total = ($branchPlan->custom_price ?? $plan->price) * $quantity;
+            $total = ($branchPlan->custom_price ?? $subscriptionPlan->price) * $quantity;
             $pagado = 0;
             $estado = null;
             if ($data['abonar_parte']) {
@@ -576,7 +625,7 @@ class ModeloController extends \App\Http\Controllers\Controller
                 'item_type_id' => 2,
                 'subscription_id' => $subscriptionId,
                 'quantity' => $quantity,
-                'unit_price' => $branchPlan->custom_price ?? $plan->price,
+                'unit_price' => $branchPlan->custom_price ?? $subscriptionPlan->price,
                 'total_price' => $total,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -784,7 +833,7 @@ class ModeloController extends \App\Http\Controllers\Controller
 
         // Obtener suscripciones activas y historial
         $suscripciones = DB::table('subscriptions as s')
-            ->join('branch_subscription_plans as bsp', 's.branch_subscription_plan_id', '=', 'bsp.id')
+            ->join('branch_subscription_plans as bsp', 's.id', '=', 'bsp.subscription_plan_id')
             ->join('subscription_plans as sp', 'bsp.subscription_plan_id', '=', 'sp.id')
             ->join('branches as b', 'bsp.branch_id', '=', 'b.id')
             ->where('s.model_id', $id)
@@ -796,8 +845,15 @@ class ModeloController extends \App\Http\Controllers\Controller
                 'sp.duration_months as duracion_meses',
                 's.start_date as fecha_inicio',
                 's.end_date as fecha_fin',
-                's.status as estado',
-                'b.name as sucursal'
+                'b.name as sucursal',
+                DB::raw("
+                    CASE
+                        WHEN CURDATE() BETWEEN s.start_date AND s.end_date THEN 'vigente'
+                        WHEN s.start_date > CURDATE() THEN 'futura'
+                        WHEN s.end_date < CURDATE() THEN 'vencida'
+                        ELSE 'sin_estado'
+                    END as estado
+                ")
             ])
             ->orderBy('s.created_at', 'desc')
             ->get();
@@ -1022,22 +1078,6 @@ class ModeloController extends \App\Http\Controllers\Controller
                 ])
                 ->first();
 
-            // 4. Obtener suscripción activa más reciente (solo para referencia, no para edición)
-            $suscripcion = DB::table('subscriptions as s')
-                ->join('branch_subscription_plans as bsp', 's.branch_subscription_plan_id', '=', 'bsp.id')
-                ->join('subscription_plans as sp', 'bsp.subscription_plan_id', '=', 'sp.id')
-                ->join('branches as b', 'bsp.branch_id', '=', 'b.id')
-                ->where('s.model_id', $id)
-                ->where('s.status', 'active')
-                ->orderBy('s.created_at', 'desc')
-                ->select([
-                    's.id as subscription_id',
-                    'bsp.id as subscription_plan_id',
-                    'b.id as branch_id',
-                    's.start_date as fecha_vigencia',
-                    'sp.duration_months'
-                ])
-                ->first();
 
             // 5. Obtener imágenes del modelo
             $imagenes = DB::table('model_files')

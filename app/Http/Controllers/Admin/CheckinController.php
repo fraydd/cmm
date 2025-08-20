@@ -126,42 +126,36 @@ class CheckinController extends Controller
     // Check-in para modelos: solo check-in y cerrar
     private function checkinModelo($modelo, $person, $branchId)
     {
-        Log::info('=== CHECK-IN MODELO ===', [
-            'model_id' => $modelo->id,
-            'person_id' => $person->id,
-            'branch_id' => $branchId,
-            'nombre_completo' => $person->first_name . ' ' . $person->last_name,
-            'identification_number' => $person->identification_number
-        ]);
-
-        // Verificar si el modelo tiene una suscripción activa con acceso a esta sede
+        // Verificar si el modelo tiene una suscripción activa con acceso a esta sede (usando branch_subscription_plans)
         $subscription = DB::table('models as m')
             ->join('subscriptions as s', 'm.id', '=', 's.model_id')
-            ->join('subscription_branch_access as sba', 's.id', '=', 'sba.subscription_id')
+            ->join('subscription_plans as sp', 's.subscription_plan_id', '=', 'sp.id')
+            ->join('branch_subscription_plans as bsp', 'sp.id', '=', 'bsp.subscription_plan_id')
             ->where('m.id', $modelo->id)
-            ->where('sba.branch_id', $branchId)
+            ->where('bsp.branch_id', $branchId)
             ->where('s.start_date', '<=', now()->toDateString())
             ->where('s.end_date', '>=', now()->toDateString())
-            ->select('s.id as subscription_id', 's.end_date', 's.start_date', 's.status')
+            ->where('s.is_active', true)
+            ->select('s.id as subscription_id', 's.end_date', 's.start_date', 's.is_active')
             ->first();
 
         if (!$subscription) {
-            Log::warning('=== ACCESO DENEGADO - MODELO SIN SUSCRIPCIÓN VÁLIDA ===', [
-                'model_id' => $modelo->id,
-                'branch_id' => $branchId,
-                'nombre_completo' => $person->first_name . ' ' . $person->last_name
-            ]);
 
             return response()->json([
                 'success' => false,
                 'error' => 'No tienes una suscripción activa que te permita acceso a esta sede. Contacta con administración.'
             ], 403);
         }
+        
 
-        Log::info('=== SUSCRIPCIÓN VÁLIDA ENCONTRADA ===', [
-            'subscription_id' => $subscription->subscription_id,
-            'end_date' => $subscription->end_date
-        ]);
+        // Obtener el path de la imagen de perfil del modelo (solo el primer resultado)
+        $imagenPerfil = DB::table('model_files')
+            ->where('model_id', $modelo->id)
+            ->where('file_type', 'perfil')
+            ->value('file_path');
+
+        // Si la ruta ya incluye 'storage/', solo usa asset().
+        $urlImagen = $imagenPerfil ? asset($imagenPerfil) : null;
 
         DB::table('attendance_records')->insert([
             'branch_id' => $branchId,
@@ -176,13 +170,14 @@ class CheckinController extends Controller
         // Aquí podrías calcular y retornar datos de suscripción, etc.
         return response()->json([
             'success' => true,
-            'message' => 'Check-in de modelo registrado: ¡Bienvenida ' . $person->first_name . ' ' . $person->last_name . '!',
+            'message' => 'Check-in de modelo registrado: ¡Bienvenido/a ' . $person->first_name . ' ' . $person->last_name . '!',
             'type' => 'model',
             'data' => [
                 'nombre' => $person->first_name . ' ' . $person->last_name,
                 'subscription_end_date' => $subscription->end_date,
-                'subscription_id' => $subscription->subscription_id
+                'subscription_id' => $subscription->subscription_id,
+                'image_url' => $urlImagen
             ]
         ]);
     }
-} 
+}

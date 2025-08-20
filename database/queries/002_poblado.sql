@@ -155,6 +155,18 @@ INSERT INTO `permissions` (`name`, `guard_name`, `created_at`, `updated_at`) VAL
 ('delete_employees', 'web', NOW(), NOW()),
 ('assign_employee_branches', 'web', NOW(), NOW()),
 
+-- tienda
+('view_store', 'web', NOW(), NOW()),
+('edit_store', 'web', NOW(), NOW()),
+('vender', 'web', NOW(), NOW()),
+('ver_tienda', 'web', NOW(), NOW()),
+
+-- ventas
+('view_sales', 'web', NOW(), NOW()),
+('edit_sales', 'web', NOW(), NOW()),
+
+-- 
+
 -- permisos 
 ('view_permissions', 'web', NOW(), NOW());
 
@@ -174,7 +186,9 @@ AND p.name IN (
     'view_attendance',
     'create_attendance',
     'edit_attendance',
-    'view_employees'
+    'view_employees',
+    'ver_tienda',
+    'vender'
 );
 
 -- Admin: Todos los permisos
@@ -202,6 +216,10 @@ INSERT INTO `products` (`category_id`, `name`, `description`, `price`, `stock_qu
 (6, 'Curso de Pasarela', 'Curso intensivo de pasarela de 8 horas', 200000.00, 999, true, NOW(), NOW()),
 (6, 'Taller de Poses', 'Taller de poses fotográficas de 4 horas', 120000.00, 999, true, NOW(), NOW());
 
+INSERT INTO `product_files` (`product_id`, `file_path`, `file_name`,`file_type`, `created_at`, `updated_at`) VALUES
+(1, '/storage/products/camisa.jpeg', 'camisa', 'producto', NOW(), NOW()),
+(1, '/storage/products/jeans.jpeg', 'jeans', 'producto', NOW(), NOW());
+
 -- ===== EVENTOS DE EJEMPLO =====
 INSERT INTO `events` (`name`, `description`, `event_date`, `registration_deadline`, `price`, `max_participants`, `current_participants`, `is_active`, `created_at`, `updated_at`) VALUES
 ('Desfile Primavera-Verano 2024', 'Desfile de moda con las últimas tendencias', '2024-03-15', '2024-03-10', 50000.00, 50, 0, true, NOW(), NOW()),
@@ -210,11 +228,11 @@ INSERT INTO `events` (`name`, `description`, `event_date`, `registration_deadlin
 ('Fashion Week Bogotá', 'Semana de la moda en Bogotá', '2024-05-10', '2024-05-05', 150000.00, 200, 0, true, NOW(), NOW());
 
 -- ===== ACCESO DE EVENTOS A SEDE =====
-INSERT INTO `event_branch_access` (`event_id`, `branch_id`, `max_participants`, `current_participants`, `is_active`, `created_at`, `updated_at`) VALUES
-(1, 1, 50, 0, true, NOW(), NOW()),
-(2, 1, 30, 0, true, NOW(), NOW()),
-(3, 1, 100, 0, true, NOW(), NOW()),
-(4, 1, 200, 0, true, NOW(), NOW());
+INSERT INTO `event_branch_access` (`event_id`, `branch_id`, `max_participants`, `custom_price`, `current_participants`, `is_active`, `created_at`, `updated_at`) VALUES
+(1, 1, 50, 50000.00, 0, true, NOW(), NOW()),
+(2, 1, 30, 70000.00, 0, true, NOW(), NOW()),
+(3, 1, 100, 26000.00, 0, true, NOW(), NOW()),
+(4, 1, 200, NULL, 0, true, NOW(), NOW());
 
 -- ===== ACCESO DE PRODUCTOS A SEDE =====
 INSERT INTO `product_branch_access` (`product_id`, `branch_id`, `stock_quantity`, `is_active`, `created_at`, `updated_at`) VALUES

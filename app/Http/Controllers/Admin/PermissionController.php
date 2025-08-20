@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\FacadesLog;
+use Illuminate\Support\Facades\Log;
 
 class PermissionController extends Controller
 {
@@ -15,7 +17,7 @@ class PermissionController extends Controller
      */
     public function index()
     {
-        \Log::info('Entrando al método index de PermissionController');
+        Log::info('Entrando al método index de PermissionController');
 
         try {
             // Consulta optimizada con eager loading para permisos y roles
@@ -67,7 +69,7 @@ class PermissionController extends Controller
                 'total' => $permisos->count()
             ]);
         } catch (\Exception $e) {
-            \Log::error('Error en el método index de PermissionController: ' . $e->getMessage());
+            Log::error('Error en el método index de PermissionController: ' . $e->getMessage());
             
             if (request()->wantsJson()) {
                 return response()->json(['error' => 'Ocurrió un error al procesar la solicitud.'], 500);
@@ -105,19 +107,19 @@ class PermissionController extends Controller
      */
     public function getPermissions()
     {
-        \Log::info('Accediendo al método getPermissions');
+        log::info('Accediendo al método getPermissions');
         
         try {
             $permisos = \Spatie\Permission\Models\Permission::orderBy('name', 'asc')->get(['id', 'name', 'guard_name']);
             
-            \Log::info('Permisos obtenidos: ' . $permisos->count());
+            Log::info('Permisos obtenidos: ' . $permisos->count());
             
             return response()->json([
                 'permisos' => $permisos,
                 'total' => $permisos->count()
             ]);
         } catch (\Exception $e) {
-            \Log::error('Error al obtener permisos: ' . $e->getMessage());
+            Log::error('Error al obtener permisos: ' . $e->getMessage());
             return response()->json([
                 'error' => 'Error al cargar los permisos.',
                 'message' => $e->getMessage()
@@ -133,7 +135,7 @@ class PermissionController extends Controller
      */
     public function store(Request $request)
     {
-        \Log::info('Intentando crear rol con datos: ' . json_encode($request->all()));
+        Log::info('Intentando crear rol con datos: ' . json_encode($request->all()));
         
         try {
             $validated = $request->validate([
@@ -143,7 +145,7 @@ class PermissionController extends Controller
                 'permissions.*' => 'exists:permissions,id'
             ]);
 
-            \Log::info('Datos validados correctamente');
+            Log::info('Datos validados correctamente');
 
             // Crear el rol
             $role = \Spatie\Permission\Models\Role::create([
@@ -151,13 +153,13 @@ class PermissionController extends Controller
                 'guard_name' => $validated['guard_name'] ?? 'web'
             ]);
 
-            \Log::info('Rol creado con ID: ' . $role->id);
+            Log::info('Rol creado con ID: ' . $role->id);
 
             // Asignar permisos si se proporcionaron
             if (isset($validated['permissions']) && is_array($validated['permissions'])) {
                 $permissions = \Spatie\Permission\Models\Permission::whereIn('id', $validated['permissions'])->get();
                 $role->syncPermissions($permissions);
-                \Log::info('Permisos asignados: ' . $permissions->count());
+                Log::info('Permisos asignados: ' . $permissions->count());
             }
 
             // Siempre devolver JSON para peticiones AJAX
@@ -167,7 +169,7 @@ class PermissionController extends Controller
             ], 201);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
-            \Log::error('Error de validación al crear rol: ' . json_encode($e->errors()));
+            Log::error('Error de validación al crear rol: ' . json_encode($e->errors()));
             
             return response()->json([
                 'error' => 'Error de validación',
@@ -176,7 +178,7 @@ class PermissionController extends Controller
             ], 422);
             
         } catch (\Exception $e) {
-            \Log::error('Error al crear rol: ' . $e->getMessage());
+            Log::error('Error al crear rol: ' . $e->getMessage());
             
             return response()->json([
                 'error' => 'Error al crear el rol',

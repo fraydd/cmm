@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InvitationController;
+use App\Http\Controllers\StoreController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Auth\RegisterController;
 use Illuminate\Support\Facades\Log;
@@ -137,6 +138,9 @@ Route::prefix('admin')->middleware(['auth', 'verified'])->group(function () {
     Route::get('asistencias', [\App\Http\Controllers\Admin\AttendanceController::class, 'index'])
         ->name('admin.attendance.index')
         ->middleware('can:view_attendance');
+    Route::post('asistencias/records', [\App\Http\Controllers\Admin\AttendanceController::class, 'getAttendanceRecords'])
+        ->name('admin.attendance.records')
+        ->middleware('can:view_attendance');
     Route::get('asistencias/{id}', [\App\Http\Controllers\Admin\AttendanceController::class, 'show'])
         ->name('admin.attendance.show')
         ->middleware('can:view_attendance');
@@ -149,6 +153,8 @@ Route::prefix('admin')->middleware(['auth', 'verified'])->group(function () {
     Route::delete('asistencias/{id}', [\App\Http\Controllers\Admin\AttendanceController::class, 'destroy'])
         ->name('admin.attendance.destroy')
         ->middleware('can:delete_attendance');
+    Route::get('asistencias/branches/access', [\App\Http\Controllers\Admin\AttendanceController::class, 'getAccessibleBranches'])
+        ->name('admin.attendance.branches.access');
 });
 
 // Rutas de checkin (admin)
@@ -165,3 +171,20 @@ Route::prefix('admin')->middleware(['auth', 'verified'])->group(function () {
     Route::get('compras/{id}/pdf', [\App\Http\Controllers\Admin\PurchaseController::class, 'downloadPdf'])->name('admin.purchases.pdf');
     // Puedes agregar put/patch/delete según necesidades futuras
 });
+
+// Rutas protegidas de la tienda (ahora bajo /admin/tienda)
+Route::prefix('admin')->middleware(['auth', 'permission:ver_tienda'])->group(function () {
+    Route::get('/tienda', [\App\Http\Controllers\Admin\StoreController::class, 'index'])->name('admin.store.index');
+    Route::post('/tienda/getCatalog', [\App\Http\Controllers\Admin\StoreController::class, 'getCatalog'])->name('admin.store.getCatalog');
+    Route::post('/tienda/addToCart', [\App\Http\Controllers\Admin\StoreController::class, 'addToCart'])->name('admin.store.addToCart');
+    Route::post('/tienda/getCartItems', [\App\Http\Controllers\Admin\StoreController::class, 'getCartItems'])->name('admin.store.getCartItems');
+    Route::post('/tienda/getCartCount', [\App\Http\Controllers\Admin\StoreController::class, 'getCartCount'])->name('admin.store.getCartCount');
+    Route::post('/tienda/removeCartItem', [\App\Http\Controllers\Admin\StoreController::class, 'removeCartItem'])->name('admin.store.removeCartItem');
+    Route::post('/tienda/updateCartItem', [\App\Http\Controllers\Admin\StoreController::class, 'updateCartItem'])->name('admin.store.updateCartItem');
+    Route::post('/tienda/processPayment', [\App\Http\Controllers\Admin\StoreController::class, 'processPayment'])->name('admin.store.processPayment');
+    Route::get('/tienda/mediosPago', [\App\Http\Controllers\Admin\StoreController::class, 'mediosPago'])->name('admin.store.mediosPago');
+});
+
+Route::post('admin/tienda/searchPerson', [\App\Http\Controllers\Admin\StoreController::class, 'searchPerson'])
+    ->middleware('auth')
+    ->name('admin.store.searchPerson');

@@ -14,6 +14,7 @@ import {
 } from '@ant-design/icons';
 import { router, usePage } from '@inertiajs/react';
 import { usePermissions } from '../hooks/usePermissions';
+import { useBranch } from '../hooks/useBranch';
 import SidebarToggleButton from './SidebarToggleButton';
 import { getAvailableThemes, getCurrentTheme, setTheme } from '../utils/themeManager';
 import styles from './Sidebar.module.scss';
@@ -23,6 +24,7 @@ const { Title } = Typography;
 
 const Sidebar = forwardRef(({ collapsed, auth, onToggle, isMobile = false, isVisible = true }, ref) => {
     const { can } = usePermissions();
+    const { selectedBranch } = useBranch();
     const { url } = usePage();
     const [selectedKeys, setSelectedKeys] = useState(['dashboard']);
     const [openKeys, setOpenKeys] = useState([]);
@@ -126,18 +128,28 @@ const Sidebar = forwardRef(({ collapsed, auth, onToggle, isMobile = false, isVis
                 { 
                     key: 'modelos.index', 
                     label: 'Lista de Modelos',
-                    onClick: () => router.visit('/admin/modelos')
+                    onClick: () => {
+                        const url = selectedBranch?.id 
+                            ? `/admin/modelos?branch_id=${selectedBranch.id}`
+                            : '/admin/modelos';
+                        router.visit(url);
+                    }
                 },
                 { 
                     key: 'modelos.create', 
                     label: 'Nuevo Modelo',
-                    onClick: () => router.visit('/admin/modelos/create')
+                    onClick: () => {
+                        const url = selectedBranch?.id 
+                            ? `/admin/modelos/create?branch_id=${selectedBranch.id}`
+                            : '/admin/modelos/create';
+                        router.visit(url);
+                    }
                 }
             ]
         },
         {
             key: 'empleados',
-            icon: <IdcardOutlined />,
+            icon: <IdcardOutlined />, 
             label: 'Empleados',
             children: [
                 { 
@@ -152,6 +164,15 @@ const Sidebar = forwardRef(({ collapsed, auth, onToggle, isMobile = false, isVis
                 }
             ]
         },
+        ...(can('ver_tienda') ? [{
+            key: 'tienda',
+            icon: <DollarOutlined />,
+            label: 'Tienda',
+            onClick: () => {
+                const url = '/admin/tienda';
+                router.visit(url);
+            }
+        }] : []),
         {
             key: 'asistencia',
             label: 'Asistencia',

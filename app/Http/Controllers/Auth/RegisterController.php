@@ -9,7 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class RegisterController extends Controller
 {
@@ -36,7 +37,7 @@ class RegisterController extends Controller
         }
 
         // Buscar los datos del empleado asociado al email de la invitación
-        $employee = \DB::table('employees as e')
+        $employee = DB::table('employees as e')
             ->join('people as p', 'e.person_id', '=', 'p.id')
             ->where('p.email', $invitation->email)
             ->where('e.is_active', true)
@@ -100,7 +101,7 @@ class RegisterController extends Controller
         }
 
         // Obtener el nombre del empleado desde la base de datos
-        $employee = \DB::table('employees as e')
+        $employee = DB::table('employees as e')
             ->join('people as p', 'e.person_id', '=', 'p.id')
             ->where('p.email', $request->email)
             ->where('e.is_active', true)
@@ -128,7 +129,7 @@ class RegisterController extends Controller
         ]);
 
         // Actualizar el empleado para asociarlo con el usuario creado
-        \DB::table('employees')->where('id', $employee->employee_id)->update([
+        DB::table('employees')->where('id', $employee->employee_id)->update([
             'user_id' => $user->id,
             'updated_at' => now()
         ]);
@@ -142,13 +143,13 @@ class RegisterController extends Controller
                 $employeeRole = \Spatie\Permission\Models\Role::find($employee->role_id);
                 if ($employeeRole) {
                     $user->assignRole($employeeRole);
-                    \Log::info("Rol '{$employeeRole->name}' asignado al usuario {$user->email}", [
+                    Log::info("Rol '{$employeeRole->name}' asignado al usuario {$user->email}", [
                         'user_id' => $user->id,
                         'role_id' => $employee->role_id,
                         'employee_id' => $employee->employee_id
                     ]);
                 } else {
-                    \Log::warning("No se encontró el rol con ID {$employee->role_id} para el empleado {$employee->employee_id}");
+                    Log::warning("No se encontró el rol con ID {$employee->role_id} para el empleado {$employee->employee_id}");
                     // Asignar rol por defecto si no se encuentra el rol específico
                     $defaultRole = \Spatie\Permission\Models\Role::firstOrCreate([
                         'name' => 'empleado',
@@ -157,7 +158,7 @@ class RegisterController extends Controller
                     $user->assignRole($defaultRole);
                 }
             } catch (\Exception $e) {
-                \Log::error("Error al asignar rol al usuario {$user->email}: " . $e->getMessage());
+                Log::error("Error al asignar rol al usuario {$user->email}: " . $e->getMessage());
                 // Asignar rol por defecto en caso de error
                 $defaultRole = \Spatie\Permission\Models\Role::firstOrCreate([
                     'name' => 'empleado',

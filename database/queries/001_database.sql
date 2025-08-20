@@ -199,7 +199,7 @@ CREATE TABLE `employees` (
   `role` varchar(100) NOT NULL,
   `hire_date` date NOT NULL,
   `end_date` date NULL,
-  `salary` decimal(10,2) NULL,
+  `salary` decimal(12,2) NULL,
   `job_description` text NULL,
   `role_id` bigint unsigned NOT NULL,
   `is_active` boolean NOT NULL DEFAULT true,
@@ -342,7 +342,7 @@ CREATE TABLE `products` (
   `category_id` bigint unsigned NOT NULL,
   `name` varchar(255) NOT NULL,
   `description` text NULL,
-  `price` decimal(10,2) NOT NULL,
+  `price` decimal(12,2) NOT NULL,
   `stock_quantity` int NOT NULL DEFAULT 0,
   `is_active` boolean NOT NULL DEFAULT true,
   `created_at` timestamp NULL DEFAULT NULL,
@@ -351,13 +351,25 @@ CREATE TABLE `products` (
   KEY `products_category_id_index` (`category_id`)
 );
 
+CREATE TABLE `product_files` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `product_id` bigint unsigned NOT NULL,
+  `file_path` varchar(500) NOT NULL,
+  `file_name` varchar(255) NOT NULL,
+  `file_type` varchar(50) NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `product_files_product_id_index` (`product_id`)
+);
+
 -- ===== TABLAS DE PLANES Y SUSCRIPCIONES =====
 
 CREATE TABLE `subscription_plans` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `description` text NULL,
-  `price` decimal(10,2) NOT NULL,
+  `price` decimal(12,2) NOT NULL,
   `duration_months` int NOT NULL DEFAULT 1,
   `is_active` boolean NOT NULL DEFAULT true,
   `created_at` timestamp NULL DEFAULT NULL,
@@ -370,7 +382,7 @@ CREATE TABLE `branch_subscription_plans` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `branch_id` bigint unsigned NOT NULL,
   `subscription_plan_id` bigint unsigned NOT NULL,
-  `custom_price` decimal(10,2) NULL,
+  `custom_price` decimal(12,2) NULL,
   `is_active` boolean NOT NULL DEFAULT true,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
@@ -383,14 +395,14 @@ CREATE TABLE `branch_subscription_plans` (
 CREATE TABLE `subscriptions` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `model_id` bigint unsigned NOT NULL,
-  `branch_subscription_plan_id` bigint unsigned NOT NULL,
+  `subscription_plan_id` bigint unsigned NOT NULL,
   `start_date` date NOT NULL,
   `end_date` date NOT NULL,
-  `status` varchar(20) NOT NULL DEFAULT 'active',
+  `is_active` boolean NOT NULL DEFAULT true,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `subscriptions_model_id_status_index` (`model_id`,`status`),
+  KEY `subscriptions_model_id_status_index` (`model_id`,`is_active`),
   KEY `subscriptions_start_date_end_date_index` (`start_date`,`end_date`)
 );
 
@@ -402,7 +414,7 @@ CREATE TABLE `events` (
   `description` text NULL,
   `event_date` date NOT NULL,
   `registration_deadline` date NOT NULL,
-  `price` decimal(10,2) NOT NULL,
+  `price` decimal(12,2) NOT NULL,
   `max_participants` int NULL,
   `current_participants` int NOT NULL DEFAULT 0,
   `is_active` boolean NOT NULL DEFAULT true,
@@ -431,6 +443,7 @@ CREATE TABLE `event_branch_access` (
   `event_id` bigint unsigned NOT NULL,
   `branch_id` bigint unsigned NOT NULL,
   `max_participants` int NULL,
+  `custom_price` decimal(12,2) NULL,
   `current_participants` int NOT NULL DEFAULT 0,
   `is_active` boolean NOT NULL DEFAULT true,
   `created_at` timestamp NULL DEFAULT NULL,
@@ -448,8 +461,10 @@ CREATE TABLE `cart` (
   `event_id` bigint unsigned NULL,
   `product_id` bigint unsigned NULL,
   `quantity` int NOT NULL DEFAULT 1,
-  `unit_price` decimal(10,2) NOT NULL,
-  `total_price` decimal(10,2) NOT NULL,
+  `branch_id` bigint unsigned NULL,
+  `unit_price` decimal(12,2) NOT NULL,
+  `total_price` decimal(12,2) NOT NULL,
+  `start_date` date DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -488,6 +503,7 @@ CREATE TABLE `product_branch_access` (
   `product_id` bigint unsigned NOT NULL,
   `branch_id` bigint unsigned NOT NULL,
   `stock_quantity` int NOT NULL DEFAULT 0,
+  `price` decimal(12,2) NOT NULL DEFAULT 0,
   `is_active` boolean NOT NULL DEFAULT true,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
@@ -501,9 +517,9 @@ CREATE TABLE `invoices` (
   `branch_id` bigint unsigned NOT NULL,
   `person_id` bigint unsigned NULL,
   `invoice_date` date NOT NULL,
-  `total_amount` decimal(10,2) NOT NULL,
-  `paid_amount` decimal(10,2) NOT NULL DEFAULT 0,
-  `remaining_amount` decimal(10,2) NOT NULL DEFAULT 0,
+  `total_amount` decimal(12,2) NOT NULL,
+  `paid_amount` decimal(12,2) NOT NULL DEFAULT 0,
+  `remaining_amount` decimal(12,2) NOT NULL DEFAULT 0,
   `status_id` bigint unsigned NOT NULL,
   `invoice_type_id` bigint unsigned NOT NULL DEFAULT 1,
   `observations` text NULL,
@@ -524,8 +540,9 @@ CREATE TABLE `invoice_items` (
   `event_id` bigint unsigned NULL,
   `product_id` bigint unsigned NULL,
   `quantity` int NOT NULL DEFAULT 1,
-  `unit_price` decimal(10,2) NOT NULL,
-  `total_price` decimal(10,2) NOT NULL,
+  `unit_price` decimal(12,2) NOT NULL,
+  `total_price` decimal(12,2) NOT NULL,
+  `branch_id` bigint unsigned NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
@@ -538,7 +555,7 @@ CREATE TABLE `payments` (
   `branch_id` bigint unsigned NOT NULL,
   `invoice_id` bigint unsigned NOT NULL,
   `payment_method_id` bigint unsigned NOT NULL,
-  `amount` decimal(10,2) NOT NULL,
+  `amount` decimal(12,2) NOT NULL,
   `payment_date` timestamp NOT NULL,
   `observations` text NULL,
   `created_by` bigint unsigned NULL,
@@ -557,10 +574,10 @@ CREATE TABLE `cash_register` (
   `branch_id` bigint unsigned NOT NULL,
   `opening_date` timestamp NOT NULL,
   `closing_date` timestamp NULL,
-  `initial_amount` decimal(10,2) NOT NULL,
-  `final_amount` decimal(10,2) NULL,
-  `total_income` decimal(10,2) NOT NULL DEFAULT 0,
-  `total_expenses` decimal(10,2) NOT NULL DEFAULT 0,
+  `initial_amount` decimal(12,2) NOT NULL,
+  `final_amount` decimal(12,2) NULL,
+  `total_income` decimal(12,2) NOT NULL DEFAULT 0,
+  `total_expenses` decimal(12,2) NOT NULL DEFAULT 0,
   `status` varchar(20) NOT NULL DEFAULT 'open',
   `responsible_user_id` bigint unsigned NOT NULL,
   `observations` text NULL,
@@ -578,7 +595,7 @@ CREATE TABLE `cash_movements` (
   `movement_type` varchar(20) NOT NULL,
   `invoice_id` bigint unsigned NULL,
   `payment_id` bigint unsigned NULL,
-  `amount` decimal(10,2) NOT NULL,
+  `amount` decimal(12,2) NOT NULL,
   `concept` varchar(255) NOT NULL,
   `observations` text NULL,
   `movement_date` timestamp NOT NULL,
@@ -668,9 +685,9 @@ ALTER TABLE `invoice_items` ADD CONSTRAINT `invoice_items_product_id_foreign` FO
 
 -- Relaciones de Suscripciones
 ALTER TABLE `subscriptions` ADD CONSTRAINT `subscriptions_model_id_foreign` FOREIGN KEY (`model_id`) REFERENCES `models` (`id`);
-ALTER TABLE `subscriptions` ADD CONSTRAINT `subscriptions_branch_subscription_plan_id` FOREIGN KEY (`branch_subscription_plan_id`) REFERENCES `branch_subscription_plans` (`id`);
-ALTER TABLE `cart` ADD CONSTRAINT `cart_subscription_id_foreign` FOREIGN KEY (`subscription_id`) REFERENCES `subscriptions` (`id`);
-ALTER TABLE `invoice_items` ADD CONSTRAINT `invoice_items_subscription_id_foreign` FOREIGN KEY (`subscription_id`) REFERENCES `subscriptions` (`id`);
+ALTER TABLE `subscriptions` ADD CONSTRAINT `subscriptions_subscription_plan_id_foreign` FOREIGN KEY (`subscription_plan_id`) REFERENCES `subscription_plans` (`id`);
+ALTER TABLE `cart` ADD CONSTRAINT `cart_subscription_id_foreign` FOREIGN KEY (`subscription_id`) REFERENCES `subscription_plans` (`id`);
+ALTER TABLE `invoice_items` ADD CONSTRAINT `invoice_items_subscription_id_foreign` FOREIGN KEY (`subscription_id`) REFERENCES `subscription_plans` (`id`);
 
 -- Relaciones de Eventos
 ALTER TABLE `event_registrations` ADD CONSTRAINT `event_registrations_event_id_foreign` FOREIGN KEY (`event_id`) REFERENCES `events` (`id`);
@@ -680,7 +697,11 @@ ALTER TABLE `invoice_items` ADD CONSTRAINT `invoice_items_event_id_foreign` FORE
 
 -- Relaciones de Facturación
 ALTER TABLE `invoice_items` ADD CONSTRAINT `invoice_items_invoice_id_foreign` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`);
+ALTER TABLE `invoice_items` ADD CONSTRAINT `invoice_items_branch_id_foreign` FOREIGN KEY (`branch_id`) REFERENCES `branches` (`id`);
+ALTER TABLE `cart` ADD CONSTRAINT `cart_branch_id_foreign` FOREIGN KEY (`branch_id`) REFERENCES `branches` (`id`);
 ALTER TABLE `payments` ADD CONSTRAINT `payments_invoice_id_foreign` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`);
+
+
 
 -- Relaciones de Caja
 ALTER TABLE `cash_register` ADD CONSTRAINT `cash_register_branch_id_foreign` FOREIGN KEY (`branch_id`) REFERENCES `branches` (`id`);
@@ -750,3 +771,4 @@ ALTER TABLE `model_social_media` ADD CONSTRAINT `model_social_media_social_media
 -- Relaciones de Suscripciones y Planes por Sede
 ALTER TABLE `branch_subscription_plans` ADD CONSTRAINT `branch_subscription_plans_branch_id_foreign` FOREIGN KEY (`branch_id`) REFERENCES `branches` (`id`);
 ALTER TABLE `branch_subscription_plans` ADD CONSTRAINT `branch_subscription_plans_subscription_plan_id_foreign` FOREIGN KEY (`subscription_plan_id`) REFERENCES `subscription_plans` (`id`);
+ALTER TABLE `product_files` ADD CONSTRAINT `product_files_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`);

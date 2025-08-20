@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { App } from 'antd';
-import { Button, Space, Typography, Table, Tag, Empty, Input, Select, DatePicker, Tooltip, Popconfirm, message, Pagination } from 'antd';
+import { Button, Space, Typography, Table, Tag, Empty, Input, Select, Tooltip, Popconfirm, message, Pagination } from 'antd';
 import { 
     PlusOutlined, 
     UserOutlined, 
@@ -36,9 +36,7 @@ export default function Index({ modelos = [], debug_info }) {
     const [editingModeloId, setEditingModeloId] = useState(null);
     
     const [filters, setFilters] = useState({
-        search: '',
-        fechaDesde: null,
-        fechaHasta: null
+        search: ''
     });
     const [pagination, setPagination] = useState({
         current: 1,
@@ -229,26 +227,6 @@ export default function Index({ modelos = [], debug_info }) {
                 (item.numero_identificacion || '').toLowerCase().includes(filters.search.toLowerCase()) ||
                 (item.medidas_corporales || '').toLowerCase().includes(filters.search.toLowerCase())
             );
-        }
-
-        // Filtro de fechas
-        if (filters.fechaDesde || filters.fechaHasta) {
-            filtered = filtered.filter(item => {
-                const fecha = item.fecha_ultima_suscripcion ? new Date(item.fecha_ultima_suscripcion) : null;
-                const desde = filters.fechaDesde ? new Date(filters.fechaDesde) : null;
-                const hasta = filters.fechaHasta ? new Date(filters.fechaHasta) : null;
-
-                if (!fecha) return false; // Si no hay fecha, excluir
-
-                if (desde && hasta) {
-                    return fecha >= desde && fecha <= hasta;
-                } else if (desde) {
-                    return fecha >= desde;
-                } else if (hasta) {
-                    return fecha <= hasta;
-                }
-                return true;
-            });
         }
 
         // Aplicar ordenamiento global DESPUÉS de filtrar
@@ -490,9 +468,7 @@ export default function Index({ modelos = [], debug_info }) {
 
     const clearFilters = () => {
         setFilters({
-            search: '',
-            fechaDesde: null,
-            fechaHasta: null
+            search: ''
         });
         // También resetear el ordenamiento
         setSorting({
@@ -657,30 +633,15 @@ export default function Index({ modelos = [], debug_info }) {
             }),
         },
         {
-            title: windowWidth <= 576 ? 'Última Suscripción' : 'Fecha Última Suscripción',
-            dataIndex: 'fecha_ultima_suscripcion',
-            key: 'fecha_ultima_suscripcion',
-            width: windowWidth <= 576 ? 120 : windowWidth <= 768 ? 150 : 180,
-            render: (text) => text === 'N/A' ? <Text type="secondary">{text}</Text> : text,
-            sorter: {
-                compare: (a, b) => 0,
-                multiple: false
-            },
-            sortOrder: sorting.field === 'fecha_ultima_suscripcion' ? sorting.order : null,
-            onHeaderCell: () => ({
-                onClick: () => handleColumnSort('fecha_ultima_suscripcion')
-            }),
-        },
-        {
-            title: 'Estado Suscripción',
+            title: 'Estado',
             dataIndex: 'estado_suscripcion',
             key: 'estado_suscripcion',
-            width: windowWidth <= 576 ? 100 : windowWidth <= 768 ? 130 : 150,
+            width: windowWidth <= 576 ? 100 : windowWidth <= 768 ? 130 : 100,
             render: (estado) => {
                 const colorMap = {
                     'Activo': 'success',
                     'Vencido': 'error',
-                    'Inactivo': 'warning',
+                    'Pronto': 'warning',
                     'Sin suscripción': 'default'
                 };
                 const estadoText = estado || 'N/A';
@@ -699,7 +660,7 @@ export default function Index({ modelos = [], debug_info }) {
             filters: [
                 { text: 'Activo', value: 'Activo' },
                 { text: 'Vencido', value: 'Vencido' },
-                { text: 'Inactivo', value: 'Inactivo' },
+                { text: 'Pronto', value: 'Pronto' },
                 { text: 'Sin suscripción', value: 'Sin suscripción' },
             ],
             onFilter: (value, record) => record?.estado_suscripcion === value,
@@ -710,6 +671,36 @@ export default function Index({ modelos = [], debug_info }) {
             sortOrder: sorting.field === 'estado_suscripcion' ? sorting.order : null,
             onHeaderCell: () => ({
                 onClick: () => handleColumnSort('estado_suscripcion')
+            }),
+        },
+        {
+            title: 'Desde',
+            dataIndex: 'fecha_inicio_suscripcion',
+            key: 'fecha_inicio_suscripcion',
+            width: windowWidth <= 576 ? 120 : windowWidth <= 768 ? 150 : 110,
+            render: (text) => text === 'N/A' ? <Text type="secondary">{text}</Text> : text,
+            sorter: {
+                compare: (a, b) => 0,
+                multiple: false
+            },
+            sortOrder: sorting.field === 'fecha_inicio_suscripcion' ? sorting.order : null,
+            onHeaderCell: () => ({
+                onClick: () => handleColumnSort('fecha_inicio_suscripcion')
+            }),
+        },
+        {
+            title: 'Hasta',
+            dataIndex: 'fecha_fin_suscripcion',
+            key: 'fecha_fin_suscripcion',
+            width: windowWidth <= 576 ? 120 : windowWidth <= 768 ? 150 : 110,
+            render: (text) => text === 'N/A' ? <Text type="secondary">{text}</Text> : text,
+            sorter: {
+                compare: (a, b) => 0,
+                multiple: false
+            },
+            sortOrder: sorting.field === 'fecha_fin_suscripcion' ? sorting.order : null,
+            onHeaderCell: () => ({
+                onClick: () => handleColumnSort('fecha_fin_suscripcion')
             }),
         },
         {
@@ -724,7 +715,6 @@ export default function Index({ modelos = [], debug_info }) {
                             size={windowWidth <= 768 ? "small" : "middle"} 
                             icon={<EyeOutlined />}
                             onClick={() => {
-                                // Navegar a la vista completa del modelo
                                 window.location.href = `/admin/modelos/${record.id}`;
                             }}
                         />
@@ -785,33 +775,22 @@ export default function Index({ modelos = [], debug_info }) {
                 <div className={styles.cardContainer}>
                     {/* CONTENEDOR 1 - Filtros */}
                     <div className={styles.filtersSection}>
-                        <Input
-                            placeholder="Buscar por nombre completo o número de identificación..."
-                            prefix={<SearchOutlined />}
-                            value={filters.search}
-                            onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                            allowClear
-                        />
-                        <div className={styles.dateFilters}>
-                            <DatePicker
-                                placeholder="Desde"
-                                value={filters.fechaDesde}
-                                onChange={(date) => setFilters({ ...filters, fechaDesde: date })}
-                                style={{ width: '100%' }}
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', width: '100%' }}>
+                            <Input
+                                placeholder="Buscar por nombre completo o número de identificación..."
+                                prefix={<SearchOutlined />}
+                                value={filters.search}
+                                onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                                allowClear
+                                style={{ flex: 1 }}
                             />
-                            <DatePicker
-                                placeholder="Hasta"
-                                value={filters.fechaHasta}
-                                onChange={(date) => setFilters({ ...filters, fechaHasta: date })}
-                                style={{ width: '100%' }}
-                            />
-                        </div>
-                        <Space>
                             <Button 
                                 icon={<ClearOutlined />}
                                 onClick={clearFilters}
-                            >
-                            </Button>
+                                style={{ flexShrink: 0 }}
+                            />
+                        </div>
+                        <Space>
                             {selectedRowKeys.length > 0 && (
                                 <span className={styles.selectedCount}>
                                     {selectedRowKeys.length} seleccionado(s)</span>

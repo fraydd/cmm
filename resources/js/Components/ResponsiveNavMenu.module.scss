@@ -24,7 +24,7 @@
   background: transparent !important;
   border: none;
   box-shadow: none;
-  color: #ffffff;
+  color: var(--cmm-text-primary);
   transition: filter 0.2s ease, color 0.2s ease;
   white-space: nowrap;
   flex-shrink: 0;
@@ -32,8 +32,8 @@
   height: 34px;
   
   &:hover {
-    color: #ffffff !important;
-    background-color: #4F5152 !important;
+    color: var(--cmm-text-hover) !important;
+    background-color: var(--cmm-primary-600) !important;
   }
 
   &:focus {
@@ -43,7 +43,7 @@
 
 .navItemActive {
   &:hover {
-    color: #ffffff !important;
+    color: var(--cmm-text-primary) !important;
     background-color: transparent !important;
   }
   &::after {
@@ -53,7 +53,7 @@
     right: 0;
     bottom: 0;
     height: 2px;
-    background: #1890ff;
+    background: var(--cmm-primary-500);
     transition: all 0.2s ease;
   }
 }
@@ -62,14 +62,15 @@
   background: transparent !important;
   border: none;
   box-shadow: none;
-  color: #ffffff;
+  color: var(--cmm-text-primary);
   transition: filter 0.2s ease, color 0.2s ease;
   flex-shrink: 0;
   height: 28px;
   min-width: 50px;
   
   &:hover {
-    background-color: #4F5152 !important;
+    color: var(--cmm-text-hover) !important;
+    background-color: var(--cmm-primary-600) !important;
   }
 
   &:focus {
@@ -78,12 +79,12 @@
 }
 
 .moreButtonActive {
-  color: #1890ff !important;
-  background-color: rgba(24, 144, 255, 0.08) !important;
+  color: var(--cmm-primary-500) !important;
+  background-color: color-mix(in srgb, var(--cmm-primary-500) 8%, transparent) !important;
   
   &:hover {
-    color: #1890ff !important;
-    background-color: #4F5152 !important;
+    color: var(--cmm-text-hover) !important;
+    background-color: var(--cmm-primary-600) !important;
   }
 }
 
@@ -96,7 +97,7 @@
     width: 100%;
     
     .checkIcon {
-      color: #1890ff;
+    color: var(--cmm-primary-500);
       font-size: 12px;
       margin-left: 8px;
     }
@@ -111,7 +112,7 @@
 }
 
 .dropdownCheckIcon {
-  color: #1890ff;
+  color: var(--cmm-primary-500);
   font-size: 12px;
   margin-left: 8px;
 }

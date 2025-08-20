@@ -30,6 +30,7 @@ const themes = {
     '--cmm-text-primary': '#213448',
     '--cmm-text-secondary': '#547792',
     '--cmm-text-placeholder': '#94B4C1', // Color más tenue para placeholders
+    '--cmm-text-hover': '#d6e4ebff',
     '--cmm-text-sidebar': '#ECEFCA',
     '--cmm-table-row': '#ffffff',
     '--cmm-table-hover': '#f1f5f9',
@@ -69,6 +70,7 @@ const themes = {
     '--cmm-text-primary': '#ffffff',  // Texto principal blanco
     '--cmm-text-secondary': '#d4d4d4', // Texto secundario gris claro
     '--cmm-text-placeholder': '#737373', // Color más tenue para placeholders en modo oscuro
+    '--cmm-text-hover': '#ffffff',
     '--cmm-text-sidebar': '#ffffff',  // Texto sidebar blanco
     '--cmm-table-row': '#262626',     // Fila normal en modo oscuro
     '--cmm-table-hover': '#404040',   // Gris oscuro elegante para hover en modo oscuro
@@ -108,6 +110,7 @@ const themes = {
     '--cmm-text-primary': '#1e40af',
     '--cmm-text-secondary': '#3b82f6',
     '--cmm-text-placeholder': '#60a5fa', // Color más tenue para placeholders en tema azul
+    '--cmm-text-hover': '#ffffff',
     '--cmm-text-sidebar': '#fef3c7',
     '--cmm-table-row': '#ffffff',
     '--cmm-table-hover': '#dbeafe',

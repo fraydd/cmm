@@ -1,3 +1,8 @@
+/* Separar iconos de las pestañas del texto */
+.ant-tabs-tab .anticon {
+  margin-right: 8px;
+  vertical-align: middle;
+}
 /* Overrides para Ant Design - Box Shadows de Botones */
 
 /* Botón primario - estado normal */
