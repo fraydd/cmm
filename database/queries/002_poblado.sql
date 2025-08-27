@@ -168,7 +168,11 @@ INSERT INTO `permissions` (`name`, `guard_name`, `created_at`, `updated_at`) VAL
 -- 
 
 -- permisos 
-('view_permissions', 'web', NOW(), NOW());
+('view_permissions', 'web', NOW(), NOW()),
+
+-- cierres de caja
+('view_cash_registers', 'web', NOW(), NOW()),
+('edit_cash_registers', 'web', NOW(), NOW());
 
 -- ===== ASIGNACIÓN DE PERMISOS A ROLES =====
 

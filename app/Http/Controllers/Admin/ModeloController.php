@@ -633,7 +633,7 @@ class ModeloController extends \App\Http\Controllers\Controller
 
             // se registra el pago
             if ($pagado > 0) {
-                DB::table('payments')->insert([
+                $paymentId = DB::table('payments')->insertGetId([
                     'branch_id' => $data['branch_id'],
                     'invoice_id' => $invoiceId,
                     'payment_method_id' => $data['medio_pago'],
@@ -643,6 +643,26 @@ class ModeloController extends \App\Http\Controllers\Controller
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
+                $cashRegister = DB::table('cash_register')
+                        ->where('branch_id',$data['branch_id'])
+                        ->where('status', 'open')
+                        ->orderByDesc('opening_date')
+                        ->first();
+                if ($cashRegister) {
+                    DB::table('cash_movements')->insert([
+                        'cash_register_id' => $cashRegister->id,
+                        'movement_type' => 'ingreso',
+                        'invoice_id' => $invoiceId,
+                        'payment_id' => $paymentId,
+                        'amount' => $pagado,
+                        'concept' => 'Registro inicial',
+                        'observations' => $data['observaciones'] ?? null,
+                        'movement_date' => now(),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+
             }
 
             // Limpiar archivos temporales que no se usaron

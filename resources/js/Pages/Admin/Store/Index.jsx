@@ -8,29 +8,19 @@ import {
     Badge,
     Input,
     Tag,
-    Row,
-    Col,
     Tabs,
     Typography,
     Space,
     Avatar,
-    Divider,
-    Rate
+    Modal,
 } from 'antd';
 import {
     ShoppingCartOutlined,
-    HeartOutlined,
-    HeartFilled,
     ShoppingOutlined,
-    SearchOutlined,
     CrownOutlined,
     CalendarOutlined,
     ShopOutlined,
-    FilterOutlined,
-    StarOutlined,
-    EnvironmentOutlined,
     ClockCircleOutlined,
-    UserOutlined
 } from '@ant-design/icons';
 import AdminLayout from '../../../Layouts/AdminLayout';
 import styles from './Index.module.scss';
@@ -63,6 +53,8 @@ export default function Index(props) {
     const [clienteIdentificacion, setClienteIdentificacion] = useState('');
     const [clienteInfo, setClienteInfo] = useState(null);
     const [busqueda, setBusqueda] = useState('');
+    const [cashRegisterActive, setCashRegisterActive] = useState(null);
+    const [loadingCashRegister, setLoadingCashRegister] = useState(true);
     const page = usePage();
     const identificacionFijada = props?.identificacion || page?.props?.identificacion || null;
 
@@ -74,7 +66,6 @@ export default function Index(props) {
             selectedBranch?.id &&
             !clienteInfo // Solo si aún no se ha consultado
         ) {
-            console.log('-----> ', identificacionFijada, selectedBranch?.id, clienteInfo);
 
             setClienteIdentificacion(identificacionFijada); // Actualiza el input
             handleClienteIdentificacionFinalizada(identificacionFijada); // Llama tu método existente
@@ -140,7 +131,6 @@ export default function Index(props) {
         fetchMediosPago();
     }, []);
 
-
     // Volver a consultar catálogo al cerrar el carrito
     useEffect(() => {
         if (!isCartOpen) {
@@ -188,7 +178,6 @@ export default function Index(props) {
             identificacion = clienteIdentificacion;
         }
 
-        console.log('Identificación :', identificacion);
 
         if (!identificacion) return;
         try {
@@ -452,6 +441,66 @@ export default function Index(props) {
             })}
         </div>
     );
+
+    // Validar si hay caja activa al iniciar
+    useEffect(() => {
+        const fetchActiveCashRegister = async () => {
+            if (!selectedBranch?.id) return;
+            setLoadingCashRegister(true);
+            try {
+                const response = await fetch(`/admin/cash-register/getActive/${selectedBranch.id}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                if (!response.ok) {
+                    setCashRegisterActive(null);
+                    return;
+                }
+                const data = await response.json();
+                setCashRegisterActive(data.caja || null);
+            } catch (error) {
+                setCashRegisterActive(null);
+            } finally {
+                setLoadingCashRegister(false);
+            }
+        };
+        fetchActiveCashRegister();
+    }, [selectedBranch?.id]);
+
+    // Mostrar modal bloqueante si no hay caja activa
+    useEffect(() => {
+        if (!loadingCashRegister && cashRegisterActive === null) {
+            Modal.error({
+                title: 'Caja no abierta',
+                content: 'No hay una caja abierta en esta sede. Solicite la apertura de caja para continuar.',
+                okText: 'Cerrar',
+                maskClosable: false,
+                closable: false,
+                onOk: () => {
+                    // cerrar
+                    Modal.destroyAll();
+                },
+            });
+        }
+    }, [loadingCashRegister, cashRegisterActive]);
+
+    if (!loadingCashRegister && cashRegisterActive === null) {
+        return (
+            <AdminLayout>
+            <div className={styles.StorePage}>
+                <Title level={2}>No hay caja activa</Title>
+                <Text type="secondary">
+                    No se puede realizar la venta sin una caja activa.
+                </Text>
+            </div>
+
+        </AdminLayout>
+        );
+    }
 
     return (
         <AdminLayout>

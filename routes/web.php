@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\CashRegisterController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Admin\ModeloController;
@@ -188,3 +189,15 @@ Route::prefix('admin')->middleware(['auth', 'permission:ver_tienda'])->group(fun
 Route::post('admin/tienda/searchPerson', [\App\Http\Controllers\Admin\StoreController::class, 'searchPerson'])
     ->middleware('auth')
     ->name('admin.store.searchPerson');
+
+
+Route::prefix('admin')->middleware(['auth', 'permission:view_cash_registers'])->group(function () {
+    Route::get('cash-register', [CashRegisterController::class, 'index'])->name('admin.cash_register.index');
+    Route::post('cash-register/list', [CashRegisterController::class, 'getCashRegisters'])->name('admin.cash_register.list');
+    Route::post('cash-register/open', [CashRegisterController::class, 'open'])->name('admin.cash_register.open');
+    Route::post('cash-register/edit', [CashRegisterController::class, 'edit'])->name('admin.cash_register.edit');
+});
+
+Route::prefix('admin')->middleware(['auth', 'verified'])->group(function () {
+    Route::get('cash-register/getActive/{branch_id}', [CashRegisterController::class, 'getActive'])->name('admin.cash_register.getActive');
+});

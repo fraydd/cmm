@@ -193,19 +193,14 @@ const Sidebar = forwardRef(({ collapsed, auth, onToggle, isMobile = false, isVis
             ]
         },
         {
-            key: 'caja',
+            key: 'cash_register',
             icon: <DollarOutlined />,
             label: 'Caja',
             children: [
-                { 
-                    key: 'caja.index', 
-                    label: 'Flujo de Caja',
-                    onClick: () => router.visit('/admin/caja')
-                },
-                { 
-                    key: 'caja.reports', 
-                    label: 'Reportes',
-                    onClick: () => router.visit('/admin/caja/reports')
+                {
+                    key: 'cash_register.index',
+                    label: 'Histórico de Caja',
+                    onClick: () => router.visit('/admin/cash-register')
                 }
             ]
         },
@@ -255,7 +250,7 @@ const Sidebar = forwardRef(({ collapsed, auth, onToggle, isMobile = false, isVis
         if (item.key === 'settings') return true; // Configuración disponible para todos
         if (item.key === 'modelos') return can('view_modelos');
         if (item.key === 'empleados') return can('view_employees') || can('view_invitations');
-        if (item.key === 'caja') return can('view_caja');
+        if (item.key === 'cash_register') return can('view_cash_registers');
         if (item.key === 'academia') return can('view_academia');
         return true;
     });

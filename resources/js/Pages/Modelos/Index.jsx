@@ -11,11 +11,13 @@ import {
     EditOutlined,
     EyeOutlined,
     ReloadOutlined,
-    CheckOutlined
+    CheckOutlined,
+    ShoppingCartOutlined
 } from '@ant-design/icons';
 import { useNotifications } from '../../hooks/useNotifications.jsx';
 import { useBranch } from '../../hooks/useBranch.jsx'; // Importar hook de sede
 import ModeloModal from '../../Components/ModeloModal.jsx';
+import { Modal } from 'antd';
 import AdminLayout from '../../Layouts/AdminLayout';
 import styles from './Index.module.scss';
 
@@ -25,6 +27,8 @@ export default function Index({ modelos = [], debug_info }) {
     const { showSuccess, showError } = useNotifications();
     const { selectedBranch } = useBranch(); // Hook para obtener sede seleccionada
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [loadingCashRegister, setLoadingCashRegister] = useState(false);
+    const [cashRegisterActive, setCashRegisterActive] = useState(null);
     const [loading, setLoading] = useState(false);
     const [selectedRowKeys, setSelectedRowKeys] = useState([]);
     const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
@@ -278,16 +282,55 @@ export default function Index({ modelos = [], debug_info }) {
     ) : [];
     const paginatedData = validFilteredData.slice(startIndex, endIndex);
     
-    const handleAddModel = () => {
-        setEditingModeloId(null); // Modo crear
-        setIsModalVisible(true);
-    };
 
-    const handleModalCancel = () => {
+    // Valida si hay caja activa antes de mostrar el modal
+    const handleAddModel = async () => {
+        if (!selectedBranch?.id) {
+            showError('Debe seleccionar una sede antes de registrar un modelo.');
+            return;
+        }
+        setLoadingCashRegister(true);
+        try {
+            const response = await fetch(`/admin/cash-register/getActive/${selectedBranch.id}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            if (!response.ok) {
+                setCashRegisterActive(null);
+                Modal.error({
+                    title: 'Caja no abierta',
+                    content: 'No hay una caja abierta en esta sede. Solicite la apertura de caja para continuar.',
+                    okText: 'Cerrar',
+                    maskClosable: false,
+                    closable: false,
+                });
+                return;
+            }
+            const data = await response.json();
+            setCashRegisterActive(data.caja || null);
+            setEditingModeloId(null); // Modo crear
+            setIsModalVisible(true);
+        } catch (error) {
+            setCashRegisterActive(null);
+            Modal.error({
+                title: 'Caja no abierta',
+                content: 'No hay una caja abierta en esta sede. Solicite la apertura de caja para continuar.',
+                okText: 'Cerrar',
+                maskClosable: false,
+                closable: false,
+            });
+        } finally {
+            setLoadingCashRegister(false);
+        }
+    };
+   const handleModalCancel = () => {
         setIsModalVisible(false);
         setEditingModeloId(null);
     };
-
     const handleModalSubmit = async (values) => {
         setLoading(true);
         
@@ -745,6 +788,20 @@ export default function Index({ modelos = [], debug_info }) {
                                 icon={<DeleteOutlined />}
                             />
                         </Popconfirm>
+                    </Tooltip>
+                    <Tooltip title="Tienda">
+                        <Button
+                            type="text"
+                            size={windowWidth <= 768 ? "small" : "middle"}
+                            icon={<ShoppingCartOutlined />}
+                            onClick={() => {
+                                if (record.numero_identificacion) {
+                                    window.location.href = `/admin/tienda?identificacion=${encodeURIComponent(record.numero_identificacion)}`;
+                                } else {
+                                    console.log('El modelo no tiene número de identificación');
+                                }
+                            }}
+                        />
                     </Tooltip>
                 </Space>
             ),

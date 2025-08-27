@@ -13,12 +13,14 @@ class StoreController extends Controller
 {
     public function index(Request $request)
     {
-
-        // return Inertia::render('Admin/Store/Index');
-
-        return Inertia::render('Admin/Store/Index', [
-            'identificacion' => '1234'
-        ]);
+        $identificacion = $request->input('identificacion');
+        if ($identificacion) {
+            return Inertia::render('Admin/Store/Index', [
+                'identificacion' => $identificacion
+            ]);
+        } else {
+            return Inertia::render('Admin/Store/Index');
+        }
     }
 
     public function getCatalog(Request $request)
@@ -747,7 +749,7 @@ class StoreController extends Controller
             // 4. Registrar el pago en la tabla payments
             $paymentMethodId = $request->input('paymentMethod');
             // amountPaid ya calculado arriba
-            DB::table('payments')->insert([
+            $paymentId = DB::table('payments')->insertGetId([
                 'branch_id' => $branchId,
                 'invoice_id' => $invoiceId,
                 'payment_method_id' => $paymentMethodId,
@@ -759,7 +761,29 @@ class StoreController extends Controller
                 'updated_at' => now(),
             ]);
 
-            // 5. Borrar items del cart
+            // 5. Registrar movimiento de caja
+            // Determinar tipo de movimiento (ingreso por venta)
+            $cashRegister = DB::table('cash_register')
+                ->where('branch_id', $branchId)
+                ->where('status', 'open')
+                ->orderByDesc('opening_date')
+                ->first();
+            if ($cashRegister) {
+                DB::table('cash_movements')->insert([
+                    'cash_register_id' => $cashRegister->id,
+                    'movement_type' => 'ingreso',
+                    'invoice_id' => $invoiceId,
+                    'payment_id' => $paymentId,
+                    'amount' => $amountPaid,
+                    'concept' => 'Venta en tienda',
+                    'observations' => $request->input('observaciones'),
+                    'movement_date' => now(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+
+            // 6. Borrar items del cart
             DB::delete(<<<SQL
                 DELETE FROM cart WHERE person_id = ? AND branch_id = ?
             SQL, [$personId, $branchId]);
