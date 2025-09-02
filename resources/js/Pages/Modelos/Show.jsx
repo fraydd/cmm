@@ -965,7 +965,7 @@ export default function Show({
                                 <h3>Galería de Imágenes</h3>
                                 <p><strong>Total de imágenes:</strong> {galleryImages.length || 0}</p>
                                 <p>Sesiones fotográficas profesionales y trabajos destacados del modelo</p>
-                                {/* Galería de imágenes */}
+                                {/* Galería de imágenes */} 
                                 <div className={styles.galleryContainer}>
                                     <ImageGallery
                                         items={galleryImages}
