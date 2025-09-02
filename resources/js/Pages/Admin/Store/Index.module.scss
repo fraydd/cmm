@@ -153,6 +153,8 @@ $breakpoint-xxl: 1600px; // Extra extra grande (pantallas grandes)
     justify-content: center;
     align-items: stretch;
     margin-top: 16px;
+    max-height: 65vh;
+    overflow-y: auto;
 }
 
 .membershipCardWrapper {

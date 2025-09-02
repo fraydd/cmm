@@ -65,39 +65,41 @@ class ModeloController extends \App\Http\Controllers\Controller
         }
 
         // Consulta SQL con parámetro seguro
-        $sql = "
-        SELECT
-            m.id,
-            CONCAT(p.first_name, ' ', p.last_name) AS nombre_completo,
-            p.identification_number AS numero_identificacion,
-            CASE 
-                WHEN mp.bust IS NOT NULL AND mp.waist IS NOT NULL AND mp.hips IS NOT NULL 
-                THEN CONCAT(mp.bust, '-', mp.waist, '-', mp.hips)
-                ELSE 'No registradas'
-            END AS medidas_corporales,
-            sp.name AS plan_suscripcion,
-            CASE 
-                WHEN s.start_date IS NULL AND s.end_date IS NULL THEN 'Sin suscripción'
-                WHEN s.start_date > CURDATE() THEN 'Pronto'
-                WHEN s.start_date <= CURDATE() AND s.end_date >= CURDATE() THEN 'Activo'
-                WHEN s.end_date < CURDATE() THEN 'Vencido'
-                ELSE 'Sin suscripción'
-            END AS estado_suscripcion,
-            s.start_date AS fecha_inicio_suscripcion,
-            s.end_date AS fecha_fin_suscripcion
-        FROM models m
-        JOIN people p ON m.person_id = p.id
-        LEFT JOIN model_profiles mp ON m.id = mp.model_id
-        LEFT JOIN (
-            SELECT 
-                s1.model_id,
-                s1.id,
-                s1.subscription_plan_id,
-                s1.start_date,
-                s1.end_date,
-                s1.created_at,
-                ROW_NUMBER() OVER (
-                    PARTITION BY s1.model_id 
+        $sql = <<<SQL
+            SELECT
+                m.id,
+                CONCAT(p.first_name, ' ', p.last_name) AS nombre_completo,
+                p.identification_number AS numero_identificacion,
+                CASE 
+                    WHEN mp.bust IS NOT NULL AND mp.waist IS NOT NULL AND mp.hips IS NOT NULL 
+                    THEN CONCAT(mp.bust, '-', mp.waist, '-', mp.hips)
+                    ELSE 'No registradas'
+                END AS medidas_corporales,
+                sp.name AS plan_suscripcion,
+                CASE 
+                    WHEN s.start_date IS NULL AND s.end_date IS NULL THEN 'Sin suscripción'
+                    WHEN s.start_date > CURDATE() THEN 'Pronto'
+                    WHEN s.start_date <= CURDATE() AND s.end_date >= CURDATE() THEN 'Activo'
+                    WHEN s.end_date < CURDATE() THEN 'Vencido'
+                    ELSE 'Sin suscripción'
+                END AS estado_suscripcion,
+                s.start_date AS fecha_inicio_suscripcion,
+                s.end_date AS fecha_fin_suscripcion
+            FROM models m
+            JOIN people p ON m.person_id = p.id
+            LEFT JOIN model_profiles mp ON m.id = mp.model_id
+            LEFT JOIN subscriptions s ON m.id = s.model_id 
+                AND s.id = (
+                    SELECT s1.id
+                    FROM subscriptions s1
+                    WHERE s1.model_id = m.id
+                    AND EXISTS (
+                        SELECT 1 
+                        FROM branch_subscription_plans bsp 
+                        WHERE bsp.subscription_plan_id = s1.subscription_plan_id 
+                        AND bsp.branch_id = :branch_id
+                        AND bsp.is_active = TRUE
+                    )
                     ORDER BY 
                         CASE 
                             WHEN CURDATE() BETWEEN s1.start_date AND s1.end_date THEN 1  -- vigente
@@ -116,21 +118,13 @@ class ModeloController extends \App\Http\Controllers\Controller
                             WHEN s1.end_date < CURDATE() THEN s1.end_date  -- vencida (orden desc)
                             ELSE NULL
                         END DESC
-                ) AS rn
-            FROM subscriptions s1
-            WHERE EXISTS (
-                SELECT 1 
-                FROM branch_subscription_plans bsp 
-                WHERE bsp.subscription_plan_id = s1.subscription_plan_id 
-                AND bsp.branch_id = :branch_id
-                AND bsp.is_active = TRUE
-            )
-        ) s ON m.id = s.model_id AND s.rn = 1
-        LEFT JOIN subscription_plans sp ON s.subscription_plan_id = sp.id
-        WHERE m.is_active = TRUE 
-        AND p.is_active = TRUE
-        ORDER BY m.created_at DESC
-        ";
+                    LIMIT 1
+                )
+            LEFT JOIN subscription_plans sp ON s.subscription_plan_id = sp.id
+            WHERE m.is_active = TRUE 
+            AND p.is_active = TRUE
+            ORDER BY m.created_at DESC;
+        SQL;
 
         $modelos = collect(DB::select($sql, ['branch_id' => $branchId]))
             ->map(function($modelo) {

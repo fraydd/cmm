@@ -963,7 +963,7 @@ export default function Show({
                         <div className={styles.singleColumn}>
                             <div className={styles.colContent}>
                                 <h3>Galería de Imágenes</h3>
-                                <p><strong>Total de imágenes:</strong> {estadisticas?.total_imagenes || 0}</p>
+                                <p><strong>Total de imágenes:</strong> {galleryImages.length || 0}</p>
                                 <p>Sesiones fotográficas profesionales y trabajos destacados del modelo</p>
                                 {/* Galería de imágenes */}
                                 <div className={styles.galleryContainer}>
@@ -984,39 +984,37 @@ export default function Show({
                             </div>
                             
                             <div className={styles.colContent}>
-                                <h3>Portafolio Profesional</h3>
-                                <p>Documento PDF con el portfolio completo incluyendo trabajos realizados y experiencia profesional</p>
-                                
-                                <div className={styles.portfolioPreview}>
-                                    {/* Ruta hardcodeada - reemplázala con tu ruta real */}
-                                    <div className={styles.pdfViewer}>
-                                    {/* Controles de navegación */}
-
-
-
-<div className={styles.pdfViewer}>
-          {/* Contenedor del PDF con Viewer */}
-          <div className={styles.pdfContainer}>
-            <Viewer
-              fileUrl={`/${portafolio.file_path}`}
-              renderError={(error) => (
-                <div className={styles.pdfError}>
-                  Error al cargar el PDF: {error.message}
-                </div>
-              )}
-              renderLoader={() => (
-                <div className={styles.pdfLoading}>
-                  Cargando PDF...
-                </div>
-              )}
-            />
-          </div>
-        </div>
-
-
-                                    </div>
-                                </div>
+    <h3>Portafolio Profesional</h3>
+    <p>Documento PDF con el portfolio completo incluyendo trabajos realizados y experiencia profesional</p>
+    
+    <div className={styles.portfolioPreview}>
+        {/* Validación si existe portafolio */}
+        {portafolio && portafolio.file_path && portafolio.file_path.trim() !== '' ? (
+            <div className={styles.pdfViewer}>
+                {/* Contenedor del PDF con Viewer */}
+                <div className={styles.pdfContainer}>
+                    <Viewer
+                        fileUrl={`/${portafolio.file_path}`}
+                        renderError={(error) => (
+                            <div className={styles.pdfError}>
+                                Error al cargar el PDF: {error.message}
                             </div>
+                        )}
+                        renderLoader={() => (
+                            <div className={styles.pdfLoading}>
+                                Cargando PDF...
+                            </div>
+                        )}
+                    />
+                </div>
+            </div>
+        ) : (
+            <div className={styles.noPortfolio}>
+                <p>No hay portafolio disponible aún</p>
+            </div>
+        )}
+    </div>
+</div>
                         </div>
                     </div>
                 );
@@ -1092,7 +1090,7 @@ export default function Show({
                                 <p><strong>Total de facturas:</strong> {finanzas.facturas?.length || 0}</p>
                                {finanzas.facturas && finanzas.facturas.length > 0 ? (
                                     finanzas.facturas.map((factura) => (
-                                    <div key={factura.id} className="invoiceItem">
+                                    <div key={factura.id} className={styles.invoiceItem}>
                                         <p><strong>Factura #{factura.id}</strong></p>
                                         <p>Sede: {factura.name}</p>
                                         <p>Total: {formatearCOP(factura.total_amount)}</p>
@@ -1110,7 +1108,7 @@ export default function Show({
                                 <p><strong>Total de pagos:</strong> {finanzas.pagos?.length || 0}</p>
                                  {finanzas.pagos && finanzas.pagos.length > 0 ? (
                                     finanzas.pagos.map((pago) => (
-                                    <div key={pago.id} className="paymentItem">
+                                    <div key={pago.id} className={styles.paymentItem}>
                                         <p><strong>Pago de {formatearCOP(pago.amount)}</strong></p>
                                         <p>Fecha: {pago.payment_date}</p>
                                         <p>Método: {pago.name}</p>
@@ -1126,21 +1124,23 @@ export default function Show({
                         <div className={`${styles.col2} ${styles.columna}`}>
                             <div className={styles.colContent}>
                                 <h3>Pagos Pendientes</h3>
-                                {finanzas.deudas && finanzas.deudas.filter(f => f.pendiente > 0).length > 0 ? (
-                                    finanzas.deudas.map((factura) => (
-                                        <div className={styles.pendingItem}>
-                                            <p><strong>Factura #{factura.id}</strong></p>
-                                            <p>Monto pendiente: ${formatearCOP(factura.remaining_amount)}</p>
-                                            <p>Fecha de emisión: 2025</p>
-                                            <p>Sucursal: {factura.name}</p>
+                                <div className={styles.pendingPayments}>
+                                    {finanzas.deudas && finanzas.deudas.length > 0 ? (
+                                        finanzas.deudas.map((factura) => (
+                                            <div className={styles.pendingItem}>
+                                                <p><strong>Factura #{factura.id}</strong></p>
+                                                <p>Monto pendiente: {formatearCOP(factura.remaining_amount)}</p>
+                                                <p>Fecha de emisión: 2025</p>
+                                                <p>Sucursal: {factura.name}</p>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className={styles.noPendingPayments}>
+                                            <p><strong>¡Excelente!</strong></p>
+                                            <p>No hay pagos pendientes</p>
                                         </div>
-                                    ))
-                                ) : (
-                                    <div className={styles.noPendingPayments}>
-                                        <p><strong>¡Excelente!</strong></p>
-                                        <p>No hay pagos pendientes</p>
-                                    </div>
-                                )}
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
