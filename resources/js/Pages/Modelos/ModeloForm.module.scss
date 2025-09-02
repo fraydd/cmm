@@ -246,3 +246,15 @@
     max-width: 120px;
   }
 } 
+.pdfUploader {
+  width: 300px !important; // Ancho fijo
+  max-width: 100%;
+  
+  :global(.ant-upload-list-item) {
+    width: 100% !important;
+  }
+  
+  :global(.ant-upload-select) {
+    width: 100% !important;
+  }
+}

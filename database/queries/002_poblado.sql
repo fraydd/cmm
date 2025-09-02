@@ -172,7 +172,15 @@ INSERT INTO `permissions` (`name`, `guard_name`, `created_at`, `updated_at`) VAL
 
 -- cierres de caja
 ('view_cash_registers', 'web', NOW(), NOW()),
-('edit_cash_registers', 'web', NOW(), NOW());
+('edit_cash_registers', 'web', NOW(), NOW()),
+
+-- movimientos de caja
+('view_cash_movements', 'web', NOW(), NOW()),
+
+
+('edit_cash_movements', 'web', NOW(), NOW()),
+('view_invoices', 'web', NOW(), NOW()),
+('edit_invoices', 'web', NOW(), NOW());
 
 -- ===== ASIGNACIÓN DE PERMISOS A ROLES =====
 

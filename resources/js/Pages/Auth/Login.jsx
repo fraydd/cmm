@@ -19,6 +19,7 @@ import {
     ArrowLeftOutlined
 } from '@ant-design/icons';
 import { router, useForm } from '@inertiajs/react';
+import styles from './Login.module.scss';
 
 const { Title, Text } = Typography;
 
@@ -49,65 +50,27 @@ const Login = ({ errors }) => {
     };
 
     return (
-        <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%)',
-            backdropFilter: 'blur(10px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '20px'
-        }}>
-            <div style={{
-                background: 'rgba(255, 255, 255, 0.95)',
-                borderRadius: '16px',
-                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                maxWidth: '400px',
-                width: '100%',
-                padding: '40px',
-                position: 'relative'
-            }}>
+        <div className={styles.loginOverlay}>
+            <div className={styles.loginContainer}>
                 {/* Botón de cerrar */}
                 <Button
                     type="text"
                     icon={<ArrowLeftOutlined />}
                     onClick={handleCancel}
-                    style={{
-                        position: 'absolute',
-                        top: '20px',
-                        left: '20px',
-                        color: '#666'
-                    }}
+                    className={styles.backButton}
                 >
                     Volver
                 </Button>
 
                 {/* Header */}
-                <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-                    <div style={{
-                        width: '60px',
-                        height: '60px',
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        margin: '0 auto 16px',
-                        boxShadow: '0 8px 16px rgba(102, 126, 234, 0.3)'
-                    }}>
-                        <LoginOutlined style={{ fontSize: '24px', color: 'white' }} />
+                <div className={styles.header}>
+                    <div className={styles.iconContainer}>
+                        <LoginOutlined className={styles.icon} />
                     </div>
-                    <Title level={2} style={{ margin: 0, color: '#333' }}>
+                    <Title level={2} className={styles.title}>
                         Iniciar Sesión
                     </Title>
-                    <Text type="secondary" style={{ fontSize: '14px' }}>
+                    <Text type="secondary" className={styles.subtitle}>
                         Accede a tu cuenta de CMM System
                     </Text>
                 </div>
@@ -118,7 +81,7 @@ const Login = ({ errors }) => {
                         message={errors.email}
                         type="error"
                         showIcon
-                        style={{ marginBottom: '16px' }}
+                        className={styles.errorAlert}
                     />
                 )}
 
@@ -137,15 +100,11 @@ const Login = ({ errors }) => {
                         ]}
                     >
                         <Input
-                            prefix={<UserOutlined style={{ color: '#bfbfbf' }} />}
+                            prefix={<UserOutlined className={styles.inputIcon} />}
                             placeholder="Correo electrónico"
                             value={data.email}
                             onChange={(e) => setData('email', e.target.value)}
-                            style={{
-                                borderRadius: '8px',
-                                height: '48px',
-                                border: '1px solid #d9d9d9'
-                            }}
+                            className={styles.inputField}
                         />
                     </Form.Item>
 
@@ -156,21 +115,17 @@ const Login = ({ errors }) => {
                         ]}
                     >
                         <Input.Password
-                            prefix={<LockOutlined style={{ color: '#bfbfbf' }} />}
+                            prefix={<LockOutlined className={styles.inputIcon} />}
                             placeholder="Contraseña"
                             value={data.password}
                             onChange={(e) => setData('password', e.target.value)}
                             iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
-                            style={{
-                                borderRadius: '8px',
-                                height: '48px',
-                                border: '1px solid #d9d9d9'
-                            }}
+                            className={styles.inputField}
                         />
                     </Form.Item>
 
                     <Form.Item>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div className={styles.rememberContainer}>
                             <Form.Item name="remember" valuePropName="checked" noStyle>
                                 <Checkbox
                                     checked={data.remember}
@@ -179,7 +134,7 @@ const Login = ({ errors }) => {
                                     Recordarme
                                 </Checkbox>
                             </Form.Item>
-                            <Button type="link" style={{ padding: 0 }}>
+                            <Button type="link" className={styles.forgotPassword}>
                                 ¿Olvidaste tu contraseña?
                             </Button>
                         </div>
@@ -190,29 +145,21 @@ const Login = ({ errors }) => {
                             type="primary"
                             htmlType="submit"
                             loading={processing || loading}
-                            style={{
-                                width: '100%',
-                                height: '48px',
-                                borderRadius: '8px',
-                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                border: 'none',
-                                fontSize: '16px',
-                                fontWeight: '500'
-                            }}
+                            className={styles.submitButton}
                         >
                             {processing || loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
                         </Button>
                     </Form.Item>
                 </Form>
 
-                <Divider style={{ margin: '24px 0' }}>
-                    <Text type="secondary" style={{ fontSize: '12px' }}>
+                <Divider className={styles.divider}>
+                    <Text type="secondary" className={styles.dividerText}>
                         ¿No tienes una cuenta?
                     </Text>
                 </Divider>
 
-                <div style={{ textAlign: 'center' }}>
-                    <Text type="secondary" style={{ fontSize: '14px' }}>
+                <div className={styles.footer}>
+                    <Text type="secondary" className={styles.footerText}>
                         Contacta al administrador para obtener acceso
                     </Text>
                 </div>
@@ -221,4 +168,4 @@ const Login = ({ errors }) => {
     );
 };
 
-export default Login; 
+export default Login;

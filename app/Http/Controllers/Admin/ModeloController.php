@@ -459,6 +459,49 @@ class ModeloController extends \App\Http\Controllers\Controller
                 }
             }
 
+            // Procesar PDF si se envió
+            if (!empty($data['pdf_document_meta'])) {
+                $pdfMeta = json_decode($data['pdf_document_meta'], true);
+                
+                if (!empty($pdfMeta) && is_array($pdfMeta)) {
+                    // Crear directorio definitivo para los PDFs del modelo
+                    $definitivePdfPath = 'storage/modelos/' . $modelId . '/catalogos';
+                    $fullDefinitivePath = public_path($definitivePdfPath);
+                    
+                    if (!file_exists($fullDefinitivePath)) {
+                        mkdir($fullDefinitivePath, 0755, true);
+                    }
+
+                    foreach ($pdfMeta as $pdf) {
+                        if (isset($pdf['temp_id']) && !empty($pdf['temp_id'])) {
+                            $tempFilePath = public_path('storage/temp/pdfs/' . $pdf['temp_id']);
+                            $definitiveFileName = $pdf['temp_id'];
+                            $definitiveFilePath = $fullDefinitivePath . '/' . $definitiveFileName;
+                            $relativeDefinitivePath = $definitivePdfPath . '/' . $definitiveFileName;
+
+                            // Mover archivo de temporal a definitivo
+                            if (file_exists($tempFilePath)) {
+                                if (rename($tempFilePath, $definitiveFilePath)) {
+                                    // Registrar en base de datos con file_type = 'catalogo'
+                                    DB::table('model_files')->insert([
+                                        'model_id' => $modelId,
+                                        'file_path' => $relativeDefinitivePath,
+                                        'file_name' => $definitiveFileName,
+                                        'file_type' => 'catalogo',
+                                        'created_at' => now(),
+                                        'updated_at' => now(),
+                                    ]);
+                                } else {
+                                    Log::warning("No se pudo mover el PDF temporal: {$tempFilePath}");
+                                }
+                            } else {
+                                Log::warning("Archivo PDF temporal no encontrado: {$tempFilePath}");
+                            }
+                        }
+                    }
+                }
+            }
+
             // 4. Insertar redes sociales
             $socialMediaData = [
                 'facebook' => $data['facebook'] ?? null,
@@ -623,7 +666,7 @@ class ModeloController extends \App\Http\Controllers\Controller
             DB::table('invoice_items')->insert([
                 'invoice_id' => $invoiceId,
                 'item_type_id' => 2,
-                'subscription_id' => $subscriptionId,
+                'subscription_id' => $subscriptionPlan->id,
                 'quantity' => $quantity,
                 'unit_price' => $branchPlan->custom_price ?? $subscriptionPlan->price,
                 'total_price' => $total,
@@ -633,8 +676,21 @@ class ModeloController extends \App\Http\Controllers\Controller
 
             // se registra el pago
             if ($pagado > 0) {
+
+                $cashRegister = DB::table('cash_register')
+                        ->where('branch_id',$data['branch_id'])
+                        ->where('status', 'open')
+                        ->orderByDesc('opening_date')
+                        ->first();
+
+                if (!$cashRegister) {
+                    // Si no hay caja abierta, no se puede registrar el pago
+                    throw new \Exception('No hay caja abierta para registrar el pago');
+                }
+
                 $paymentId = DB::table('payments')->insertGetId([
-                    'branch_id' => $data['branch_id'],
+                    'branch_id' => $data['branch_id'],  
+                    'cash_register_id' => $cashRegister->id,
                     'invoice_id' => $invoiceId,
                     'payment_method_id' => $data['medio_pago'],
                     'amount' => $pagado,
@@ -643,30 +699,11 @@ class ModeloController extends \App\Http\Controllers\Controller
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
-                $cashRegister = DB::table('cash_register')
-                        ->where('branch_id',$data['branch_id'])
-                        ->where('status', 'open')
-                        ->orderByDesc('opening_date')
-                        ->first();
-                if ($cashRegister) {
-                    DB::table('cash_movements')->insert([
-                        'cash_register_id' => $cashRegister->id,
-                        'movement_type' => 'ingreso',
-                        'invoice_id' => $invoiceId,
-                        'payment_id' => $paymentId,
-                        'amount' => $pagado,
-                        'concept' => 'Registro inicial',
-                        'observations' => $data['observaciones'] ?? null,
-                        'movement_date' => now(),
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
-                }
 
             }
 
             // Limpiar archivos temporales que no se usaron
-            $this->cleanUpUnusedTempFiles($imagesMeta);
+            $this->cleanUpUnusedTempFiles($imagesMeta, $pdfMeta ?? []);
 
             DB::commit();
             return response()->json(['success' => true, 'message' => 'Modelo registrado correctamente']);
@@ -677,7 +714,7 @@ class ModeloController extends \App\Http\Controllers\Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error al registrar modelo: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            return response()->json(['success' => false, 'message' => 'Error al registrar modelo'], 500);
+            return response()->json(['success' => false, 'message' => 'Error al registrar modelo {' . $e->getMessage() . '}'], 500);
         }
     }
 
@@ -691,7 +728,11 @@ class ModeloController extends \App\Http\Controllers\Controller
     {
         try {
             $resultado = $this->getModelData($id);
-            
+            $idPersona = $resultado['modelo']['person_id'];
+            $finanzas = $this->getFinanzas($idPersona);
+
+            $resultado['finanzas'] = $finanzas;
+
             if (isset($resultado['error'])) {
                 if (request()->ajax() || request()->wantsJson()) {
                     return response()->json(['error' => $resultado['error']], $resultado['status']);
@@ -823,6 +864,15 @@ class ModeloController extends \App\Http\Controllers\Controller
             ->select('id', 'file_path', 'file_name', 'file_type', 'created_at')
             ->orderBy('created_at', 'asc')
             ->get();
+        // Obtener el portafolio
+        $portafolio = DB::table('model_files')
+            ->where('model_id', $id)
+            ->where('file_type', 'catalogo')
+            ->select('id', 'file_path', 'file_name', 'file_type', 'created_at')
+            ->orderBy('created_at', 'asc')
+            ->get();
+        // Obtener solo uno
+        $portafolio = $portafolio->first();
 
         // Obtener redes sociales
         $redesSociales = DB::table('model_social_media as msm')
@@ -878,60 +928,14 @@ class ModeloController extends \App\Http\Controllers\Controller
             ->orderBy('s.created_at', 'desc')
             ->get();
 
-        // Obtener facturas relacionadas
-        $facturas = DB::table('invoices as i')
-            ->join('invoice_statuses as ist', 'i.status_id', '=', 'ist.id')
-            ->join('branches as b', 'i.branch_id', '=', 'b.id')
-            ->where('i.person_id', $modelo->person_id)
-            ->select([
-                'i.id',
-                'i.invoice_date as fecha_factura',
-                'i.total_amount as total',
-                'i.paid_amount as pagado',
-                'i.remaining_amount as pendiente',
-                'ist.name as estado',
-                'b.name as sucursal',
-                'i.observations as observaciones'
-            ])
-            ->orderBy('i.invoice_date', 'desc')
-            ->get();
 
-        // Obtener pagos realizados
-        $pagos = DB::table('payments as p')
-            ->join('invoices as i', 'p.invoice_id', '=', 'i.id')
-            ->join('payment_methods as pm', 'p.payment_method_id', '=', 'pm.id')
-            ->join('branches as b', 'p.branch_id', '=', 'b.id')
-            ->where('i.person_id', $modelo->person_id)
-            ->select([
-                'p.id',
-                'p.payment_date as fecha_pago',
-                'p.amount as monto',
-                'pm.name as metodo_pago',
-                'b.name as sucursal',
-                'i.id as factura_id'
-            ])
-            ->orderBy('p.payment_date', 'desc')
-            ->get();
-
-        // Calcular estadísticas
-        $totalFacturado = $facturas->sum('total');
-        $totalPagado = $facturas->sum('pagado');
-        $totalPendiente = $facturas->sum('pendiente');
-        
-        $estadisticas = [
-            'total_facturado' => $totalFacturado,
-            'total_pagado' => $totalPagado,
-            'total_pendiente' => $totalPendiente,
-            'total_imagenes' => $imagenes->count(),
-            'total_suscripciones' => $suscripciones->count(),
-            'suscripcion_activa' => $suscripciones->where('estado', 'active')->isNotEmpty(),
-        ];
 
         // Organizar datos para el frontend de manera más estructurada
         return [
             'modelo' => [
                 // Información básica
                 'id' => $modelo->id,
+                'person_id' => $modelo->person_id,
                 'nombre_completo' => $modelo->nombre_completo,
                 'nombres' => $modelo->nombres,
                 'apellidos' => $modelo->apellidos,
@@ -986,6 +990,7 @@ class ModeloController extends \App\Http\Controllers\Controller
                     'color_piel' => $modelo->color_piel,
                 ],
             ],
+            'portafolio' => $portafolio,
             'imagenes' => $imagenes,
             'redes_sociales' => $redesSociales->map(function($red) {
                 return [
@@ -1014,10 +1019,7 @@ class ModeloController extends \App\Http\Controllers\Controller
                     'esta_activa' => $suscripcion->estado === 'active' && $diasRestantes > 0,
                     'esta_por_vencer' => $suscripcion->estado === 'active' && $diasRestantes <= 30 && $diasRestantes > 0,
                 ];
-            }),
-            'facturas' => $facturas,
-            'pagos' => $pagos,
-            'estadisticas' => $estadisticas
+            })
         ];
     }
 
@@ -1107,6 +1109,13 @@ class ModeloController extends \App\Http\Controllers\Controller
                 ->orderBy('created_at', 'asc')
                 ->get();
 
+            $catalogos = DB::table('model_files')
+                ->where('model_id', $id)
+                ->where('file_type', 'catalogo')
+                ->select('id', 'file_path', 'file_name', 'created_at')
+                ->orderBy('created_at', 'asc')
+                ->get();
+
             // 6. Preparar estructura para el frontend (similar a EmployeeForm)
             $data = [
                 'model_id' => $modelo->model_id,
@@ -1186,14 +1195,21 @@ class ModeloController extends \App\Http\Controllers\Controller
                     'id' => $img->id,
                     'url' => asset($img->file_path),
                     'name' => $img->file_name,
-                    // NO enviar temp_id para imágenes existentes - esto causa confusión
-                    // 'temp_id' => $img->file_name // ❌ INCORRECTO
+                ];
+            });
+
+            $catalogosFormatted = $catalogos->map(function($img) {
+                return [
+                    'id' => $img->id,
+                    'url' => asset($img->file_path),
+                    'name' => $img->file_name,
                 ];
             });
 
             return response()->json([
                 'modelo' => $data,
-                'imagenes' => $imagenesFormatted
+                'imagenes' => $imagenesFormatted,
+                'catalogos' => $catalogosFormatted
             ]);
 
         } catch (\Throwable $th) {
@@ -1326,6 +1342,8 @@ class ModeloController extends \App\Http\Controllers\Controller
 
             // Procesar imágenes meta si existe
             $imagesMeta = json_decode($request->input('model_images_meta'), true) ?? [];
+            $pdfDocumentMeta = json_decode($request->input('pdf_document_meta'), true) ?? [];
+
 
             DB::beginTransaction();
 
@@ -1367,7 +1385,7 @@ class ModeloController extends \App\Http\Controllers\Controller
             );
 
             // 4. Actualizar imágenes si se enviaron
-            if (!empty($imagesMeta)) {
+            if (isset($data['model_images_meta'])) {
                 Log::info('Procesando imágenes en modo edición', ['images_meta' => $imagesMeta]);
                 
                 // Obtener todas las imágenes existentes del modelo
@@ -1491,6 +1509,137 @@ class ModeloController extends \App\Http\Controllers\Controller
                     }
                 } else {
                     Log::info('No hay imágenes nuevas para procesar');
+                }
+            }
+
+            if (!empty($pdfDocumentMeta)) {
+                Log::info('Procesando PDF en modo edición', ['pdf_meta' => $pdfDocumentMeta]);
+                
+                // Obtener todos los PDFs existentes del modelo (tipo 'catalogo')
+                $existingPdfs = DB::table('model_files')
+                    ->where('model_id', $id)
+                    ->where('file_type', 'catalogo')
+                    ->get();
+                
+                $existingPdfIds = $existingPdfs->pluck('id')->toArray();
+                
+                // Separar PDFs nuevos y existentes que se mantienen
+                $pdfsToKeep = [];
+                $newPdfs = [];
+                
+                foreach ($pdfDocumentMeta as $pdf) {
+                    Log::info('Evaluando PDF individual', [
+                        'temp_id' => $pdf['temp_id'] ?? 'no_temp_id',
+                        'isNew' => $pdf['isNew'] ?? 'no_isNew',
+                        'isExisting' => $pdf['isExisting'] ?? 'no_isExisting',
+                        'id' => $pdf['id'] ?? 'no_id'
+                    ]);
+
+                    if (isset($pdf['isExisting']) && $pdf['isExisting'] && isset($pdf['id'])) {
+                        // PDF existente que se mantiene
+                        $pdfsToKeep[] = $pdf['id'];
+                        Log::info('PDF marcado como existente para mantener', ['id' => $pdf['id']]);
+                    } elseif (isset($pdf['temp_id']) && !empty($pdf['temp_id'])) {
+                        // Cualquier PDF con temp_id válido se considera nuevo
+                        $newPdfs[] = $pdf;
+                        Log::info('PDF identificado como nuevo por temp_id', [
+                            'temp_id' => $pdf['temp_id'],
+                            'name' => $pdf['name']
+                        ]);
+                    } else {
+                        Log::info('PDF no procesado', [
+                            'pdf' => $pdf,
+                            'razon' => 'No tiene temp_id válido ni es PDF existente'
+                        ]);
+                    }
+                }
+                
+                // Eliminar PDFs que ya no están en la lista (fueron removidos por el usuario)
+                $pdfsToDelete = array_diff($existingPdfIds, $pdfsToKeep);
+                if (!empty($pdfsToDelete)) {
+                    Log::info('Eliminando PDFs no utilizados', ['pdfs_to_delete' => $pdfsToDelete]);
+                    
+                    // Obtener rutas de archivos a eliminar del disco
+                    $filesToDelete = DB::table('model_files')
+                        ->whereIn('id', $pdfsToDelete)
+                        ->pluck('file_path')
+                        ->toArray();
+                    
+                    // Eliminar archivos del disco
+                    foreach ($filesToDelete as $filePath) {
+                        $fullPath = public_path($filePath);
+                        if (file_exists($fullPath)) {
+                            unlink($fullPath);
+                        }
+                    }
+                    
+                    // Eliminar registros de la base de datos
+                    DB::table('model_files')->whereIn('id', $pdfsToDelete)->delete();
+                }
+                
+                // Procesar PDFs nuevos
+                if (!empty($newPdfs)) {
+                    Log::info('Procesando PDFs nuevos', [
+                        'cantidad' => count($newPdfs),
+                        'new_pdfs' => $newPdfs
+                    ]);
+                    
+                    // Crear directorio definitivo para los PDFs del modelo
+                    $definitivePdfPath = 'storage/modelos/' . $id . '/catalogos';
+                    $fullDefinitivePath = public_path($definitivePdfPath);
+                    
+                    if (!file_exists($fullDefinitivePath)) {
+                        mkdir($fullDefinitivePath, 0755, true);
+                        Log::info('Directorio de PDFs creado', ['path' => $fullDefinitivePath]);
+                    }
+
+                    foreach ($newPdfs as $pdf) {
+                        if (isset($pdf['temp_id']) && !empty($pdf['temp_id'])) {
+                            $tempFilePath = public_path('storage/temp/pdfs/' . $pdf['temp_id']);
+                            $definitiveFileName = $pdf['temp_id'];
+                            $definitiveFilePath = $fullDefinitivePath . '/' . $definitiveFileName;
+                            $relativeDefinitivePath = $definitivePdfPath . '/' . $definitiveFileName;
+
+                            Log::info('Procesando PDF individual', [
+                                'temp_file_path' => $tempFilePath,
+                                'definitive_file_path' => $definitiveFilePath,
+                                'temp_exists' => file_exists($tempFilePath)
+                            ]);
+
+                            // Mover archivo de temporal a definitivo
+                            if (file_exists($tempFilePath)) {
+                                if (rename($tempFilePath, $definitiveFilePath)) {
+                                    // Registrar en base de datos con file_type = 'catalogo'
+                                    $insertedId = DB::table('model_files')->insertGetId([
+                                        'model_id' => $id,
+                                        'file_path' => $relativeDefinitivePath,
+                                        'file_name' => $definitiveFileName,
+                                        'file_type' => 'catalogo', // Tipo específico para PDF/catálogo
+                                        'created_at' => now(),
+                                        'updated_at' => now(),
+                                    ]);
+                                    Log::info('PDF nuevo guardado exitosamente', [
+                                        'file_path' => $relativeDefinitivePath,
+                                        'db_id' => $insertedId
+                                    ]);
+                                } else {
+                                    Log::error('Error moviendo archivo PDF', [
+                                        'from' => $tempFilePath,
+                                        'to' => $definitiveFilePath
+                                    ]);
+                                }
+                            } else {
+                                Log::error('Archivo PDF temporal no existe', [
+                                    'temp_path' => $tempFilePath,
+                                    'temp_id' => $pdf['temp_id']
+                                ]);
+                            }
+                        } else {
+                            Log::warning('PDF sin temp_id válido', ['pdf' => $pdf]);
+                        }
+                    }
+                } else {
+                    Log::info('No hay PDFs nuevos para procesar');
                 }
             }
 
@@ -1667,7 +1816,7 @@ class ModeloController extends \App\Http\Controllers\Controller
             // Las suscripciones se crean/editan desde otros módulos específicos para facturación
 
             // Limpiar archivos temporales que no se usaron
-            $this->cleanUpUnusedTempFiles($imagesMeta);
+            $this->cleanUpUnusedTempFiles($imagesMeta, $pdfDocumentMeta);
 
             DB::commit();
             return response()->json(['success' => true, 'message' => 'Modelo actualizado correctamente']);
@@ -1873,10 +2022,47 @@ class ModeloController extends \App\Http\Controllers\Controller
         }
     }
 
+    public function uploadPdf(Request $request)
+    {
+        try {
+            $request->validate([
+                'pdf' => 'required|file|mimes:pdf|max:5120' // 5MB máximo
+            ]);
+
+            // Crear directorio temporal si no existe
+            $tempPath = storage_path('app/temp/pdfs');
+            if (!file_exists($tempPath)) {
+                mkdir($tempPath, 0755, true);
+            }
+
+            // Generar nombre único para el PDF
+            $fileName = uniqid() . '_' . time() . '.pdf';
+            $filePath = $tempPath . '/' . $fileName;
+
+            // Mover PDF al directorio temporal
+            $request->file('pdf')->move($tempPath, $fileName);
+
+            return response()->json([
+                'success' => true,
+                'temp_id' => $fileName,
+                'original_name' => $request->file('pdf')->getClientOriginalName(),
+                'size' => filesize($filePath),
+                'url' => asset('storage/temp/pdfs/' . $fileName)
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error en upload de PDF temporal: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al subir el PDF: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     /**
      * Limpiar archivos temporales no utilizados
      */
-    private function cleanUpUnusedTempFiles($processedImages)
+    private function cleanUpUnusedTempFiles($processedImages, $processedPdfs = [])
     {
         try {
             // CORREGIDO: usar la ruta correcta donde están las imágenes temporales
@@ -1906,6 +2092,30 @@ class ModeloController extends \App\Http\Controllers\Controller
                     if (!in_array($fileName, $processedFiles) && $fileTime < $cutoffTime->timestamp) {
                         unlink($file);
                         Log::info("Archivo temporal eliminado: $fileName");
+                    }
+                }
+            }
+
+            $tempPdfDir = public_path('storage/temp/pdfs');   
+            if (is_dir($tempPdfDir)) {
+                $processedPdfFiles = array_map(function($pdf) {
+                    return $pdf['temp_id'] ?? null;
+                }, $processedPdfs);
+                
+                $processedPdfFiles = array_filter($processedPdfFiles);
+
+                $pdfFiles = glob($tempPdfDir . '/*');
+                $cutoffTime = now()->subHour();
+
+                foreach ($pdfFiles as $file) {
+                    if (is_file($file)) {
+                        $fileName = basename($file);
+                        $fileTime = filemtime($file);
+                        
+                        if (!in_array($fileName, $processedPdfFiles) && $fileTime < $cutoffTime->timestamp) {
+                            unlink($file);
+                            Log::info("Archivo PDF temporal eliminado: $fileName");
+                        }
                     }
                 }
             }
@@ -1952,5 +2162,74 @@ class ModeloController extends \App\Http\Controllers\Controller
         }
         
         return $url; // Si no se puede extraer, devolver la URL completa
+    }
+
+    private function getFinanzas($personId){
+        try {
+           $QueriePagos = <<<SQL
+           SELECT
+                p.id,
+                p.amount,
+                pm.name,
+                p.payment_date,
+                i.id as idFactura
+                from payments p 
+                inner join invoices i on p.invoice_id = i.id
+                INNER join payment_methods pm on p.payment_method_id = pm.id
+                WHERE i.person_id = ?
+                order by p.payment_date desc
+           SQL;
+
+           $QuerieFacuras = <<<SQL
+                SELECT  
+                    i.id,
+                    b.name,
+                    i.total_amount,
+                    i.paid_amount,
+                    i.remaining_amount 
+                    from invoices i 
+                    inner join branches b on i.branch_id = b.id
+                    WHERE i.person_id = ?
+                    ORDER BY i.invoice_date desc;
+           SQL;
+
+           $QuerieTotales = <<<SQL
+               SELECT
+                    SUM(i.total_amount)  AS total,
+                    SUM(i.paid_amount)   AS pagado,
+                    SUM(i.remaining_amount) AS pendiente
+                FROM invoices i
+                WHERE i.person_id = ?;
+           SQL;
+
+           $QuerieDeudas = <<<SQL
+               SELECT  
+                i.id,
+                b.name,
+                i.total_amount,
+                i.paid_amount,
+                i.remaining_amount 
+                from invoices i 
+                inner join branches b on i.branch_id = b.id
+                WHERE i.person_id = ?
+                and i.remaining_amount > 0
+                ORDER BY i.invoice_date desc;
+           SQL;
+
+           $finanzas = DB::select($QueriePagos, [$personId]);
+           $facturas = DB::select($QuerieFacuras, [$personId]);
+           $totales = DB::select($QuerieTotales, [$personId]);
+           $deudas = DB::select($QuerieDeudas, [$personId]);
+
+           return [
+               'pagos' => $finanzas,
+               'facturas' => $facturas,
+               'totales' => $totales,
+               'deudas' => $deudas
+           ];
+        } catch (\Throwable $th) {
+           Log::error('Error obteniendo finanzas: ' . $th->getMessage());
+           return [];
+        }
     }
 }

@@ -1,0 +1,589 @@
+// Variables
+$breakpoint-xs: 480px;
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;
+$breakpoint-xxl: 1600px;
+$transition-duration: var(--cmm-transition-normal);
+
+// Mixins
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin flex-start {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+@mixin responsive-title {
+  font-size: clamp(1.25rem, 3vw, 2rem);
+  line-height: 1.2;
+  
+  @media (max-width: $breakpoint-md) {
+    font-size: clamp(1.1rem, 4vw, 1.5rem);
+  }
+  
+  @media (max-width: $breakpoint-sm) {
+    font-size: clamp(1rem, 5vw, 1.3rem);
+  }
+}
+
+@mixin responsive-subtitle {
+  font-size: clamp(1rem, 2.5vw, 1.5rem);
+  line-height: 1.3;
+  
+  @media (max-width: $breakpoint-md) {
+    font-size: clamp(0.9rem, 3.5vw, 1.2rem);
+  }
+  
+  @media (max-width: $breakpoint-sm) {
+    font-size: clamp(0.85rem, 4vw, 1.1rem);
+  }
+}
+
+@mixin responsive-text {
+  font-size: clamp(0.875rem, 2vw, 1rem);
+  line-height: 1.5;
+  
+  @media (max-width: $breakpoint-md) {
+    font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+  }
+  
+  @media (max-width: $breakpoint-sm) {
+    font-size: clamp(0.75rem, 3vw, 0.85rem);
+  }
+}
+
+// Estilos principales
+.verFacturaPage {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0; // Importante para flex containers
+  overflow: hidden;
+  
+  @media (max-width: $breakpoint-sm) {
+    padding: var(--cmm-spacing-xs);
+  }
+}
+
+.headerSection {
+  @include flex-between;
+  padding: 16px;
+  min-height: 60px;
+  border-bottom: 1px solid var(--cmm-border-color);
+  flex-shrink: 0;
+  
+  span {
+    @include responsive-text;
+    font-weight: 500;
+  }
+  
+  @media (max-width: $breakpoint-md) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--cmm-spacing-xs);
+    text-align: left;
+  }
+  
+  @media (max-width: $breakpoint-sm) {
+    padding: var(--cmm-spacing-xs);
+  }
+}
+
+// Content Section - Layout 60% facturas / 40% pagos usando flexbox
+.contentSection {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  flex: 1;
+  min-height: 0; // Importante para flex containers
+  overflow: hidden;
+  
+  @media (max-width: $breakpoint-lg) {
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: scroll;
+  }
+  
+  @media (max-width: $breakpoint-sm) {
+    padding: var(--cmm-spacing-xs);
+    gap: 8px;
+  }
+}
+
+// Factura Section - 60% del ancho
+.facturaSection {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 50%;
+  min-height: 0;
+  overflow: hidden;
+  
+  @media (max-width: $breakpoint-lg) {
+    flex: 1;
+    min-height: 50%;
+  }
+  
+  .invoiceCard {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    
+    // Override ant-design card body to use flex
+    :global(.ant-card-body) {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      padding: 16px;
+      
+      @media (max-width: $breakpoint-sm) {
+        padding: 12px;
+      }
+    }
+    
+    .cardTitle {
+      @include flex-between;
+      width: 100%;
+      font-weight: 600;
+      
+      span {
+        margin-left: 8px;
+        flex-grow: 1;
+      }
+    }
+  }
+  
+  .infoSection {
+    margin-bottom: 16px;
+    
+    .sectionTitle {
+      margin-bottom: 8px !important;
+      font-size: 14px !important;
+      @include flex-start;
+      gap: 6px;
+    }
+    
+    .infoItem {
+      @include flex-between;
+      margin-bottom: 6px;
+      padding: 2px 0;
+      font-size: 13px;
+      
+      @media (max-width: $breakpoint-md) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+      }
+    }
+  }
+
+  // Nueva sección para items
+  .itemsSection {
+    margin-bottom: 16px;
+    
+    .sectionTitle {
+      margin-bottom: 8px !important;
+      font-size: 14px !important;
+      @include flex-start;
+      gap: 6px;
+    }
+    
+    .itemsContainer {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 200px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-right: 4px;
+      
+      @media (max-width: $breakpoint-sm) {
+        max-height: 150px;
+      }
+    }
+    
+    .itemCard {
+      background: var(--cmm-bg-primary);
+      border: 1px solid var(--cmm-border-color);
+      border-radius: 6px;
+      padding: 8px 10px;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+      
+      &:hover {
+        border-color: #1890ff;
+        box-shadow: 0 1px 4px rgba(24, 144, 255, 0.1);
+      }
+      
+      .itemContent {
+        @include flex-start;
+        gap: 8px;
+        
+        .itemIcon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 24px;
+          height: 24px;
+          border-radius: 4px;
+          background: var(--cmm-bg-secondary);
+          color: var(--cmm-text-secondary);
+          flex-shrink: 0;
+          
+          @media (max-width: $breakpoint-sm) {
+            width: 20px;
+            height: 20px;
+          }
+        }
+        
+        .itemInfo {
+          flex-grow: 1;
+          min-width: 0;
+          
+          .itemMain {
+            @include flex-between;
+            margin-bottom: 2px;
+            gap: 8px;
+            
+            .itemName {
+              font-size: 13px;
+              color: var(--cmm-text-primary);
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              min-width: 0;
+              
+              @media (max-width: $breakpoint-sm) {
+                font-size: 12px;
+              }
+            }
+            
+            .itemType {
+              font-size: 10px !important;
+              padding: 2px 6px !important;
+              margin: 0 !important;
+              border-radius: 4px !important;
+              line-height: 1.2 !important;
+              height: auto !important;
+              flex-shrink: 0;
+              
+              @media (max-width: $breakpoint-sm) {
+                font-size: 9px !important;
+                padding: 1px 4px !important;
+              }
+            }
+          }
+          
+          .itemDetails {
+            @include flex-between;
+            gap: 8px;
+            font-size: 11px;
+            
+            @media (max-width: $breakpoint-sm) {
+              font-size: 10px;
+              flex-direction: column;
+              align-items: flex-start;
+              gap: 2px;
+            }
+            
+            .itemTotal {
+              color: var(--cmm-success);
+              font-weight: 600;
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  .amountsSection {
+    margin-bottom: 16px;
+    
+    .amountItem {
+      @include flex-between;
+      padding: 8px 12px;
+      background: var(--cmm-bg-primary);
+      border-radius: 6px;
+      
+      .amount {
+        font-size: 16px;
+        font-weight: 600;
+      }
+      
+      .amountPaid {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--cmm-success);
+      }
+      
+      .amountRemaining {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--cmm-error);
+      }
+      
+      @media (max-width: $breakpoint-md) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+      }
+    }
+  }
+  
+  .observationsSection {
+    .observationsText {
+      margin-top: 8px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border-left: 4px solid var(--cmm-border-color);
+      font-size: 13px;
+      max-height: 100px;
+      overflow-y: auto;
+    }
+    
+    .observationsInput {
+      margin-top: 8px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border-left: 4px solid var(--cmm-border-color);
+      font-size: 13px;
+    }
+  }
+}
+
+// Pagos Section - 40% del ancho con scroll
+.pagosSection {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 50%;
+  min-height: 0;
+  overflow: hidden;
+  
+  @media (max-width: $breakpoint-lg) {
+    flex: 1;
+    min-height: 300px;
+  }
+  
+  .pagosHeader {
+    @include flex-between;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--cmm-border-color);
+    flex-shrink: 0;
+    
+    h4 {
+      margin: 0 !important;
+      color: var(--cmm-text-primary);
+      @include flex-start;
+    }
+    
+    @media (max-width: $breakpoint-sm) {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+  }
+  
+  .pagosContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex: 1;
+    min-height: 0;
+    padding-right: 4px;
+  }
+  
+  .paymentCard {
+    border-radius: 8px !important;
+    border: 1px solid var(--cmm-border-color) !important;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    
+    &:hover {
+      box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
+    }
+    
+    // Override ant-design card padding
+    :global(.ant-card-body) {
+      padding: 12px;
+    }
+    
+    .paymentContent {
+      @include flex-between;
+      gap: 8px;
+      
+      @media (max-width: $breakpoint-md) {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .paymentInfo {
+        flex-grow: 1;
+        min-width: 0; // Permite que el texto se trunque si es necesario
+        
+        .paymentMain {
+          @include flex-start;
+          gap: 8px;
+          margin-bottom: 4px;
+          flex-wrap: wrap;
+
+          .paymentMethod{
+            margin-left: 12px;
+            background-color: transparent !important;
+            
+            @media (max-width: $breakpoint-sm) {
+              margin-left: 0;
+            }
+          }
+          
+          .paymentAmount {
+            font-size: 16px;
+            color: var(--cmm-success);
+            font-weight: 600;
+            
+            @media (max-width: $breakpoint-sm) {
+              font-size: 14px;
+            }
+          }
+        }
+        
+        .paymentDetails {
+          @include flex-start;
+          gap: 6px;
+          margin-bottom: 4px;
+          flex-wrap: wrap;
+          font-size: 12px;
+          
+          @media (max-width: $breakpoint-sm) {
+            flex-direction: column;
+            gap: 2px;
+            font-size: 11px;
+          }
+        }
+        
+        .paymentNotes {
+          margin-top: 6px;
+          padding: 4px 8px;
+          border-radius: 4px;
+          font-size: 11px;
+          background: var(--cmm-bg-primary);
+          max-height: 70px;
+          overflow-y: auto;
+        }
+      }
+      
+      .paymentActions {
+        flex-shrink: 0;
+        
+        @media (max-width: $breakpoint-md) {
+          align-self: flex-end;
+        }
+      }
+    }
+  }
+}
+
+// Media Queries adicionales para ajustes específicos
+@media (max-width: $breakpoint-xl) {
+  .contentSection {
+    gap: 12px;
+  }
+  
+  .facturaSection {
+    flex: 0 0 58%;
+  }
+  
+  .pagosSection {
+    flex: 0 0 42%;
+  }
+}
+
+@media (max-width: $breakpoint-lg) {
+  .contentSection {
+    gap: 10px;
+    
+    .facturaSection, .pagosSection {
+      flex-basis: auto;
+    }
+  }
+}
+
+@media (max-width: $breakpoint-md) {
+  .facturaSection .amountsSection .ant-row {
+    gap: 6px !important;
+  }
+  
+  .paymentCard .paymentContent .paymentInfo .paymentMain {
+    gap: 4px;
+  }
+  
+  .contentSection {
+    padding: 8px;
+  }
+  
+  .facturaSection .itemsSection .itemsContainer {
+    max-height: 120px;
+  }
+  
+  .facturaSection .itemCard .itemContent .itemInfo .itemMain {
+    gap: 4px;
+  }
+}
+
+@media (max-width: $breakpoint-sm) {
+  .verFacturaPage {
+    padding: 4px;
+  }
+  
+  .contentSection {
+    padding: 4px;
+    gap: 6px;
+  }
+  
+  .facturaSection .invoiceCard :global(.ant-card-body) {
+    padding: 8px;
+  }
+  
+  .pagosSection .pagosContainer {
+    gap: 6px;
+  }
+  
+  .paymentCard :global(.ant-card-body) {
+    padding: 8px;
+  }
+  
+  .facturaSection .itemsSection .itemsContainer {
+    max-height: 100px;
+    gap: 4px;
+  }
+  
+  .facturaSection .itemCard {
+    padding: 6px 8px;
+  }
+}
+
+.itemType {
+  background-color: transparent !important;
+  font-size: 10px !important;
+  padding: 2px 6px !important;
+  margin: 0 !important;
+}
+         

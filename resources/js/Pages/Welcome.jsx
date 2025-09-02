@@ -26,8 +26,8 @@ export default function Welcome() {
     <Layout className={styles.welcomeBg} style={{ minHeight: '100vh' }}>
       <Header className={styles.header} style={{ background: '#021526', width: '100%' }}>
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          <img src="/favicon.ico" alt="CMM" style={{ width: 36, marginRight: 16 }} />
-          <Title level={3} style={{ color: 'white', margin: 0, letterSpacing: 2 }}>CMM</Title>
+          <img src="/storage/logos/logo.png" alt="CMM" style={{ width: 120, marginRight: 16, filter: 'brightness(0) invert(1)' }} />
+          {/* <Title level={3} style={{ color: 'white', margin: 0, letterSpacing: 2 }}>CMM</Title> */}
         </div>
         <Button type="primary" size="large" href="/login" className={styles.adminButton}>
           Acceder
@@ -36,7 +36,7 @@ export default function Welcome() {
       <Content style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
         <div className={styles.welcomeContainer}>
           <Title className={styles.welcomeTitle}>
-            Bienvenido a CMM
+            CM Managment
           </Title>
           <Text className={styles.welcomeSubtitle}>
             Administra perfiles, portafolios y carreras de modelos de manera eficiente
@@ -65,9 +65,8 @@ export default function Welcome() {
       </Content>
       <Footer className={styles.footer} style={{ background: '#03346E', width: '100%' }}>
         <div style={{ maxWidth: 700, margin: '0 auto' }}>
-          <Title level={4} style={{ color: 'white', marginBottom: 8, letterSpacing: 2 }}>CMM System</Title>
           <Text style={{ color: 'rgba(255,255,255,0.7)' }}>
-            © {new Date().getFullYear()} Carlos Mario Miranda Models. Todos los derechos reservados.
+            © {new Date().getFullYear()} CM Managment. Todos los derechos reservados.
           </Text>
           <div style={{ marginTop: 12 }}>
             <Text style={{ color: 'rgba(255,255,255,0.5)', marginRight: 16 }}>Términos y Condiciones</Text>

@@ -516,7 +516,7 @@ CREATE TABLE `invoices` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `branch_id` bigint unsigned NOT NULL,
   `person_id` bigint unsigned NULL,
-  `invoice_date` date NOT NULL,
+  `invoice_date` timestamp NULL DEFAULT NULL,
   `total_amount` decimal(12,2) NOT NULL,
   `paid_amount` decimal(12,2) NOT NULL DEFAULT 0,
   `remaining_amount` decimal(12,2) NOT NULL DEFAULT 0,
@@ -553,6 +553,7 @@ CREATE TABLE `invoice_items` (
 CREATE TABLE `payments` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `branch_id` bigint unsigned NOT NULL,
+  `cash_register_id` bigint unsigned NOT NULL,
   `invoice_id` bigint unsigned NOT NULL,
   `payment_method_id` bigint unsigned NOT NULL,
   `amount` decimal(12,2) NOT NULL,
@@ -589,22 +590,25 @@ CREATE TABLE `cash_register` (
   KEY `cash_register_status_index` (`status`)
 );
 
-CREATE TABLE `cash_movements` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `cash_register_id` bigint unsigned NOT NULL,
-  `movement_type` varchar(20) NOT NULL,
-  `invoice_id` bigint unsigned NULL,
-  `payment_id` bigint unsigned NULL,
-  `amount` decimal(12,2) NOT NULL,
-  `concept` varchar(255) NOT NULL,
-  `observations` text NULL,
-  `movement_date` timestamp NOT NULL,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `cash_movements_cash_register_id_movement_date_index` (`cash_register_id`,`movement_date`),
-  KEY `cash_movements_movement_type_index` (`movement_type`)
-);
+-- CREATE TABLE `cash_movements` (
+--   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+--   `cash_register_id` bigint unsigned NOT NULL,
+--   `movement_type` varchar(20) NOT NULL,
+--   `person_id` bigint unsigned NULL,
+--   `invoice_id` bigint unsigned NULL,
+--   `payment_id` bigint unsigned NULL,
+--   `responsible_user_id` bigint unsigned NOT NULL,
+--   `branch_id` bigint unsigned NOT NULL,
+--   `amount` decimal(12,2) NOT NULL,
+--   `concept` varchar(255) NOT NULL,
+--   `observations` text NULL,
+--   `movement_date` timestamp NOT NULL,
+--   `created_at` timestamp NULL DEFAULT NULL,
+--   `updated_at` timestamp NULL DEFAULT NULL,
+--   PRIMARY KEY (`id`),
+--   KEY `cash_movements_cash_register_id_movement_date_index` (`cash_register_id`,`movement_date`),
+--   KEY `cash_movements_movement_type_index` (`movement_type`)
+-- );
 
 -- ===== TABLAS DE ASISTENCIA =====
 
@@ -705,9 +709,12 @@ ALTER TABLE `payments` ADD CONSTRAINT `payments_invoice_id_foreign` FOREIGN KEY 
 
 -- Relaciones de Caja
 ALTER TABLE `cash_register` ADD CONSTRAINT `cash_register_branch_id_foreign` FOREIGN KEY (`branch_id`) REFERENCES `branches` (`id`);
-ALTER TABLE `cash_movements` ADD CONSTRAINT `cash_movements_cash_register_id_foreign` FOREIGN KEY (`cash_register_id`) REFERENCES `cash_register` (`id`);
-ALTER TABLE `cash_movements` ADD CONSTRAINT `cash_movements_invoice_id_foreign` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`);
-ALTER TABLE `cash_movements` ADD CONSTRAINT `cash_movements_payment_id_foreign` FOREIGN KEY (`payment_id`) REFERENCES `payments` (`id`);
+ALTER TABLE `payments` ADD CONSTRAINT `payments_cash_register_id_foreign` FOREIGN KEY (`cash_register_id`) REFERENCES `cash_register` (`id`);
+-- ALTER TABLE `cash_movements` ADD CONSTRAINT `cash_movements_invoice_id_foreign` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`);
+-- ALTER TABLE `cash_movements` ADD CONSTRAINT `cash_movements_payment_id_foreign` FOREIGN KEY (`payment_id`) REFERENCES `payments` (`id`);
+-- ALTER TABLE `cash_movements` ADD CONSTRAINT `cash_movements_person_id_foreign` FOREIGN KEY (`person_id`) REFERENCES `people` (`id`);
+-- ALTER TABLE `cash_movements` ADD CONSTRAINT `cash_movements_responsible_user_id_foreign` FOREIGN KEY (`responsible_user_id`) REFERENCES `users` (`id`);
+-- ALTER TABLE `cash_movements` ADD CONSTRAINT `cash_movements_branch_id_foreign` FOREIGN KEY (`branch_id`) REFERENCES `branches` (`id`);
 
 -- Relaciones de Asistencia
 ALTER TABLE `employee_branch_access` ADD CONSTRAINT `employee_branch_access_employee_id_foreign` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`);

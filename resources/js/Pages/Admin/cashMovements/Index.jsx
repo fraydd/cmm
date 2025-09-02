@@ -1,5 +1,5 @@
-import CreateCashRegisterModal from './createCashRegisterModal.jsx';
-import EditCashRegisterModal from './editCashRegisterModal.jsx';
+import CreateCashOutflowModal from './CreateCashOutflowModal.jsx';
+import EditCashMovementModal from './EditCashMovementModal.jsx';
 import React, { useEffect, useState } from 'react';
 import { Button, Space, Typography, Table, Tag, Empty, Input, Select, Tooltip, Popconfirm, message, Pagination, DatePicker, Popover } from 'antd';
 import {
@@ -16,11 +16,11 @@ const { Title, Text } = Typography;
 
 import dayjs from 'dayjs';
 
-export default function AttendanceIndex() {
+export default function Index() {
     const { showSuccess, showError } = useNotifications();
     const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
     const [containerHeight, setContainerHeight] = useState(0);
-    const [baseAttendances, setBaseAttendances] = useState([]);
+    const [baseData, setBaseData] = useState([]);
     const [filteredData, setFilteredData] = useState([]);
     const [dateRange, setDateRange] = useState([
         dayjs().startOf('month'),
@@ -68,8 +68,7 @@ export default function AttendanceIndex() {
         setcreateModalOpen(true);
     };
 
-    const handleOpenEditCashRegister = (record) => {
-        console.log("Abriendo modal de edición de caja", record);
+    const handleOpenEdit = (record) => {
         setEditRecord(record);
         setEditModalOpen(true);
     };
@@ -141,7 +140,7 @@ export default function AttendanceIndex() {
         setIsRefreshing(true);
         try {
             const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-            const url = `/admin/cash-register/list`;
+            const url = `/admin/cash-movements/list`;
             // Obtener fechas del rango seleccionado
             const [start, end] = dateRange;
             // Obtener la zona horaria del cliente
@@ -169,14 +168,14 @@ export default function AttendanceIndex() {
             }
 
             const data = await response.json();
-            const receivedData = data.cajas || [];
+            const receivedData = data.movements || [];
             const validData = Array.isArray(receivedData) ? receivedData.filter(row =>
                 row &&
                 typeof row === 'object' &&
                 (row.id !== undefined && row.id !== null && row.id !== '')
             ) : [];
 
-            setBaseAttendances(validData);
+            setBaseData(validData);
             setSorting({
                 field: null,
                 order: null
@@ -211,10 +210,10 @@ const getTableHeight = () => {
     }
 };
 
-// Actualizar datos filtrados cuando cambian los baseAttendances
+// Actualizar datos filtrados cuando cambian los baseData
 useEffect(() => {
     // Validación robusta de datos
-    const validAttendances = Array.isArray(baseAttendances) ? baseAttendances.filter(attendance =>
+    const validAttendances = Array.isArray(baseData) ? baseData.filter(attendance =>
         attendance &&
         typeof attendance === 'object' &&
         (attendance.id !== undefined && attendance.id !== null && attendance.id !== '')
@@ -226,7 +225,7 @@ useEffect(() => {
         total: validAttendances.length,
         current: Math.max(1, prev.current) // Asegurar que current nunca sea menor a 1
     }));
-}, [baseAttendances]);
+}, [baseData]);
 
 // Función para aplicar ordenamiento global
 const applySorting = (data) => {
@@ -330,112 +329,60 @@ const handleColumnSort = (field) => {
 
 // Configuración de las columnas para cash register
 const columns = [
-    {
-        title: 'ID',
-        dataIndex: 'id',
-        key: 'id',
-        width: 100,
-        sorter: { compare: (a, b) => a.id - b.id, multiple: false },
-        sortOrder: sorting.field === 'id' ? sorting.order : null,
-        onHeaderCell: () => ({ onClick: () => handleColumnSort('id') }),
-        filters: Array.from(new Set(filteredData.map(item => item.id))).map(id => ({ text: id, value: id })),
-        onFilter: (value, record) => record.id === value,
-    },
+        // La columna ID se oculta, pero el dato sigue disponible en los registros para acciones futuras
     {
         title: 'Sede',
-        dataIndex: 'branch_name',
-        key: 'branch_name',
+        dataIndex: 'sede',
+        key: 'sede',
         width: 150,
         render: (text) => text || 'N/A',
         sorter: { compare: (a, b) => 0, multiple: false },
-        sortOrder: sorting.field === 'branch_name' ? sorting.order : null,
-        onHeaderCell: () => ({ onClick: () => handleColumnSort('branch_name') }),
-        filters: Array.from(new Set(filteredData.map(item => item.branch_name))).map(branch => ({ text: branch, value: branch })),
-        onFilter: (value, record) => record.branch_name === value,
-    },
-    {
-        title: 'Apertura',
-        dataIndex: 'opening_date',
-        key: 'opening_date',
-        width: 180,
-        render: (text) => text ? dayjs.utc(text).local().format('YYYY-MM-DD hh:mm A') : 'N/A',
-        sorter: { compare: (a, b) => 0, multiple: false },
-        sortOrder: sorting.field === 'opening_date' ? sorting.order : null,
-        onHeaderCell: () => ({ onClick: () => handleColumnSort('opening_date') }),
-    },
-    {
-        title: 'Cierre',
-        dataIndex: 'closing_date',
-        key: 'closing_date',
-        width: 180,
-        render: (text) => text ? dayjs.utc(text).local().format('YYYY-MM-DD hh:mm A') : 'N/A',
-        sorter: { compare: (a, b) => 0, multiple: false },
-        sortOrder: sorting.field === 'closing_date' ? sorting.order : null,
-        onHeaderCell: () => ({ onClick: () => handleColumnSort('closing_date') }),
-    },
-    {
-        title: 'Monto Inicial',
-        dataIndex: 'initial_amount',
-        key: 'initial_amount',
-        width: 120,
-        render: (text) => text !== null && text !== undefined ? `$${Number(text).toLocaleString('es-CO', {minimumFractionDigits: 2})}` : 'N/A',
-        sorter: { compare: (a, b) => a.initial_amount - b.initial_amount, multiple: false },
-        sortOrder: sorting.field === 'initial_amount' ? sorting.order : null,
-        onHeaderCell: () => ({ onClick: () => handleColumnSort('initial_amount') }),
-    },
-    {
-        title: 'Monto Final',
-        dataIndex: 'final_amount',
-        key: 'final_amount',
-        width: 120,
-        render: (text) => text !== null && text !== undefined ? `$${Number(text).toLocaleString('es-CO', {minimumFractionDigits: 2})}` : 'N/A',
-        sorter: { compare: (a, b) => a.final_amount - b.final_amount, multiple: false },
-        sortOrder: sorting.field === 'final_amount' ? sorting.order : null,
-        onHeaderCell: () => ({ onClick: () => handleColumnSort('final_amount') }),
-    },
-    {
-        title: 'Ingresos',
-        dataIndex: 'total_income',
-        key: 'total_income',
-        width: 120,
-        render: (text) => text !== null && text !== undefined ? `$${Number(text).toLocaleString('es-CO', {minimumFractionDigits: 2})}` : 'N/A',
-        sorter: { compare: (a, b) => a.total_income - b.total_income, multiple: false },
-        sortOrder: sorting.field === 'total_income' ? sorting.order : null,
-        onHeaderCell: () => ({ onClick: () => handleColumnSort('total_income') }),
-    },
-    {
-        title: 'Egresos',
-        dataIndex: 'total_expenses',
-        key: 'total_expenses',
-        width: 120,
-        render: (text) => text !== null && text !== undefined ? `$${Number(text).toLocaleString('es-CO', {minimumFractionDigits: 2})}` : 'N/A',
-        sorter: { compare: (a, b) => a.total_expenses - b.total_expenses, multiple: false },
-        sortOrder: sorting.field === 'total_expenses' ? sorting.order : null,
-        onHeaderCell: () => ({ onClick: () => handleColumnSort('total_expenses') }),
-    },
-    {
-        title: 'Estado',
-        dataIndex: 'status',
-        key: 'status',
-        width: 100,
-        render: (text) => {
-            if (text === 'open') return <Tag color="green">Abierta</Tag>;
-            if (text === 'closed') return <Tag color="red">Cerrada</Tag>;
-            return text || 'N/A';
-        },
-        sorter: { compare: (a, b) => 0, multiple: false },
-        sortOrder: sorting.field === 'status' ? sorting.order : null,
-        onHeaderCell: () => ({ onClick: () => handleColumnSort('status') }),
+        sortOrder: sorting.field === 'sede' ? sorting.order : null,
+        onHeaderCell: () => ({ onClick: () => handleColumnSort('sede') }),
     },
     {
         title: 'Responsable',
-        dataIndex: 'responsible_name',
-        key: 'responsible_name',
+        dataIndex: 'responsable',
+        key: 'responsable',
         width: 180,
-        render: (text) => text || 'N/A',
+        render: (text) => text || 'N/A',        
         sorter: { compare: (a, b) => 0, multiple: false },
-        sortOrder: sorting.field === 'responsible_name' ? sorting.order : null,
-        onHeaderCell: () => ({ onClick: () => handleColumnSort('responsible_name') }),
+        sortOrder: sorting.field === 'responsable' ? sorting.order : null,
+        onHeaderCell: () => ({ onClick: () => handleColumnSort('responsable') }),
+    },
+    {
+        title: 'Persona',
+        dataIndex: 'nombre',
+        key: 'nombre',
+        width: 180,
+        render: (text) => text || 'N/A',        
+        sorter: { compare: (a, b) => 0, multiple: false },
+        sortOrder: sorting.field === 'nombre' ? sorting.order : null,
+        onHeaderCell: () => ({ onClick: () => handleColumnSort('nombre') }),
+    },
+    {
+        title: 'Monto',
+        dataIndex: 'monto',
+        key: 'monto',
+        width: 120,
+        render: (text) => text || 'N/A',        
+        sorter: { compare: (a, b) => 0, multiple: false },
+        sortOrder: sorting.field === 'monto' ? sorting.order : null,
+        onHeaderCell: () => ({ onClick: () => handleColumnSort('monto') }),
+    },
+    {
+        title: 'Tipo',
+        dataIndex: 'movement_type',
+        key: 'movement_type',
+        width: 120,
+        render: (text) => {
+            if (text === 'ingreso') return <Tag color="green">Ingreso</Tag>;
+            if (text === 'egreso') return <Tag color="red">Egreso</Tag>;
+            return text || 'N/A';
+        },
+        sorter: { compare: (a, b) => 0, multiple: false },
+        sortOrder: sorting.field === 'movement_type' ? sorting.order : null,
+        onHeaderCell: () => ({ onClick: () => handleColumnSort('movement_type') }),
     },
     {
         title: 'Observaciones',
@@ -464,6 +411,16 @@ const columns = [
         onHeaderCell: () => ({ onClick: () => handleColumnSort('observations') }),
     },
     {
+        title: 'Fecha',
+        dataIndex: 'fecha',
+        key: 'fecha',
+        width: 180,
+        render: (text) => text ? dayjs.utc(text).local().format('YYYY-MM-DD hh:mm A') : 'N/A',
+        sorter: { compare: (a, b) => 0, multiple: false },
+        sortOrder: sorting.field === 'fecha' ? sorting.order : null,
+        onHeaderCell: () => ({ onClick: () => handleColumnSort('fecha') }),
+    },
+    {
         title: 'Acciones',
         key: 'actions',
         fixed: 'right',
@@ -475,7 +432,7 @@ const columns = [
                         <Button
                             type="text"
                             icon={<EditOutlined style={{ color: '#48a41aff', fontSize: 20 }} />}
-                            onClick={() => handleOpenEditCashRegister(record)}
+                            onClick={() => handleOpenEdit(record)}
                         />
                     </Tooltip>
                 </Space>
@@ -486,7 +443,7 @@ const columns = [
 
     return (
         <>
-        <AdminLayout title="Histórico de Caja">
+        <AdminLayout title="Movimientos de Caja">
         <div className={styles.CashRegisterPage}>
             {/* Header de la página */}
             <div className={styles.headerSection}>
@@ -494,16 +451,16 @@ const columns = [
                     <div>
                         <Title level={2} style={{ margin: 0 }}>
                             <DollarOutlined style={{ marginRight: '8px' }} />
-                            Histórico de Caja
+                            Movimientos de Caja
                         </Title>
                         <Text type="secondary">
-                            Consulta los movimientos y cierres de caja realizados en las sedes seleccionadas
-                            <span> • {Array.isArray(baseAttendances) ? baseAttendances.length : 0} registro(s)</span>
+                            Consulta los movimientos de caja realizados en las sedes seleccionadas
+                            <span> • {Array.isArray(baseData) ? baseData.length : 0} registro(s)</span>
                         </Text>
                     </div>
-                    <Button type="primary" onClick={handleOpenNewCashRegister}>
-                        Nueva apertura de caja
-                    </Button>
+                   {/* <Button type="primary" onClick={handleOpenNewCashRegister}>
+                        Registrar egreso
+                    </Button>*/}
                 </div>
             </div>
 
@@ -610,13 +567,13 @@ const columns = [
                     )}
                 </div>
             </div>
-            <CreateCashRegisterModal
+            <CreateCashOutflowModal
                 open={createModalOpen}
                 onClose={handleClosecreateModal}
                 record={createRecord}
                 branchOptions={branchOptions}
             />
-            <EditCashRegisterModal
+            <EditCashMovementModal
                 open={editModalOpen}
                 onClose={handleCloseEditModal}
                 record={editRecord}

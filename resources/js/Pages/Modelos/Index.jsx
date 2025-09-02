@@ -15,8 +15,8 @@ import {
     ShoppingCartOutlined
 } from '@ant-design/icons';
 import { useNotifications } from '../../hooks/useNotifications.jsx';
-import { useBranch } from '../../hooks/useBranch.jsx'; // Importar hook de sede
-import ModeloModal from '../../Components/ModeloModal.jsx';
+import { useBranch } from '../../hooks/useBranch.jsx';
+import ModeloModal from './ModeloModal.jsx';
 import { Modal } from 'antd';
 import AdminLayout from '../../Layouts/AdminLayout';
 import styles from './Index.module.scss';
@@ -378,6 +378,27 @@ export default function Index({ modelos = [], debug_info }) {
                 values.model_images.forEach((image, index) => {
                     if (image.originFileObj) {
                         formData.append(`model_images${index}`, image.originFileObj);
+                    }
+                });
+            }
+
+            if (values.pdf_document && Array.isArray(values.pdf_document) && values.pdf_document.length > 0) {
+                const pdfMeta = values.pdf_document.map(pdf => ({
+                    temp_id: pdf.temp_id,
+                    url: pdf.url,
+                    name: pdf.name,
+                    size: pdf.size,
+                    original_name: pdf.original_name || pdf.name,
+                    isExisting: pdf.isExisting || false,
+                    isNew: pdf.isNew || false,
+                    id: pdf.existingId || pdf.id
+                }));
+                formData.append('pdf_document_meta', JSON.stringify(pdfMeta));
+                
+                // Agregar el archivo PDF si es nuevo
+                values.pdf_document.forEach((pdf, index) => {
+                    if (pdf.originFileObj) {
+                        formData.append(`pdf_document${index}`, pdf.originFileObj);
                     }
                 });
             }

@@ -15,6 +15,7 @@ import styles from './AdminLayout.module.scss';
 import { Dropdown } from 'antd';
 import { ShopOutlined, DownOutlined } from '@ant-design/icons';
 import { Skeleton } from 'antd';
+import { useNotifications } from '../hooks/useNotifications';
 
 const { Header, Content } = Layout;
 const { Title } = Typography;

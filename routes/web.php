@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Admin\CashRegisterController;
+use App\Http\Controllers\Admin\CashMovementsController;
+use App\Http\Controllers\Admin\InvoicesController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Admin\ModeloController;
@@ -68,6 +70,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     Route::middleware(['permission:view_modelos'])->group(function () {
         Route::resource('modelos', ModeloController::class);
         Route::post('modelos/upload-image', [ModeloController::class, 'uploadImage'])->name('modelos.upload-image');
+        Route::post('modelos/upload-pdf', [ModeloController::class, 'uploadPdf'])->name('modelos.upload-pdf');
+
     });
 
     // Rutas para el controlador de Empleados con permisos específicos
@@ -164,14 +168,6 @@ Route::prefix('admin')->middleware(['auth', 'verified'])->group(function () {
     Route::post('checkin', [\App\Http\Controllers\Admin\CheckinController::class, 'store'])->name('admin.checkin.store');
 });
 
-// Rutas de compras/facturación (admin)
-Route::prefix('admin')->middleware(['auth', 'verified'])->group(function () {
-    Route::get('compras', [\App\Http\Controllers\Admin\PurchaseController::class, 'index'])->name('admin.purchases.index');
-    Route::get('compras/{id}', [\App\Http\Controllers\Admin\PurchaseController::class, 'show'])->name('admin.purchases.show');
-    Route::post('compras', [\App\Http\Controllers\Admin\PurchaseController::class, 'store'])->name('admin.purchases.store');
-    Route::get('compras/{id}/pdf', [\App\Http\Controllers\Admin\PurchaseController::class, 'downloadPdf'])->name('admin.purchases.pdf');
-    // Puedes agregar put/patch/delete según necesidades futuras
-});
 
 // Rutas protegidas de la tienda (ahora bajo /admin/tienda)
 Route::prefix('admin')->middleware(['auth', 'permission:ver_tienda'])->group(function () {
@@ -200,4 +196,26 @@ Route::prefix('admin')->middleware(['auth', 'permission:view_cash_registers'])->
 
 Route::prefix('admin')->middleware(['auth', 'verified'])->group(function () {
     Route::get('cash-register/getActive/{branch_id}', [CashRegisterController::class, 'getActive'])->name('admin.cash_register.getActive');
+});
+
+Route::prefix('admin')->middleware(['auth', 'permission:view_cash_movements'])->group(function () {
+    Route::get('cash-movements', [CashMovementsController::class, 'index'])->name('admin.cash_movements.index');
+    Route::post('cash-movements/list', [CashMovementsController::class, 'getCashMovements'])->name('admin.cash_movements.list');
+    Route::post('cash-movements/createEgreso', [CashMovementsController::class, 'createEgreso'])->name('admin.cash_movements.createEgreso');
+    Route::post('cash-movements/edit', [CashMovementsController::class, 'edit'])->name('admin.cash_movements.edit');
+});
+
+Route::prefix('admin')->middleware(['auth', 'permission:view_invoices'])->group(function () {
+    Route::get('invoices', [InvoicesController::class, 'index'])->name('admin.invoices.index');
+    Route::post('invoices/list', [InvoicesController::class, 'getInvoices'])->name('admin.invoices.list');
+    Route::get('invoices/{id}/pdf', [InvoicesController::class, 'downloadPdf'])->name('admin.invoices.pdf');
+    Route::get('invoices/edit/{id}', [InvoicesController::class, 'Edit'])->name('admin.invoices.edit');
+    Route::get('/invoices/mediosPago', [\App\Http\Controllers\Admin\StoreController::class, 'mediosPago'])->name('admin.store.mediosPago');
+    Route::post('/invoices/createPayment', [InvoicesController::class, 'createPayment'])->name('admin.invoices.createPayment');
+    Route::put('/invoices/updatePayment/{id}', [InvoicesController::class, 'updatePayment'])->name('admin.invoices.updatePayment');
+    Route::put('/invoices/updateInvoice/{id}', [InvoicesController::class, 'updateInvoice'])->name('admin.invoices.updateInvoice');
+    Route::delete('/invoices/deletePayment/{id}', [InvoicesController::class, 'deletePayment'])->name('admin.invoices.deletePayment');
+
+    // Route::post('cash-movements/createEgreso', [CashMovementsController::class, 'createEgreso'])->name('admin.cash_movements.createEgreso');
+    // Route::post('cash-movements/edit', [CashMovementsController::class, 'edit'])->name('admin.cash_movements.edit');
 });

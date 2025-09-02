@@ -190,7 +190,7 @@ class CashRegisterController extends Controller
         }
     }
 
-    public function getActive($branch_id){
+    public static function getActive($branch_id){
         try {
             if (!$branch_id) {
                 return response()->json(['message' => 'branch_id is required'], 400);

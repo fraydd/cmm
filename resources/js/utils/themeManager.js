@@ -1,3 +1,5 @@
+import { Tag } from "antd";
+
 // Definición de temas
 const themes = {
   light: {
@@ -274,7 +276,18 @@ export function generateAntDesignTokens(themeName) {
         itemMarginBlock: 4,
         itemHeight: 40,
       },
-      
+
+      Tag: {
+        defaultBg: 'transparent',             
+        colorBgContainer: 'transparent',       
+        colorFillAlter: 'transparent',         
+        colorFillSecondary: 'transparent',     
+        colorSuccessBg: 'transparent',         
+        colorErrorBg: 'transparent',
+        colorWarningBg: 'transparent',
+        colorInfoBg: 'transparent',
+      },
+
       // Typography
       Typography: {
         colorText: getColor('--cmm-text-primary'),

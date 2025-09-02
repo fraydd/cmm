@@ -201,6 +201,15 @@ const Sidebar = forwardRef(({ collapsed, auth, onToggle, isMobile = false, isVis
                     key: 'cash_register.index',
                     label: 'Histórico de Caja',
                     onClick: () => router.visit('/admin/cash-register')
+                },{ 
+                    key: 'cash_register.movements', 
+                    label: 'Movimientos',
+                    onClick: () => router.visit('/admin/cash-movements')
+                }
+                ,{ 
+                    key: 'cash_register.invoices', 
+                    label: 'Facturas',
+                    onClick: () => router.visit('/admin/invoices')
                 }
             ]
         },
@@ -278,12 +287,10 @@ const Sidebar = forwardRef(({ collapsed, auth, onToggle, isMobile = false, isVis
             >
             {/* Logo */}
             <div className={styles.logoContainer}>
-                <Title 
-                    level={4} 
-                    className={`${styles.logoTitle} ${collapsed ? styles.collapsed : styles.expanded}`}
-                >
-                    {collapsed ? 'CMM' : 'CMM Admin'}
-                </Title>
+
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <img src="/storage/logos/logo.png" alt="CMM" style={{ width: 80, padding: '6px', filter: 'brightness(0) invert(1)' }} />
+                </div>
                 
                 {/* Botón personalizado para colapsar */}
                 <SidebarToggleButton

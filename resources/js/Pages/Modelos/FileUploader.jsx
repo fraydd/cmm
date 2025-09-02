@@ -1,55 +1,60 @@
 import React, { useState, useEffect } from 'react';
 import { Upload, message } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, FileTextOutlined } from '@ant-design/icons';
 import { usePage } from '@inertiajs/react';
 
-const MAX_IMAGES = 10;
-
-const ModelImageUploader = ({ value = [], onChange }) => {
+const FileUploader = ({ 
+    value = [], 
+    onChange, 
+    maxFiles = 10, 
+    accept = "image/*", 
+    fileType = "image",
+    listType = "picture-card",
+    uploadEndpoint = "/admin/modelos/upload-image"
+}) => {
     const [fileList, setFileList] = useState([]);
     const { props } = usePage();
 
+    // Icono según el tipo de archivo
+    const uploadButtonIcon = fileType === "pdf" ? <FileTextOutlined /> : <PlusOutlined />;
+    const uploadButtonText = fileType === "pdf" ? "PDF" : "Subir";
+
     // Sincronizar fileList cuando cambie el value (para modo edición)
     useEffect(() => {
-        // Solo actualizar si value realmente cambió y no es igual al actual
         if (Array.isArray(value) && value.length > 0) {
-            const processedValue = value.map(img => {
-                if (img.isExisting) {
+            const processedValue = value.map(file => {
+                if (file.isExisting) {
                     return {
-                        ...img,
+                        ...file,
                         status: 'done',
-                        id: img.id || img.existingId,
-                        existingId: img.existingId || img.id
+                        id: file.id || file.existingId,
+                        existingId: file.existingId || file.id
                     };
                 }
-                return img;
+                return file;
             });
             
             setFileList(processedValue);
-            console.log(`SYNC UPLOADER: Inicializando con ${value.length} imágenes`);
         } else if (value.length === 0) {
             setFileList([]);
         }
-    }, [value.length]); // Solo depender de la longitud para evitar bucles
+    }, [value.length]);
 
     // Custom upload handler
     const customRequest = async ({ file, onSuccess, onError, onProgress }) => {
         const formData = new FormData();
-        formData.append('image', file);
+        formData.append(fileType === "pdf" ? 'pdf' : 'image', file);
 
-        // CSRF token: obtener desde Inertia, cookie o meta tag
-        let csrfToken = props.csrf_token; // Desde Inertia
+        // CSRF token
+        let csrfToken = props.csrf_token;
         
-        // Si no está en Inertia, obtener de la cookie XSRF-TOKEN decodificada
         if (!csrfToken) {
-            // Función para obtener cookie por nombre
             const getCookie = (name) => {
                 const value = `; ${document.cookie}`;
                 const parts = value.split(`; ${name}=`);
                 if (parts.length === 2) return parts.pop().split(';').shift();
             };
 
-            // Obtener token de la cookie XSRF-TOKEN y decodificar
             const xsrfToken = getCookie('XSRF-TOKEN');
             if (xsrfToken) {
                 try {
@@ -60,20 +65,19 @@ const ModelImageUploader = ({ value = [], onChange }) => {
             }
         }
 
-        // Si no hay token en cookie, intentar obtener del meta tag
         if (!csrfToken) {
             csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         }
 
         try {
-            const response = await fetch('/admin/modelos/upload-image', {
+            const response = await fetch(uploadEndpoint, {
                 method: 'POST',
                 body: formData,
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
                     ...(csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {}),
                 },
-                credentials: 'same-origin', // Cambiar de 'include' a 'same-origin'
+                credentials: 'same-origin',
             });
 
             const res = await response.json();
@@ -84,25 +88,22 @@ const ModelImageUploader = ({ value = [], onChange }) => {
                 file.response = res;
                 onSuccess(res, file);
             } else {
-                onError(new Error(res.message || 'Error al subir la imagen'));
+                onError(new Error(res.message || `Error al subir el ${fileType === "pdf" ? "PDF" : "archivo"}`));
             }
         } catch (err) {
-            onError(new Error('Error inesperado al subir la imagen'));
+            onError(new Error(`Error inesperado al subir el ${fileType === "pdf" ? "PDF" : "archivo"}`));
         }
     };
 
     // Manejar cambios en la lista de archivos
     const handleChange = ({ file, fileList: newFileList }) => {
-        // Solo logear acciones importantes
         if (file.status === 'done' && file.response) {
-            console.log(`IMAGEN SUBIDA: ${file.name}`);
+            console.log(`${fileType.toUpperCase()} SUBIDO: ${file.name}`);
         } else if (file.status === 'removed') {
-            console.log(`IMAGEN ELIMINADA: ${file.name}`);
+            console.log(`${fileType.toUpperCase()} ELIMINADO: ${file.name}`);
         }
         
-        // Actualizar status y url cuando la subida termina
         const updatedList = newFileList.map(f => {
-            // Si es una imagen nueva que se acaba de subir
             if (f.status === 'done' && f.response && f.response.success) {
                 return {
                     ...f,
@@ -113,7 +114,6 @@ const ModelImageUploader = ({ value = [], onChange }) => {
                     isNew: true,
                 };
             }
-            // Si es una imagen existente (del modo edición), mantener sus datos
             if (f.isExisting || (f.uid && f.url && !f.response && !f.originFileObj)) {
                 return {
                     ...f,
@@ -134,41 +134,54 @@ const ModelImageUploader = ({ value = [], onChange }) => {
 
     // Validar antes de subir
     const beforeUpload = (file) => {
-        const isImage = file.type.startsWith('image/');
-        if (!isImage) {
-            message.error('Solo puede subir archivos de imagen!');
+        if (fileType === "pdf") {
+            const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+            if (!isPdf) {
+                message.error('Solo se permiten archivos PDF!');
+                return Upload.LIST_IGNORE;
+            }
+        } else {
+            const isImage = file.type.startsWith('image/');
+            if (!isImage) {
+                message.error('Solo puede subir archivos de imagen!');
+                return Upload.LIST_IGNORE;
+            }
+        }
+        
+        const maxSize = fileType === "pdf" ? 5 : 10; // PDF: 5MB, imágenes: 10MB
+        const isLtMaxSize = file.size / 1024 / 1024 < maxSize;
+        if (!isLtMaxSize) {
+            message.error(`El archivo debe ser menor a ${maxSize}MB!`);
             return Upload.LIST_IGNORE;
         }
-        const isLt10M = file.size / 1024 / 1024 < 10;
-        if (!isLt10M) {
-            message.error('La imagen debe ser menor a 10MB!');
+        
+        if (fileList.length >= maxFiles) {
+            message.error(`Máximo ${maxFiles} ${fileType === "pdf" ? "PDF" : "imágenes"}.`);
             return Upload.LIST_IGNORE;
         }
-        if (fileList.length >= MAX_IMAGES) {
-            message.error(`Máximo ${MAX_IMAGES} imágenes.`);
-            return Upload.LIST_IGNORE;
-        }
+        
         return true;
     };
 
     return (
         <Upload
-            listType="picture-card"
+            listType={listType}
             customRequest={customRequest}
             fileList={fileList}
             onChange={handleChange}
             beforeUpload={beforeUpload}
-            maxCount={MAX_IMAGES}
-            multiple
-            accept="image/*"
+            maxCount={maxFiles}
+            multiple={maxFiles > 1}
+            accept={accept}
             showUploadList={{ showRemoveIcon: true }}
+            style={{ maxWidth: '300px' }}
         >
-            {fileList.length >= MAX_IMAGES ? null : (
+            {fileList.length >= maxFiles ? null : (
                 <div>
-                    <PlusOutlined />
-                    <div style={{ marginTop: 8 }}>Subir</div>
+                    {uploadButtonIcon}
+                    <div style={{ marginTop: 8 }}>{uploadButtonText}</div>
                     <div style={{ fontSize: '12px', color: '#999' }}>
-                        Máximo {MAX_IMAGES}
+                        Máximo {maxFiles}
                     </div>
                 </div>
             )}
@@ -176,4 +189,4 @@ const ModelImageUploader = ({ value = [], onChange }) => {
     );
 };
 
-export default ModelImageUploader;
+export default FileUploader;

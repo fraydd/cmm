@@ -128,23 +128,37 @@ class PurchaseController extends Controller
     public function downloadPdf($id)
     {
         try {
-            $invoiceData = $this->getInvoiceData($id);
-        
-            // Agregar logo como base64
-            $logoPath = storage_path('img/logo.png');
-            $logoBase64 = '';
-            if (file_exists($logoPath)) {
-                $logoData = base64_encode(file_get_contents($logoPath));
-                $logoBase64 = 'data:image/png;base64,' . $logoData;
-                Log::info("Logo cargado correctamente desde: " . $logoPath);
-            } else {
-                Log::warning("Logo no encontrado en: " . $logoPath);
+
+            // se obtiene le tipo de factura 
+
+            $invoiceType = DB::table('invoices')->where('id', $id)->first();
+
+            if (!$invoiceType->invoice_type_id) {
+                return response()->json(['error' => 'Tipo de factura no encontrado'], 404);
             }
-            $invoiceData['logoBase64'] = $logoBase64;
+                $invoiceData = $this->getInvoiceData($id);
+        
+                // Agregar logo como base64
+                $logoPath = storage_path('img/logo.png');
+                $logoBase64 = '';
+                if (file_exists($logoPath)) {
+                    $logoData = base64_encode(file_get_contents($logoPath));
+                    $logoBase64 = 'data:image/png;base64,' . $logoData;
+                } else {
+                    Log::warning("Logo no encontrado en: " . $logoPath);
+                }
+                $invoiceData['logoBase64'] = $logoBase64;
+
+
+            if ($invoiceType->invoice_type_id == 1) {
+                $pdf = Pdf::loadView('invoices.ingreso', $invoiceData);
+                return $pdf->stream('factura-' . $id . '.pdf');
+            } else {
+                $pdf = Pdf::loadView('invoices.egreso', $invoiceData);
+                return $pdf->stream('comprobante-egreso-' . $id . '.pdf');
+            }
+
             
-            $pdf = Pdf::loadView('invoices.pdf', $invoiceData);
-            
-            return $pdf->download('factura-' . $id . '.pdf');
         } catch (\Throwable $th) {
             Log::error("Error al generar el PDF: " . $th->getMessage());
             return response()->json(['error' => 'Error al generar el PDF'], 500);
@@ -153,63 +167,71 @@ class PurchaseController extends Controller
     }
 
     // Método reutilizable para obtener todos los datos de una factura
-    private function getInvoiceData($id)
+    public function getInvoiceData($id)
     {
-        $invoice = DB::table('invoices')
-            ->leftJoin('people', 'invoices.person_id', '=', 'people.id')
-            ->leftJoin('branches', 'invoices.branch_id', '=', 'branches.id')
-            ->leftJoin('invoice_statuses', 'invoices.status_id', '=', 'invoice_statuses.id')
-            ->leftJoin('invoice_types', 'invoices.invoice_type_id', '=', 'invoice_types.id')
-            ->leftJoin('users', 'invoices.created_by', '=', 'users.id')
-            ->select(
-                'invoices.*',
-                DB::raw("CONCAT(people.first_name, ' ', people.last_name) as person_name"),
-                'people.first_name',
-                'people.last_name',
-                'people.identification_number',
-                'people.email as person_email',
-                'people.phone as person_phone',
-                'people.address as person_address',
-                'branches.name as branch_name',
-                'branches.address as branch_address',
-                'branches.phone as branch_phone',
-                'branches.email as branch_email',
-                'invoice_statuses.name as status',
-                'invoice_types.name as invoice_type',
-                'users.name as created_by_name',
-                'users.email as created_by_email'
-            )
-            ->where('invoices.id', $id)
-            ->first();
-        if (!$invoice) {
+        // Consulta principal de la factura
+        $invoice = DB::select("
+            SELECT 
+                invoices.*,
+                CONCAT(people.first_name, ' ', people.last_name) as person_name,
+                people.first_name,
+                people.last_name,
+                people.identification_number,
+                people.email as person_email,
+                people.phone as person_phone,
+                people.address as person_address,
+                branches.name as branch_name,
+                branches.address as branch_address,
+                branches.phone as branch_phone,
+                branches.email as branch_email,
+                invoice_statuses.name as status,
+                invoice_types.name as invoice_type,
+                users.name as created_by_name,
+                users.email as created_by_email
+            FROM invoices
+            LEFT JOIN people ON invoices.person_id = people.id
+            LEFT JOIN branches ON invoices.branch_id = branches.id
+            LEFT JOIN invoice_statuses ON invoices.status_id = invoice_statuses.id
+            LEFT JOIN invoice_types ON invoices.invoice_type_id = invoice_types.id
+            LEFT JOIN users ON invoices.created_by = users.id
+            WHERE invoices.id = ?
+            LIMIT 1
+        ", [$id]);
+
+        if (empty($invoice)) {
             return null;
         }
-        $items = DB::table('invoice_items')
-            ->leftJoin('item_types', 'invoice_items.item_type_id', '=', 'item_types.id')
-            ->leftJoin('products', 'invoice_items.product_id', '=', 'products.id')
-            ->leftJoin('subscriptions', 'invoice_items.subscription_id', '=', 'subscriptions.id')
-            ->leftJoin('events', 'invoice_items.event_id', '=', 'events.id')
-            ->select(
-                'invoice_items.*',
-                'item_types.name as item_type',
-                'products.name as product_name',
-                'subscriptions.id as subscription_id',
-                'events.name as event_name'
-            )
-            ->where('invoice_items.invoice_id', $id)
-            ->get();
-        $payments = DB::table('payments')
-            ->leftJoin('payment_methods', 'payments.payment_method_id', '=', 'payment_methods.id')
-            ->leftJoin('users as payment_users', 'payments.created_by', '=', 'payment_users.id')
-            ->select(
-                'payments.*',
-                'payment_methods.name as payment_method',
-                'payment_users.name as payment_created_by_name'
-            )
-            ->where('payments.invoice_id', $id)
-            ->get();
+
+        // Items de la factura
+        $items = DB::select("
+            SELECT 
+                invoice_items.*,
+                item_types.name as item_type,
+                products.name as product_name,
+                subscriptions.id as subscription_id,
+                events.name as event_name
+            FROM invoice_items
+            LEFT JOIN item_types ON invoice_items.item_type_id = item_types.id
+            LEFT JOIN products ON invoice_items.product_id = products.id
+            LEFT JOIN subscriptions ON invoice_items.subscription_id = subscriptions.id
+            LEFT JOIN events ON invoice_items.event_id = events.id
+            WHERE invoice_items.invoice_id = ?
+        ", [$id]);
+
+        // Pagos de la factura
+        $payments = DB::select("
+            SELECT 
+                payments.*,
+                payment_methods.name as payment_method,
+                payment_users.name as payment_created_by_name
+            FROM payments
+            LEFT JOIN payment_methods ON payments.payment_method_id = payment_methods.id
+            LEFT JOIN users as payment_users ON payments.created_by = payment_users.id
+            WHERE payments.invoice_id = ?
+        ", [$id]);
+
         return [
-            'invoice' => $invoice,
+            'invoice' => $invoice[0] ?? null,
             'items' => $items,
             'payments' => $payments
         ];

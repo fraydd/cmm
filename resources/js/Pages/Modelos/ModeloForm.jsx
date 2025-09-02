@@ -1,21 +1,9 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import dayjs from 'dayjs';
 import { Form, Input, Select, Button, Space, Steps, DatePicker, Upload, InputNumber, Radio, Checkbox, Divider, Row, Col, Typography, Tooltip, message, theme } from 'antd';
-import { 
-    PlusOutlined, 
-    UploadOutlined, 
-    UserOutlined, 
-    ShoppingOutlined, 
-    TeamOutlined, 
-    CreditCardOutlined, 
-    InfoCircleOutlined,
-    IdcardOutlined,
-    HeartOutlined,
-    ContactsOutlined,
-    DollarOutlined
-} from '@ant-design/icons';
-import { useBranch } from '../hooks/useBranch';
-import ModelImageUploader from './ModelImageUploader.jsx';
+import {  IdcardOutlined, HeartOutlined, ContactsOutlined, DollarOutlined} from '@ant-design/icons';
+import { useBranch } from '../../hooks/useBranch.jsx';
+import FileUploader from './FileUploader.jsx';
 import styles from './ModeloForm.module.scss';
 
 const { TextArea } = Input;
@@ -28,14 +16,15 @@ const ModeloForm = forwardRef(({
     onFinish, 
     loading = false, 
     initialValues = {},
-    visible, // <-- Asegúrate de pasar esta prop desde el modal
-    modeloId // Nuevo prop opcional para modo edición
+    visible,
+    modeloId
 }, ref) => {
     const { token } = theme.useToken();
     const { selectedBranch } = useBranch();
     const [currentStep, setCurrentStep] = useState(0);
     const [formData, setFormData] = useState(initialValues);
-    const [modelImages, setModelImages] = useState([]); // Estado separado para imágenes
+    const [modelImages, setModelImages] = useState([]);
+    const [pdfDocument, setPdfDocument] = useState([]);
     const [catalogs, setCatalogs] = useState({
         identification_types: [],
         genders: [],
@@ -56,6 +45,7 @@ const ModeloForm = forwardRef(({
         form.resetFields();
         setFormData({});
         setModelImages([]);
+        setPdfDocument([]);
         setCurrentStep(0);
     };
 
@@ -95,10 +85,9 @@ const ModeloForm = forwardRef(({
                                 name: img.name,
                                 status: 'done',
                                 url: img.url,
-                                // NO asignar temp_id a imágenes existentes
                                 isExisting: true,
                                 existingId: img.id,
-                                id: img.id // Para el backend
+                                id: img.id
                             }));
                             
                             setModelImages(imagenesExistentes);
@@ -106,7 +95,25 @@ const ModeloForm = forwardRef(({
                         } else {
                             setModelImages([]);
                         }
-                        
+                         // Cargar PDF existente (catálogo) si lo hay - CORRECCIÓN AQUÍ
+                        if (data.catalogos && data.catalogos.length > 0) {
+                            const catalogosExistentes = data.catalogos.map(catalogo => ({
+                                uid: catalogo.id,
+                                name: catalogo.name,
+                                status: 'done',
+                                url: catalogo.url,
+                                isExisting: true,
+                                existingId: catalogo.id,
+                                id: catalogo.id
+                            }));
+                            
+                            setPdfDocument(catalogosExistentes);
+                            modelo.pdf_document = catalogosExistentes;
+                        } else {
+                            setPdfDocument([]);
+                        }
+
+
                         form.setFieldsValue(modelo);
                         setFormData(modelo);
                     }
@@ -124,6 +131,7 @@ const ModeloForm = forwardRef(({
                 form.resetFields();
                 setFormData(initialValues || {});
                 setModelImages([]);
+                setPdfDocument([]);
             }
         }
     }, [visible, modeloId, form, initialValues]);
@@ -284,6 +292,47 @@ const ModeloForm = forwardRef(({
                         }));
                 }
             }
+
+            allCurrentValues.pdf_document = Array.isArray(pdfDocument) ? pdfDocument : [];
+
+            // Procesar PDF para modo edición vs creación
+            if (allCurrentValues.pdf_document && Array.isArray(allCurrentValues.pdf_document)) {
+                if (isEditMode) {
+                    // En modo edición, separar PDF nuevo y existente
+                    const newPdf = allCurrentValues.pdf_document
+                        .filter(pdf => pdf.isNew && pdf.temp_id && pdf.status === 'done')
+                        .map(pdf => ({
+                            temp_id: pdf.temp_id,
+                            url: pdf.url,
+                            name: pdf.name,
+                            size: pdf.size,
+                            original_name: pdf.name,
+                            isNew: true
+                        }));
+                    
+                    const existingPdf = allCurrentValues.pdf_document
+                        .filter(pdf => pdf.isExisting && pdf.existingId)
+                        .map(pdf => ({
+                            id: pdf.existingId,
+                            name: pdf.name,
+                            url: pdf.url,
+                            isExisting: true
+                        }));
+                    
+                    allCurrentValues.pdf_document = [...newPdf, ...existingPdf];
+                } else {
+                    // En modo creación, solo PDF nuevo
+                    allCurrentValues.pdf_document = allCurrentValues.pdf_document
+                        .filter(pdf => pdf.status === 'done' && pdf.temp_id)
+                        .map(pdf => ({
+                            temp_id: pdf.temp_id,
+                            url: pdf.url,
+                            name: pdf.name,
+                            size: pdf.size,
+                            original_name: pdf.name
+                        }));
+                }
+            }
             
             // Actualizar formData con los valores actuales y avanzar
             setFormData({ ...formData, ...allCurrentValues });
@@ -311,7 +360,6 @@ const ModeloForm = forwardRef(({
     const handleStepClick = (step) => {
         setCurrentStep(step);
     };
-
     const renderStepContent = () => {
         switch (currentStep) {
             case 0:
@@ -491,12 +539,39 @@ const ModeloForm = forwardRef(({
                                     rules={[]}
                                     valuePropName="value"
                                 >
-                                    <ModelImageUploader
+                                    <FileUploader
                                         value={modelImages}
                                         onChange={(imgs) => {
                                             setModelImages(imgs || []);
                                             form.setFieldsValue({ model_images: imgs || [] });
                                         }}
+                                        maxFiles={10}
+                                        accept="image/*"
+                                        fileType="image"
+                                        listType="picture-card"
+                                        uploadEndpoint="/admin/modelos/upload-image"
+                                    />
+                                </Form.Item>
+                            </Col>
+                        </Row>
+                        <Row gutter={[16, 16]}>
+                            <Col xs={24} sm={24} md={24} lg={24} xl={24}>
+                                <Form.Item
+                                    label="Documento PDF (Opcional)"
+                                    name="pdf_document"
+                                    valuePropName="value"
+                                >
+                                    <FileUploader
+                                        value={pdfDocument}
+                                        onChange={(pdfs) => {
+                                            setPdfDocument(pdfs || []);
+                                            form.setFieldsValue({ pdf_document: pdfs || [] });
+                                        }}
+                                        maxFiles={1}
+                                        accept=".pdf"
+                                        fileType="pdf"
+                                        listType="text"
+                                        uploadEndpoint="/admin/modelos/upload-pdf"
                                     />
                                 </Form.Item>
                             </Col>

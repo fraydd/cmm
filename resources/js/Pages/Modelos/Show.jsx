@@ -24,21 +24,36 @@ import 'swiper/css/pagination';
 import 'swiper/css/effect-fade';
 import styles from './Show.module.scss';
 import ResponsiveNavMenu from '../../Components/ResponsiveNavMenu';
+import { Viewer } from '@react-pdf-viewer/core';
+import { Worker } from '@react-pdf-viewer/core'; // Importa Worker
+import ImageGallery from 'react-image-gallery';
+import 'react-image-gallery/styles/css/image-gallery.css';
+import '@react-pdf-viewer/core/lib/styles/index.css';
 
+// Configura el workerSrc para PDF.js
+import * as pdfjs from 'pdfjs-dist';
+
+// Esta línea es CRUCIAL para resolver el error
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 export default function Show({ 
     modelo, 
     imagenes, 
     redes_sociales, 
     acudiente, 
     suscripciones, 
-    facturas, 
-    pagos, 
-    estadisticas 
+    portafolio,
+    finanzas
 }) {
     const [activeSection, setActiveSection] = useState('info');
     const [selectedImage, setSelectedImage] = useState(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [numPages, setNumPages] = useState(null);
+    const [pageNumber, setPageNumber] = useState(1);
+
+    const onDocumentLoadSuccess = ({ numPages }) => {
+    setNumPages(numPages);
+    };
 
     // Referencias para el visor 3D
     const containerRef = useRef(null);
@@ -56,21 +71,34 @@ export default function Show({
         { key: 'finanzas', label: 'Finanzas' }
     ];
 
-    // Imágenes de prueba del storage
-    const carouselImages = [
-        '/storage/modelos/1/688c35ed15796_1754019309.png',
-        '/storage/modelos/1/688c35ed21942_1754019309.png',
-        '/storage/modelos/1/688c35ed32d01_1754019309.png',
-        '/storage/modelos/1/688c35ed46c3c_1754019309.png',
-        '/storage/modelos/1/688c35ed56b47_1754019309.png',
-        '/storage/modelos/1/688c35ed62cad_1754019309.jpg',
-        '/storage/modelos/1/688c35ed6fa39_1754019309.jpg',
-        '/storage/modelos/1/hhg.jpg',
-    ];
-
+   const carouselImages = imagenes.map(img => `/${img.file_path}`);
+   const fotoperfil = carouselImages.length > 0 ? carouselImages[0] : '';
+    // Transformar las imágenes al formato que requiere react-image-gallery
+    const galleryImages = carouselImages.map((imageSrc, index) => ({
+        original: imageSrc,
+        thumbnail: imageSrc,
+        originalAlt: `Imagen ${index + 1}`,
+        thumbnailAlt: `Miniatura ${index + 1}`,
+        description: `Imagen ${index + 1} del portafolio`
+    }));
     const handleMenuClick = (key) => {
         setActiveSection(key);
     };
+    function formatearCOP(valorStr) {
+        // convertir el string a número
+        const valor = parseFloat(valorStr);
+
+        // en caso de que no sea un número válido
+        if (isNaN(valor)) return "Valor no válido";
+
+        // formatear a pesos colombianos
+        return new Intl.NumberFormat("es-CO", {
+            style: "currency",
+            currency: "COP",
+            minimumFractionDigits: 0 // usa 2 si quieres decimales
+        }).format(valor);
+    }
+
 
     // Función para obtener el icono correcto según la plataforma
     const getSocialIcon = (plataforma) => {
@@ -928,6 +956,8 @@ export default function Show({
                 );
             case 'portfolio':
                 // Layout de una sola columna para portafolio
+                // Estados para el PDF
+                
                 return (
                     <div className={styles.singleColumnBody}>
                         <div className={styles.singleColumn}>
@@ -935,19 +965,57 @@ export default function Show({
                                 <h3>Galería de Imágenes</h3>
                                 <p><strong>Total de imágenes:</strong> {estadisticas?.total_imagenes || 0}</p>
                                 <p>Sesiones fotográficas profesionales y trabajos destacados del modelo</p>
+                                {/* Galería de imágenes */}
+                                <div className={styles.galleryContainer}>
+                                    <ImageGallery
+                                        items={galleryImages}
+                                        showPlayButton={true}
+                                        showFullscreenButton={true}
+                                        showThumbnails={true}
+                                        thumbnailPosition="bottom"
+                                        autoPlay={false}
+                                        slideDuration={450}
+                                        slideInterval={3000}
+                                        showIndex={true}
+                                        showNav={true}
+                                        additionalClass={styles.customGallery}
+                                    />
+                                </div>
                             </div>
                             
                             <div className={styles.colContent}>
                                 <h3>Portafolio Profesional</h3>
                                 <p>Documento PDF con el portfolio completo incluyendo trabajos realizados y experiencia profesional</p>
-                                <button className={styles.downloadButton}>
-                                    Descargar Portafolio PDF
-                                </button>
-                            </div>
-                            
-                            <div className={styles.colContent}>
-                                <h3>Contenido Multimedia</h3>
-                                <p>Videos promocionales, reels para redes sociales y otro contenido audiovisual</p>
+                                
+                                <div className={styles.portfolioPreview}>
+                                    {/* Ruta hardcodeada - reemplázala con tu ruta real */}
+                                    <div className={styles.pdfViewer}>
+                                    {/* Controles de navegación */}
+
+
+
+<div className={styles.pdfViewer}>
+          {/* Contenedor del PDF con Viewer */}
+          <div className={styles.pdfContainer}>
+            <Viewer
+              fileUrl={`/${portafolio.file_path}`}
+              renderError={(error) => (
+                <div className={styles.pdfError}>
+                  Error al cargar el PDF: {error.message}
+                </div>
+              )}
+              renderLoader={() => (
+                <div className={styles.pdfLoading}>
+                  Cargando PDF...
+                </div>
+              )}
+            />
+          </div>
+        </div>
+
+
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1013,45 +1081,41 @@ export default function Show({
                             <div className={styles.colContent}>
                                 <h3>Resumen Financiero</h3>
                                 <div className={styles.financialSummary}>
-                                    <p><strong>Total facturado:</strong> ${estadisticas?.total_facturado || 0}</p>
-                                    <p><strong>Total pagado:</strong> ${estadisticas?.total_pagado || 0}</p>
-                                    <p><strong>Saldo pendiente:</strong> ${estadisticas?.total_pendiente || 0}</p>
-                                    <p><strong>Estado financiero:</strong> 
-                                        <span className={(estadisticas?.total_pendiente || 0) > 0 ? styles.statusWarning : styles.statusActive}>
-                                            {(estadisticas?.total_pendiente || 0) > 0 ? 'Pagos pendientes' : 'Al día'}
-                                        </span>
-                                    </p>
+                                    <p><strong>Total facturado:</strong> ${formatearCOP(finanzas.totales[0].total) || 0}</p>
+                                    <p><strong>Total pagado:</strong> ${formatearCOP(finanzas.totales[0].pagado) || 0}</p>
+                                    <p><strong>Saldo pendiente:</strong> ${formatearCOP(finanzas.totales[0].pendiente) || 0}</p>
                                 </div>
                             </div>
                             
                             <div className={styles.colContent}>
                                 <h3>Facturas Recientes</h3>
-                                <p><strong>Total de facturas:</strong> {facturas?.length || 0}</p>
-                                {facturas && facturas.length > 0 ? (
-                                    facturas.slice(0, 3).map((factura, index) => (
-                                        <div key={index} className={styles.invoiceItem}>
-                                            <p><strong>Factura #{factura.id}</strong></p>
-                                            <p>Fecha: {factura.fecha_factura}</p>
-                                            <p>Total: ${factura.total}</p>
-                                            <p>Estado: {factura.estado}</p>
-                                        </div>
+                                <p><strong>Total de facturas:</strong> {finanzas.facturas?.length || 0}</p>
+                               {finanzas.facturas && finanzas.facturas.length > 0 ? (
+                                    finanzas.facturas.map((factura) => (
+                                    <div key={factura.id} className="invoiceItem">
+                                        <p><strong>Factura #{factura.id}</strong></p>
+                                        <p>Sede: {factura.name}</p>
+                                        <p>Total: {formatearCOP(factura.total_amount)}</p>
+                                        <p>Pagado: {formatearCOP(factura.paid_amount)}</p>
+                                        <p>Pendiente: {formatearCOP(factura.remaining_amount)}</p>
+                                    </div>
                                     ))
                                 ) : (
-                                    <p>No hay facturas registradas</p>
+                                    <p>No hay facturas disponibles</p>
                                 )}
                             </div>
                             
                             <div className={styles.colContent}>
                                 <h3>Pagos Realizados</h3>
-                                <p><strong>Total de pagos:</strong> {pagos?.length || 0}</p>
-                                {pagos && pagos.length > 0 ? (
-                                    pagos.slice(0, 3).map((pago, index) => (
-                                        <div key={index} className={styles.paymentItem}>
-                                            <p><strong>Pago de ${pago.monto}</strong></p>
-                                            <p>Fecha: {pago.fecha_pago}</p>
-                                            <p>Método: {pago.metodo_pago}</p>
-                                            <p>Factura: #{pago.factura_id}</p>
-                                        </div>
+                                <p><strong>Total de pagos:</strong> {finanzas.pagos?.length || 0}</p>
+                                 {finanzas.pagos && finanzas.pagos.length > 0 ? (
+                                    finanzas.pagos.map((pago) => (
+                                    <div key={pago.id} className="paymentItem">
+                                        <p><strong>Pago de {formatearCOP(pago.amount)}</strong></p>
+                                        <p>Fecha: {pago.payment_date}</p>
+                                        <p>Método: {pago.name}</p>
+                                        <p>Factura: #{pago.idFactura}</p>
+                                    </div>
                                     ))
                                 ) : (
                                     <p>No hay pagos registrados</p>
@@ -1062,13 +1126,13 @@ export default function Show({
                         <div className={`${styles.col2} ${styles.columna}`}>
                             <div className={styles.colContent}>
                                 <h3>Pagos Pendientes</h3>
-                                {facturas && facturas.filter(f => f.pendiente > 0).length > 0 ? (
-                                    facturas.filter(f => f.pendiente > 0).map((factura, index) => (
-                                        <div key={index} className={styles.pendingItem}>
+                                {finanzas.deudas && finanzas.deudas.filter(f => f.pendiente > 0).length > 0 ? (
+                                    finanzas.deudas.map((factura) => (
+                                        <div className={styles.pendingItem}>
                                             <p><strong>Factura #{factura.id}</strong></p>
-                                            <p>Monto pendiente: ${factura.pendiente}</p>
-                                            <p>Fecha de emisión: {factura.fecha_factura}</p>
-                                            <p>Sucursal: {factura.sucursal}</p>
+                                            <p>Monto pendiente: ${formatearCOP(factura.remaining_amount)}</p>
+                                            <p>Fecha de emisión: 2025</p>
+                                            <p>Sucursal: {factura.name}</p>
                                         </div>
                                     ))
                                 ) : (
@@ -1077,16 +1141,6 @@ export default function Show({
                                         <p>No hay pagos pendientes</p>
                                     </div>
                                 )}
-                            </div>
-                            
-                            <div className={styles.colContent}>
-                                <h3>Historial de Transacciones</h3>
-                                <p>Registro completo de todas las transacciones financieras del modelo</p>
-                            </div>
-                            
-                            <div className={styles.colContent}>
-                                <h3>Métodos de Pago</h3>
-                                <p>Información sobre los métodos de pago utilizados y configurados</p>
                             </div>
                         </div>
                     </div>
@@ -1141,7 +1195,7 @@ export default function Show({
                             <div className={styles.perfil}>
                                 <div className={styles.imagenPerfil}>
                                     <img 
-                                        src="/storage/modelos/1/688c35ed62cad_1754019309.jpg" 
+                                        src={fotoperfil}
                                         alt="Perfil del modelo" 
                                         className={styles.perfilImage}
                                     />

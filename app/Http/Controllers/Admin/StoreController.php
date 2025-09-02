@@ -748,10 +748,20 @@ class StoreController extends Controller
 
             // 4. Registrar el pago en la tabla payments
             $paymentMethodId = $request->input('paymentMethod');
+
+            // 5. Registrar movimiento de caja
+            // Determinar tipo de movimiento (ingreso por venta)
+            $cashRegister = DB::table('cash_register')
+                ->where('branch_id', $branchId)
+                ->where('status', 'open')
+                ->orderByDesc('opening_date')
+                ->first();
+
             // amountPaid ya calculado arriba
             $paymentId = DB::table('payments')->insertGetId([
                 'branch_id' => $branchId,
                 'invoice_id' => $invoiceId,
+                'cash_register_id' => $cashRegister->id,
                 'payment_method_id' => $paymentMethodId,
                 'amount' => $amountPaid,
                 'payment_date' => now(),
@@ -761,27 +771,6 @@ class StoreController extends Controller
                 'updated_at' => now(),
             ]);
 
-            // 5. Registrar movimiento de caja
-            // Determinar tipo de movimiento (ingreso por venta)
-            $cashRegister = DB::table('cash_register')
-                ->where('branch_id', $branchId)
-                ->where('status', 'open')
-                ->orderByDesc('opening_date')
-                ->first();
-            if ($cashRegister) {
-                DB::table('cash_movements')->insert([
-                    'cash_register_id' => $cashRegister->id,
-                    'movement_type' => 'ingreso',
-                    'invoice_id' => $invoiceId,
-                    'payment_id' => $paymentId,
-                    'amount' => $amountPaid,
-                    'concept' => 'Venta en tienda',
-                    'observations' => $request->input('observaciones'),
-                    'movement_date' => now(),
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            }
 
             // 6. Borrar items del cart
             DB::delete(<<<SQL
