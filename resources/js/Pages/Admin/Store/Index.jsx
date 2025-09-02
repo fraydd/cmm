@@ -512,7 +512,7 @@ export default function Index(props) {
                             <ShoppingOutlined /> Tienda
                         </Title>
                         <Text type="secondary">
-                            Administra los empleados del sistema
+                            Seleccione productos, membresías o eventos para agregar al carrito.
                         </Text>
                     </div>
                     <div className={styles.clienteInputWrapper}>

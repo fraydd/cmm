@@ -135,16 +135,6 @@ const Sidebar = forwardRef(({ collapsed, auth, onToggle, isMobile = false, isVis
                         router.visit(url);
                     }
                 },
-                { 
-                    key: 'modelos.create', 
-                    label: 'Nuevo Modelo',
-                    onClick: () => {
-                        const url = selectedBranch?.id 
-                            ? `/admin/modelos/create?branch_id=${selectedBranch.id}`
-                            : '/admin/modelos/create';
-                        router.visit(url);
-                    }
-                }
             ]
         },
         {
@@ -199,34 +189,18 @@ const Sidebar = forwardRef(({ collapsed, auth, onToggle, isMobile = false, isVis
             children: [
                 {
                     key: 'cash_register.index',
-                    label: 'Histórico de Caja',
+                    label: 'Cierres de caja',
                     onClick: () => router.visit('/admin/cash-register')
-                },{ 
-                    key: 'cash_register.movements', 
-                    label: 'Movimientos',
-                    onClick: () => router.visit('/admin/cash-movements')
                 }
+                // { 
+                //     key: 'cash_register.movements', 
+                //     label: 'Movimientos',
+                //     onClick: () => router.visit('/admin/cash-movements')
+                // }
                 ,{ 
                     key: 'cash_register.invoices', 
                     label: 'Facturas',
                     onClick: () => router.visit('/admin/invoices')
-                }
-            ]
-        },
-        {
-            key: 'academia',
-            icon: <TeamOutlined />,
-            label: 'Academia',
-            children: [
-                { 
-                    key: 'academia.index', 
-                    label: 'Asistencias',
-                    onClick: () => router.visit('/admin/academia')
-                },
-                { 
-                    key: 'academia.schedule', 
-                    label: 'Horarios',
-                    onClick: () => router.visit('/admin/academia/schedule')
                 }
             ]
         },

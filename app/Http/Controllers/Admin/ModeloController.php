@@ -1986,7 +1986,7 @@ class ModeloController extends \App\Http\Controllers\Controller
             ]);
 
             // Crear directorio temporal si no existe
-            $tempPath = storage_path('app/temp/modelos');
+            $tempPath = public_path('storage/temp/modelos');
             if (!file_exists($tempPath)) {
                 mkdir($tempPath, 0755, true);
             }
@@ -2024,7 +2024,7 @@ class ModeloController extends \App\Http\Controllers\Controller
             ]);
 
             // Crear directorio temporal si no existe
-            $tempPath = storage_path('app/temp/pdfs');
+            $tempPath = public_path('storage/temp/pdfs');
             if (!file_exists($tempPath)) {
                 mkdir($tempPath, 0755, true);
             }
