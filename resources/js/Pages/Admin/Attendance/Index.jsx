@@ -1,7 +1,8 @@
 import EditAttendanceModal from './EditAttendanceModal';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { App } from 'antd';
-import { Button, Space, Typography, Table, Tag, Empty, Input, Select, Tooltip, Popconfirm, message, Pagination, DatePicker, Radio } from 'antd';
+import { Button, Space, Typography, Table, Tag, Empty, Input, Select, Tooltip, Popconfirm, message, Pagination, Radio } from 'antd';
+import CustomDateRangePicker from '../../../Components/CustomDateRangePicker.jsx';
 import {
     ClockCircleOutlined,
     SearchOutlined,
@@ -33,8 +34,18 @@ export default function AttendanceIndex() {
     // Estado para el rango de fechas
     const [dateRange, setDateRange] = useState([
         dayjs().startOf('month'),
-        dayjs()
+        dayjs().endOf('month')
     ]);
+    const dateRangePickerRef = useRef();
+    // Al montar, setear el rango al mes actual usando el método del componente
+    useEffect(() => {
+        if (dateRangePickerRef.current && dateRangePickerRef.current.setRange) {
+            const start = dayjs().startOf('month');
+            const end = dayjs().endOf('month');
+            dateRangePickerRef.current.setRange([start, end]);
+            setDateRange([start, end]);
+        }
+    }, []);
     // Estado para las sedes seleccionadas en el filtro (array de IDs)
     const [selectedBranchFilter, setSelectedBranchFilter] = useState([]);
     // Estado para las sedes disponibles
@@ -509,11 +520,12 @@ const columns = [
                 {/* CONTENEDOR 1 - Filtros */}
 
                 <div className={styles.filtersSection}>
-                    <DatePicker.RangePicker
+                    <CustomDateRangePicker
+                        ref={dateRangePickerRef}
+                        format="YYYY-MM-DD"
                         value={dateRange}
                         onChange={setDateRange}
-                        format="YYYY-MM-DD"
-                        allowClear={false}
+                        style={{ marginRight: 8 }}
                     />
                     <Select
                         mode="multiple"

@@ -1,7 +1,8 @@
 import CreateCashRegisterModal from './createCashRegisterModal.jsx';
 import EditCashRegisterModal from './editCashRegisterModal.jsx';
-import React, { useEffect, useState } from 'react';
-import { Button, Space, Typography, Table, Tag, Empty, Input, Select, Tooltip, Popconfirm, message, Pagination, DatePicker, Popover } from 'antd';
+import React, { useEffect, useState, useRef } from 'react';
+import { Button, Space, Typography, Table, Tag, Empty, Input, Select, Tooltip, Popconfirm, message, Pagination, Popover } from 'antd';
+import CustomDateRangePicker from '../../../Components/CustomDateRangePicker.jsx';
 import {
     DollarOutlined,
     SearchOutlined,
@@ -24,8 +25,18 @@ export default function AttendanceIndex() {
     const [filteredData, setFilteredData] = useState([]);
     const [dateRange, setDateRange] = useState([
         dayjs().startOf('month'),
-        dayjs()
+        dayjs().endOf('month')
     ]);
+    const dateRangePickerRef = useRef();
+    // Al montar, setear el rango al día actual usando el método del componente
+    useEffect(() => {
+        if (dateRangePickerRef.current && dateRangePickerRef.current.setRange) {
+            const start = dayjs().startOf('month');
+            const end = dayjs().endOf('month');
+            dateRangePickerRef.current.setRange([start, end]);
+            setDateRange([start, end]);
+        }
+    }, []);
     const [selectedBranchFilter, setSelectedBranchFilter] = useState([]);
     const [branchOptions, setBranchOptions] = useState([]);
     const [pagination, setPagination] = useState({
@@ -419,8 +430,8 @@ const columns = [
         key: 'status',
         width: 100,
         render: (text) => {
-            if (text === 'open') return <Tag color="green">Abierta</Tag>;
-            if (text === 'closed') return <Tag color="red">Cerrada</Tag>;
+            if (text === 'open') return <Tag color="green" className={styles.statusTagTransparent}>Abierta</Tag>;
+            if (text === 'closed') return <Tag color="red" className={styles.statusTagTransparent}>Cerrada</Tag>;
             return text || 'N/A';
         },
         sorter: { compare: (a, b) => 0, multiple: false },
@@ -512,11 +523,12 @@ const columns = [
                 {/* CONTENEDOR 1 - Filtros */}
 
                 <div className={styles.filtersSection}>
-                    <DatePicker.RangePicker
+                    <CustomDateRangePicker
+                        ref={dateRangePickerRef}
+                        format="YYYY-MM-DD"
                         value={dateRange}
                         onChange={setDateRange}
-                        format="YYYY-MM-DD"
-                        allowClear={false}
+                        style={{ marginRight: 8 }}
                     />
                     <Select
                         mode="multiple"

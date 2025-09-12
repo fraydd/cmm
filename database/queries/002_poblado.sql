@@ -180,7 +180,11 @@ INSERT INTO `permissions` (`name`, `guard_name`, `created_at`, `updated_at`) VAL
 
 ('edit_cash_movements', 'web', NOW(), NOW()),
 ('view_invoices', 'web', NOW(), NOW()),
-('edit_invoices', 'web', NOW(), NOW());
+('edit_invoices', 'web', NOW(), NOW()),
+
+('edit_branches', 'web', NOW(), NOW()),
+('view_branches', 'web', NOW(), NOW());
+
 
 -- ===== ASIGNACIÓN DE PERMISOS A ROLES =====
 

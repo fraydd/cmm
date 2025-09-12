@@ -231,17 +231,17 @@ class AttendanceController extends Controller
     {
         $userId = Auth::id();
         if ($userId == 1) {
-            // Admin: devolver todas las sedes
-            $branches = DB::select('SELECT id, name FROM branches');
+            // Admin: devolver todas las sedes activas
+            $branches = DB::select('SELECT id, name FROM branches WHERE is_active = 1');
         } else {
-            // Empleado: devolver solo las sedes a las que tiene acceso
+            // Empleado: devolver solo las sedes activas a las que tiene acceso
             $branches = DB::select('
                 SELECT 
                 b.id, b.name FROM users u 
                 INNER JOIN employees e ON u.id = e.user_id 
                 INNER JOIN employee_branch_access eba ON e.id = eba.employee_id 
                 INNER JOIN branches b ON eba.branch_id = b.id
-                WHERE u.id = ?'
+                WHERE u.id = ? AND b.is_active = 1'
             , [$userId]);
         }
         return response()->json($branches);

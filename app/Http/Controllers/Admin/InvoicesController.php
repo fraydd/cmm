@@ -6,11 +6,12 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Admin\CashRegisterController;
 use Barryvdh\DomPDF\Facade\Pdf;
-
+use \App\Mail\PaymentConfirmationMail;
 
 class InvoicesController extends Controller
 {
@@ -135,78 +136,96 @@ class InvoicesController extends Controller
 
 
     public function createEgreso(Request $request) {
+        DB::beginTransaction();
         try {
             $amount = $request->input('amount');
-            $observations = $request->input('observations');
+            $details = $request->input('details', null); // detalles opcional
             $branch_id = $request->input('branch_id');
-            $identificacion_beneficiario = $request->input('beneficiary_identification');
-            $movement_date = now();
-            $movement_type = 'egreso';
+            $person_id = $request->input('person_id');
+            $paymentMethodId = $request->input('payment_method_id');
+            $payAll = $request->boolean('pay_all', true);
+            $partialPayment = $request->input('partial_payment');
+            $user_id = auth()->id();
+            $now = now();
 
-            if (!$amount || !$movement_type || !$branch_id) {
-                return response()->json(['message' => 'Campos son obligatorios'], 400);
+            if (!$amount || !$branch_id || !$person_id || !$paymentMethodId) {
+                DB::rollBack();
+                return response()->json(['message' => 'Campos obligatorios faltantes'], 400);
             }
 
-            // se obtiene la caja abierta para la sede que se esta consultando
-            $activo = CashRegisterController::getActive($branch_id);
-
-            // Verificar si la respuesta es un error
-            if ($activo->getStatusCode() !== 200) {
-                return $activo; // Retornar el error directamente
-            }
-
-            // se registra el egreso
-
-
-            // Deserializar el contenido de la respuesta
-            $data = json_decode($activo->getContent());
-
-            // Acceder al ID de la caja activa
-            $cash_register_id = $data->caja->id ?? null;
-
-            if (!$cash_register_id) {
-                return response()->json(['message' => 'No se pudo obtener el ID de la caja activa'], 400);
-            }
-
-            // se consulta si la persona esta registrada en la base de datos 
-
-            $sqlBeneficiary = <<<SQL
-                SELECT p.id from people p 
-                WHERE p.identification_number = ?
-            SQL;
-
-            $beneficiary_id = DB::select($sqlBeneficiary, [$identificacion_beneficiario]);
-            $beneficiary_id = $beneficiary_id[0]->id ?? null;
-
-            if (!$beneficiary_id) {
+            // Validar que la persona existe
+            $beneficiary = DB::select('SELECT id FROM people WHERE id = ?', [$person_id]);
+            if (empty($beneficiary)) {
+                DB::rollBack();
                 return response()->json(['message' => 'Beneficiario no registrado'], 400);
             }
 
-            $sql = <<<SQL
-                INSERT INTO cash_movements (cash_register_id,amount, observations, movement_date, movement_type,concept,person_id, branch_id,responsible_user_id, created_at, updated_at)
-                VALUES (?,?, ?, ?, ?,'Egreso', ?, ?, ?, NOW(), NOW())
-            SQL;
+            // Obtener caja activa
+            $activo = CashRegisterController::getActive($branch_id);
+            if ($activo->getStatusCode() !== 200) {
+                DB::rollBack();
+                return $activo;
+            }
+            $data = json_decode($activo->getContent());
+            $cash_register_id = $data->caja->id ?? null;
+            if (!$cash_register_id) {
+                DB::rollBack();
+                return response()->json(['message' => 'No se pudo obtener la caja activa'], 400);
+            }
 
-            DB::insert($sql, [
-                $cash_register_id,
-                $amount,
-                $observations,
-                $movement_date,
-                $movement_type,
-                $beneficiary_id,
-                $branch_id,
-                auth()->id()
+            $invoiceType = 2;
+
+            // Validar lógica de pago
+            if (!$payAll) {
+                if (!$partialPayment || !is_numeric($partialPayment) || $partialPayment <= 0) {
+                    DB::rollBack();
+                    return response()->json(['message' => 'Debe ingresar un monto parcial válido'], 400);
+                }
+                if ($partialPayment > $amount) {
+                    DB::rollBack();
+                    return response()->json(['message' => 'El monto parcial no puede ser mayor al monto total'], 400);
+                }
+            }
+
+            // Insertar en invoices y obtener el ID
+            $invoice_id = DB::table('invoices')->insertGetId([
+                'branch_id' => $branch_id,
+                'person_id' => $person_id,
+                'invoice_date' => $now,
+                'invoice_type_id' => $invoiceType,
+                'observations' => $details,
+                'created_by' => $user_id,
+                'created_at' => $now,
+                'updated_at' => $now,
+                'total_amount' => $amount
             ]);
 
+            // Registrar el pago del egreso en payments
+            $pago = $payAll ? $amount : $partialPayment;
+            DB::table('payments')->insert([
+                'branch_id' => $branch_id,
+                'amount' => $pago,
+                'observations' => $details,
+                'payment_method_id' => $paymentMethodId,
+                'cash_register_id' => $cash_register_id,
+                'invoice_id' => $invoice_id,
+                'payment_date' => $now,
+                'created_at' => $now,
+                'updated_at' => $now,
+                'created_by' => $user_id,
+            ]);
+
+            DB::commit();
             return response()->json(['message' => 'Egreso creado correctamente'], 201);
         } catch (\Throwable $th) {
+            DB::rollBack();
             Log::error('Error al crear el egreso: ' . $th->getMessage());
             return response()->json(['message' => 'Error al crear el egreso: ' . $th->getMessage()], 500);
         }
     }
 
         // Descargar factura en PDF
-    public function downloadPdf($id)
+    public function downloadPdf($id, $returnPdf = false)
     {
         try {
 
@@ -233,9 +252,15 @@ class InvoicesController extends Controller
 
             if ($invoiceType->invoice_type_id == 1) {
                 $pdf = Pdf::loadView('invoices.ingreso', $invoiceData);
+                if ($returnPdf) {
+                    return $pdf;
+                }
                 return $pdf->stream('factura-' . $id . '.pdf');
             } else {
                 $pdf = Pdf::loadView('invoices.egreso', $invoiceData);
+                if ($returnPdf) {
+                    return $pdf;
+                }
                 return $pdf->stream('comprobante-egreso-' . $id . '.pdf');
             }
 
@@ -265,7 +290,7 @@ class InvoicesController extends Controller
 
             // Verificar si la respuesta es un error
             if ($activo->getStatusCode() !== 200) {
-                return $activo; // Retornar el error directamente
+                return $activo;
             }
 
             // se registra el egreso
@@ -281,8 +306,8 @@ class InvoicesController extends Controller
                 return response()->json(['message' => 'No se pudo obtener el ID de la caja activa'], 400);
             }
 
-            // Crear el pago
-            DB::table('payments')->insert([
+            // Crear el pago y obtener el ID
+            $paymentId = DB::table('payments')->insertGetId([
                 'branch_id' => $data['branch_id'],
                 'amount' => $data['amount'],
                 'observations' => $data['observations'],
@@ -295,15 +320,52 @@ class InvoicesController extends Controller
                 'created_by' => auth()->id(),
             ]);
 
+            // Enviar correo de confirmación de pago
+            try {
+                $invoiceData = $this->getInvoiceData($data['invoice_id']);
+                $payment = collect($invoiceData['payments'])->where('id', $paymentId)->first();
+                $pdf = $this->downloadPdf($data['invoice_id'], true);
+                $recipientEmail = $invoiceData['invoice']->person_email ?? null;
+                if ($recipientEmail) {
+                    Mail::to($recipientEmail)->send(new PaymentConfirmationMail($invoiceData, $payment, $pdf));
+                    Log::info('Correo de confirmación de pago enviado.', ['invoice_id' => $data['invoice_id'], 'payment_id' => $paymentId, 'recipient' => $recipientEmail]);
+                } else {
+                    Log::warning('No se pudo enviar el correo de confirmación de pago: email no encontrado.', ['invoice_id' => $data['invoice_id']]);
+                }
+            } catch (\Exception $e) {
+                Log::error('Error al enviar correo de confirmación de pago: ' . $e->getMessage(), ['invoice_id' => $data['invoice_id']]);
+            }
+
             return response()->json(['message' => 'Pago creado correctamente'], 201);
         } catch (\Throwable $th) {
             Log::error("Error al crear el pago: " . $th->getMessage());
             return response()->json(['error' => 'Error al crear el pago'], 500);
         }
     }
+
+        /**
+     * Verifica si la caja asociada a un payment está cerrada
+     * @param int $paymentId
+     * @return bool true si la caja está cerrada, false si está abierta o no existe
+     */
+    private function isPaymentCashRegisterClosed($paymentId)
+    {
+        $result = DB::selectOne('
+            SELECT cr.status
+            FROM payments p
+            LEFT JOIN cash_register cr ON p.cash_register_id = cr.id
+            WHERE p.id = ?
+        ', [$paymentId]);
+        if (!$result) return false;
+        return ($result->status === 'closed');
+    }
+    
     public function updatePayment(Request $request, $id){
         try {
-
+            // Validar si la caja está cerrada
+            if ($this->isPaymentCashRegisterClosed($id)) {
+                return response()->json(['error' => 'No se puede editar un pago de una caja cerrada'], 403);
+            }
             $data = $request->validate([
                 'branch_id' => 'required|integer',
                 'amount' => 'required|numeric',
@@ -313,9 +375,6 @@ class InvoicesController extends Controller
                 'payment_date' => 'required|date'
             ]);
             Log::info('Datos recibidos para crear pago: ' . json_encode($data));
-
-         // se valida que la caja aun se encuentre abierta para dejarlo editar
-
             // Crear el pago
             DB::table('payments')->where('id', $id)->update([
                 'amount' => $data['amount'],
@@ -324,7 +383,6 @@ class InvoicesController extends Controller
                 'payment_date' => $data['payment_date'],
                 'updated_at' => now(),
             ]);
-
             return response()->json(['message' => 'Pago actualizado correctamente'], 200);
         } catch (\Throwable $th) {
             Log::error("Error al actualizar el pago: " . $th->getMessage());
@@ -335,6 +393,10 @@ class InvoicesController extends Controller
     public function deletePayment($id)
     {
         try {
+            // Validar si la caja está cerrada
+            if ($this->isPaymentCashRegisterClosed($id)) {
+                return response()->json(['error' => 'No se puede eliminar un pago de una caja cerrada'], 403);
+            }
             DB::table('payments')->where('id', $id)->delete();
             return response()->json(['message' => 'Pago eliminado correctamente'], 200);
         } catch (\Throwable $th) {
@@ -422,10 +484,13 @@ class InvoicesController extends Controller
             SELECT 
                 payments.*,
                 payment_methods.name as payment_method,
-                payment_users.name as payment_created_by_name
+                payment_users.name as payment_created_by_name,
+                cr.status as cash_register_status,
+                (CASE WHEN cr.status = 'closed' THEN 1 ELSE 0 END) as is_cash_register_closed
             FROM payments
             LEFT JOIN payment_methods ON payments.payment_method_id = payment_methods.id
             LEFT JOIN users as payment_users ON payments.created_by = payment_users.id
+            LEFT JOIN cash_register cr ON payments.cash_register_id = cr.id
             WHERE payments.invoice_id = ?
         ", [$id]);
 
@@ -434,5 +499,51 @@ class InvoicesController extends Controller
             'items' => $items,
             'payments' => $payments
         ];
+    }
+
+    public function searchPeople(Request $request)
+    {
+        try {
+            $query = $request->input('query', '');
+            if (strlen($query) < 2) {
+                return response()->json(['message' => 'El término de búsqueda debe tener al menos 2 caracteres'], 400);
+            }
+            $likeQuery = '%' . $query . '%';
+            $people = DB::select('
+                SELECT 
+                    id,
+                    CONCAT(first_name, " ", last_name, ": ", identification_number) as name
+                FROM people
+                WHERE 
+                    first_name LIKE ?
+                    OR last_name LIKE ?
+                    OR identification_number LIKE ?
+                    OR CONCAT(first_name, " ", last_name) LIKE ?
+                ORDER BY 
+                    CASE 
+                        WHEN first_name LIKE ? THEN 1
+                        WHEN last_name LIKE ? THEN 2
+                        WHEN identification_number LIKE ? THEN 3
+                        WHEN CONCAT(first_name, " ", last_name) LIKE ? THEN 4
+                        ELSE 5 
+                    END,
+                    first_name ASC,
+                    last_name ASC
+                LIMIT 15
+            ', [
+                $likeQuery,
+                $likeQuery,
+                $likeQuery,
+                $likeQuery,
+                $query . '%',
+                $query . '%',
+                $query . '%',
+                $query . '%'
+            ]);
+            return response()->json(['people' => $people]);
+        } catch (\Exception $e) {
+            Log::error('Error al buscar personas: ' . $e->getMessage());
+            return response()->json(['message' => 'Error al buscar personas'], 500);
+        }
     }
 }

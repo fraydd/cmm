@@ -791,3 +791,10 @@ $transition-duration: var(--cmm-transition-normal);
     }
   }
 }
+
+// Tag de estado con fondo transparente
+.statusTagTransparent {
+  background-color: transparent !important;
+  border-width: 1.5px !important;
+  font-weight: 600;
+}

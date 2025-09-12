@@ -6,16 +6,10 @@ use App\Http\Controllers\Admin\InvoicesController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Admin\ModeloController;
-use App\Http\Controllers\Admin\PermissionController;
-use App\Http\Controllers\Admin\EmployeeController;
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\InvitationController;
-use App\Http\Controllers\StoreController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Auth\RegisterController;
-use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
-
+use \App\Http\Controllers\Admin\BranchesController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -31,7 +25,7 @@ use App\Http\Controllers\Controller;
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'error' => session('error')
-    ]);
+    ]); 
 })->name('welcome');
 
 // Rutas de autenticación
@@ -59,6 +53,16 @@ Route::post('/auth/register', [RegisterController::class, 'register'])->name('au
 
 // Rutas del panel de administración
 Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () {
+
+    // Rutas necesarias para la vista de sedes (solo listar y crear)
+    Route::middleware(['permission:view_branches'])->group(function () {
+        Route::get('sedes', [BranchesController::class, 'index'])->name('sedes.index');
+        Route::get('sedes/search-managers', [BranchesController::class, 'searchManagers'])->name('sedes.search-managers');
+    });
+    Route::middleware(['permission:edit_branches'])->group(function () {
+        Route::post('sedes', [BranchesController::class, 'store'])->name('sedes.store');
+        Route::put('sedes/{id}', [BranchesController::class, 'update'])->name('sedes.update');
+    });
     // Dashboard
     Route::get('/', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
@@ -206,6 +210,9 @@ Route::prefix('admin')->middleware(['auth', 'permission:view_cash_movements'])->
 });
 
 Route::prefix('admin')->middleware(['auth', 'permission:view_invoices'])->group(function () {
+
+    // Ruta para registrar egresos desde InvoicesController
+    Route::post('/invoices/createEgreso', [InvoicesController::class, 'createEgreso'])->name('admin.invoices.createEgreso');
     Route::get('invoices', [InvoicesController::class, 'index'])->name('admin.invoices.index');
     Route::post('invoices/list', [InvoicesController::class, 'getInvoices'])->name('admin.invoices.list');
     Route::get('invoices/{id}/pdf', [InvoicesController::class, 'downloadPdf'])->name('admin.invoices.pdf');
@@ -215,7 +222,12 @@ Route::prefix('admin')->middleware(['auth', 'permission:view_invoices'])->group(
     Route::put('/invoices/updatePayment/{id}', [InvoicesController::class, 'updatePayment'])->name('admin.invoices.updatePayment');
     Route::put('/invoices/updateInvoice/{id}', [InvoicesController::class, 'updateInvoice'])->name('admin.invoices.updateInvoice');
     Route::delete('/invoices/deletePayment/{id}', [InvoicesController::class, 'deletePayment'])->name('admin.invoices.deletePayment');
+    
 
     // Route::post('cash-movements/createEgreso', [CashMovementsController::class, 'createEgreso'])->name('admin.cash_movements.createEgreso');
     // Route::post('cash-movements/edit', [CashMovementsController::class, 'edit'])->name('admin.cash_movements.edit');
+});
+
+Route::prefix('admin')->middleware(['auth'])->group(function () {
+    Route::get('/search/people', [InvoicesController::class, 'searchPeople']);
 });

@@ -299,12 +299,8 @@ class InvitationController extends Controller
     private static function sendInvitationEmailStatic(Invitation $invitation)
     {
         $invitationUrl = url('/register?token=' . $invitation->token);
-        
-        // Por ahora solo logueamos el email (implementar Mail::send después)
+    Mail::to($invitation->email)->send(new \App\Mail\InvitationMail($invitation, $invitationUrl));
         Log::info("Invitación enviada a {$invitation->email}: {$invitationUrl}");
-        
-        // TODO: Implementar envío real de email
-        // Mail::to($invitation->email)->send(new InvitationMail($invitation));
     }
 
     /**

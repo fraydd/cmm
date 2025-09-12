@@ -1,7 +1,9 @@
 <?php
 
 namespace App\Http\Controllers\Admin;
-
+use Illuminate\Support\Facades\Mail;
+use App\Mail\PurchaseMail;
+use App\Http\Controllers\Admin\InvoicesController;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -776,6 +778,24 @@ class StoreController extends Controller
             DB::delete(<<<SQL
                 DELETE FROM cart WHERE person_id = ? AND branch_id = ?
             SQL, [$personId, $branchId]);
+
+            // 7. Enviar correo de confirmación de compra con factura adjunta
+            try {
+                $invoicesController = new InvoicesController();
+                $invoiceData = $invoicesController->getInvoiceData($invoiceId);
+                $pdf = $invoicesController->downloadPdf($invoiceId, true);
+                // Obtener email del cliente
+                $clienteEmail = DB::select('SELECT p.email from people p WHERE p.id = ?', [$personId]);
+                
+                if ($clienteEmail) {
+                    Mail::to($clienteEmail)->send(new PurchaseMail($invoiceData, $pdf));
+                    Log::info('Correo de compra enviado exitosamente.', ['invoice_id' => $invoiceId, 'recipient' => $clienteEmail]);
+                } else {
+                    Log::warning('No se pudo enviar el correo de compra: email no encontrado.', ['invoice_id' => $invoiceId]);
+                }
+            } catch (\Exception $e) {
+                Log::error('Error al enviar correo de compra: ' . $e->getMessage(), ['invoice_id' => $invoiceId]);
+            }
 
             return response()->json(['message' => 'Pago procesado exitosamente', 'invoice_id' => $invoiceId], 200);
         } catch (\Exception $e) {

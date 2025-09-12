@@ -187,7 +187,7 @@ CREATE TABLE `people` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `people_identification_number_unique` (`identification_number`),
-  KEY `people_first_name_last_name_index` (`first_name`,`last_name`)
+  KEY `people_full_name_index` (`first_name`, `last_name`)
 );
 
 -- ===== TABLAS DE EMPLEADOS =====
@@ -517,10 +517,10 @@ CREATE TABLE `invoices` (
   `branch_id` bigint unsigned NOT NULL,
   `person_id` bigint unsigned NULL,
   `invoice_date` timestamp NULL DEFAULT NULL,
-  `total_amount` decimal(12,2) NOT NULL,
+  `total_amount` decimal(12,2) NOT NULL DEFAULT 0,
   `paid_amount` decimal(12,2) NOT NULL DEFAULT 0,
   `remaining_amount` decimal(12,2) NOT NULL DEFAULT 0,
-  `status_id` bigint unsigned NOT NULL,
+  `status_id` bigint unsigned NULL,
   `invoice_type_id` bigint unsigned NOT NULL DEFAULT 1,
   `observations` text NULL,
   `created_by` bigint unsigned NULL,

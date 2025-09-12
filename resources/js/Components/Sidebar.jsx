@@ -214,6 +214,11 @@ const Sidebar = forwardRef(({ collapsed, auth, onToggle, isMobile = false, isVis
                     label: 'Usuarios',
                     onClick: () => router.visit('/admin/settings/users')
                 },
+                ...(can('view_branches') ? [{
+                    key: 'settings.sedes',
+                    label: 'Sedes',
+                    onClick: () => router.visit('/admin/sedes')
+                }] : []),
                 ...(can('view_permissions') ? [{ 
                     key: 'settings.permissions', 
                     label: 'Permisos',

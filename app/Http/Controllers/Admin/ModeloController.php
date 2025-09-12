@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\WelcomeMail;
+use App\Http\Controllers\Admin\InvoicesController;
 
 class ModeloController extends \App\Http\Controllers\Controller
 {
@@ -212,6 +215,8 @@ class ModeloController extends \App\Http\Controllers\Controller
      */
     public function store(Request $request)
     {
+        try {
+      
         $data = $request->all();
         // Log del objeto completo en JSON
         Log::info('=== DATOS DEL FORMULARIO DE MODELO ===');
@@ -312,6 +317,10 @@ class ModeloController extends \App\Http\Controllers\Controller
                 'success' => false, 
                 'message' => 'El modelo y el acudiente no pueden tener el mismo número de identificación. Por favor, verifique los datos ingresados.'
             ], 422);
+        }
+          } catch (\Throwable $th) {
+            log('Error al guardar modelo: ' . $th->getMessage());
+            return response()->json(['success' => false, 'message' => 'Error al guardar modelo.'], 500);
         }
 
         // VALIDACIÓN ADICIONAL: Verificar que el acudiente no es el mismo modelo (validación de autoreferencia)
@@ -700,6 +709,23 @@ class ModeloController extends \App\Http\Controllers\Controller
             $this->cleanUpUnusedTempFiles($imagesMeta, $pdfMeta ?? []);
 
             DB::commit();
+
+            // Enviar correo con la factura y el PDF adjunto
+            try {
+                $invoicesController = new InvoicesController();
+                $invoiceData = $invoicesController->getInvoiceData($invoiceId);
+                $pdf = $invoicesController->downloadPdf($invoiceId, true);
+                $recipientEmail = $data['email'];
+
+                Mail::to($recipientEmail)->send(new WelcomeMail($invoiceData, $pdf));
+                
+                Log::info('Correo de factura enviado exitosamente.', ['invoice_id' => $invoiceId, 'recipient' => $recipientEmail]);
+
+            } catch (\Exception $e) {
+                Log::error('Error al enviar correo de factura: ' . $e->getMessage(), ['invoice_id' => $invoiceId]);
+                // No detener el flujo principal si el correo falla, solo registrar el error.
+            }
+            
             return response()->json(['success' => true, 'message' => 'Modelo registrado correctamente']);
         } catch (ValidationException $e) {
             DB::rollBack();
@@ -1829,48 +1855,55 @@ class ModeloController extends \App\Http\Controllers\Controller
      */
     public function destroy($id)
     {
-        // Si se envía un array de IDs en el body, hacer eliminación masiva
-        if (request()->has('ids') && is_array(request()->input('ids'))) {
-            $ids = request()->input('ids');
-            
-            // Validar que todos los IDs sean números
-            foreach ($ids as $id) {
-                if (!is_numeric($id)) {
-                    return response()->json(['success' => false, 'message' => 'ID inválido: ' . $id], 400);
+        try{
+
+        
+            // Si se envía un array de IDs en el body, hacer eliminación masiva
+            if (request()->has('ids') && is_array(request()->input('ids'))) {
+                $ids = request()->input('ids');
+                
+                // Validar que todos los IDs sean números
+                foreach ($ids as $id) {
+                    if (!is_numeric($id)) {
+                        return response()->json(['success' => false, 'message' => 'ID inválido: ' . $id], 400);
+                    }
                 }
+                
+                // Verificar que existan los modelos
+                $existingModels = DB::table('models')->whereIn('id', $ids)->count();
+                if ($existingModels !== count($ids)) {
+                    return response()->json(['success' => false, 'message' => 'Algunos modelos no fueron encontrados'], 404);
+                }
+                
+                // Desactivar todos los modelos
+                DB::table('models')->whereIn('id', $ids)->update(['is_active' => false, 'updated_at' => now()]);
+                
+                // Desactivar todas las suscripciones de estos modelos
+                // DB::table('subscriptions')->whereIn('model_id', $ids)->update(['status' => 'inactive', 'updated_at' => now()]);
+                
+                return response()->json([
+                    'success' => true, 
+                    'message' => count($ids) . ' modelo(s) y sus suscripciones desactivado(s) correctamente'
+                ]);
             }
             
-            // Verificar que existan los modelos
-            $existingModels = DB::table('models')->whereIn('id', $ids)->count();
-            if ($existingModels !== count($ids)) {
-                return response()->json(['success' => false, 'message' => 'Algunos modelos no fueron encontrados'], 404);
+            // Eliminación individual (comportamiento original)
+            $modelo = DB::table('models')->where('id', $id)->first();
+            if (!$modelo) {
+                return response()->json(['success' => false, 'message' => 'Modelo no encontrado'], 404);
             }
             
-            // Desactivar todos los modelos
-            DB::table('models')->whereIn('id', $ids)->update(['is_active' => false, 'updated_at' => now()]);
+            // Desactivar el modelo
+            DB::table('models')->where('id', $id)->update(['is_active' => false, 'updated_at' => now()]);
             
-            // Desactivar todas las suscripciones de estos modelos
-            DB::table('subscriptions')->whereIn('model_id', $ids)->update(['status' => 'inactive', 'updated_at' => now()]);
+            // Desactivar todas las suscripciones del modelo
+            // DB::table('subscriptions')->where('model_id', $id)->update(['status' => 'inactive', 'updated_at' => now()]);
             
-            return response()->json([
-                'success' => true, 
-                'message' => count($ids) . ' modelo(s) y sus suscripciones desactivado(s) correctamente'
-            ]);
+            return response()->json(['success' => true, 'message' => 'Modelo y sus suscripciones desactivados correctamente']);
+         } catch (\Exception $e) {
+            Log::error('Error al eliminar modelo: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json(['success' => false, 'message' => 'Error al eliminar modelo: ' . $e->getMessage()], 500);
         }
-        
-        // Eliminación individual (comportamiento original)
-        $modelo = DB::table('models')->where('id', $id)->first();
-        if (!$modelo) {
-            return response()->json(['success' => false, 'message' => 'Modelo no encontrado'], 404);
-        }
-        
-        // Desactivar el modelo
-        DB::table('models')->where('id', $id)->update(['is_active' => false, 'updated_at' => now()]);
-        
-        // Desactivar todas las suscripciones del modelo
-        DB::table('subscriptions')->where('model_id', $id)->update(['status' => 'inactive', 'updated_at' => now()]);
-        
-        return response()->json(['success' => true, 'message' => 'Modelo y sus suscripciones desactivados correctamente']);
     }
 
     /**

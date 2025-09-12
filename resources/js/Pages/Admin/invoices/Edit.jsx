@@ -414,64 +414,76 @@ export default function Index({ invoice: initialInvoice, idFactura }) {
                         
                         <div className={styles.pagosContainer}>
                             {baseData.payments && baseData.payments.length > 0 ? (
-                                baseData.payments.map((payment, index) => (
-                                    <Card 
-                                        key={payment.id || index}
-                                        className={styles.paymentCard}
-                                        size="small"
-                                    >
-                                        <div className={styles.paymentContent}>
-                                            <div className={styles.paymentInfo}>
-                                                <div className={styles.paymentMain}>
-                                                    <Text strong className={styles.paymentAmount}>
-                                                        ${parseFloat(payment.amount || 0).toLocaleString()}
-                                                    </Text>
-                                                    <Tag className={styles.paymentMethod} color="blue">{payment.payment_method || 'Efectivo'}</Tag>
-                                                </div>
-                                                <div className={styles.paymentDetails}>
-                                                    <Text type="secondary">
-                                                        Fecha: {dayjs.utc(payment.payment_date).local().format('DD/MM/YYYY HH:mm')}
-                                                    </Text>
-                                                    {payment.reference && (
-                                                        <Text type="secondary"> • Ref: {payment.reference}</Text>
-                                                    )}
-                                                </div>
-                                                {payment.observations && (
-                                                    <div className={styles.paymentNotes}>
-                                                        <Text italic>{payment.observations}</Text>
+                                baseData.payments.map((payment, index) => {
+                                    const isClosed = payment.is_cash_register_closed === 1 || payment.is_cash_register_closed === true;
+                                    return (
+                                        <Tooltip
+                                            key={payment.id || index}
+                                            title={isClosed ? 'La caja de este pago ya está cerrada. No se puede editar ni eliminar.' : ''}
+                                            placement="top"
+                                        >
+                                            <Card
+                                                className={styles.paymentCard}
+                                                size="small"
+                                                style={isClosed ? { filter: 'grayscale(0.7)', opacity: 0.7, pointerEvents: 'auto', cursor: 'not-allowed' } : {}}
+                                            >
+                                                <div className={styles.paymentContent}>
+                                                    <div className={styles.paymentInfo}>
+                                                        <div className={styles.paymentMain}>
+                                                            <Text strong className={styles.paymentAmount}>
+                                                                ${parseFloat(payment.amount || 0).toLocaleString()}
+                                                            </Text>
+                                                            <Tag className={styles.paymentMethod} color="blue">{payment.payment_method || 'Efectivo'}</Tag>
+                                                        </div>
+                                                        <div className={styles.paymentDetails}>
+                                                            <Text type="secondary">
+                                                                Fecha: {dayjs.utc(payment.payment_date).local().format('DD/MM/YYYY HH:mm')}
+                                                            </Text>
+                                                            {payment.reference && (
+                                                                <Text type="secondary"> • Ref: {payment.reference}</Text>
+                                                            )}
+                                                        </div>
+                                                        {payment.observations && (
+                                                            <div className={styles.paymentNotes}>
+                                                                <Text italic>{payment.observations}</Text>
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                )}
-                                            </div>
-                                            <div className={styles.paymentActions}>
-                                                <Space>
-                                                    <Tooltip title="Editar pago">
-                                                        <Button 
-                                                            type="text" 
-                                                            icon={<EditOutlined />}
-                                                            size="small"
-                                                            onClick={() => handleEditPayment(payment)}
-                                                        />
-                                                    </Tooltip>
-                                                    <Tooltip title="Eliminar pago">
-                                                        <Popconfirm
-                                                            title="¿Estás seguro de eliminar este pago?"
-                                                            onConfirm={() => handleDeletePayment(payment.id)}
-                                                            okText="Sí"
-                                                            cancelText="No"
-                                                        >
-                                                            <Button 
-                                                                type="text" 
-                                                                icon={<DeleteOutlined />}
-                                                                size="small"
-                                                                danger
-                                                            />
-                                                        </Popconfirm>
-                                                    </Tooltip>
-                                                </Space>
-                                            </div>
-                                        </div>
-                                    </Card>
-                                ))
+                                                    <div className={styles.paymentActions}>
+                                                        <Space>
+                                                            <Tooltip title={isClosed ? 'No se puede editar un pago de caja cerrada' : 'Editar pago'}>
+                                                                <Button
+                                                                    type="text"
+                                                                    icon={<EditOutlined />}
+                                                                    size="small"
+                                                                    onClick={() => handleEditPayment(payment)}
+                                                                    disabled={isClosed}
+                                                                />
+                                                            </Tooltip>
+                                                            <Tooltip title={isClosed ? 'No se puede eliminar un pago de caja cerrada' : 'Eliminar pago'}>
+                                                                <Popconfirm
+                                                                    title="¿Estás seguro de eliminar este pago?"
+                                                                    onConfirm={() => handleDeletePayment(payment.id)}
+                                                                    okText="Sí"
+                                                                    cancelText="No"
+                                                                    disabled={isClosed}
+                                                                >
+                                                                    <Button
+                                                                        type="text"
+                                                                        icon={<DeleteOutlined />}
+                                                                        size="small"
+                                                                        danger
+                                                                        disabled={isClosed}
+                                                                    />
+                                                                </Popconfirm>
+                                                            </Tooltip>
+                                                        </Space>
+                                                    </div>
+                                                </div>
+                                            </Card>
+                                        </Tooltip>
+                                    );
+                                })
                             ) : (
                                 <Empty description="No hay pagos registrados" />
                             )}

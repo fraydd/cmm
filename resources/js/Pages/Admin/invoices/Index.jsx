@@ -1,4 +1,5 @@
 import EditCashMovementModal from './EditCashMovementModal.jsx';
+import RegistrarEgresoModal from './RegistrarEgresoModal.jsx';
 import React, { useEffect, useState } from 'react';
 import { Button, Space, Typography, Table, Tag, Empty, Input, Select, Tooltip, Popconfirm, message, Pagination, DatePicker, Popover } from 'antd';
 import {
@@ -43,11 +44,13 @@ export default function Index() {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [isUpdated, setIsUpdated] = useState(false);
 
-    // Estado para modal de creación
+    // Estado para modal de creación y egreso
     const [createModalOpen, setcreateModalOpen] = useState(false);
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [createRecord, setCreateRecord] = useState(null);
     const [editRecord, setEditRecord] = useState(null);
+    const [egresoModalOpen, setEgresoModalOpen] = useState(false);
+    const [egresoInitialData, setEgresoInitialData] = useState(null);
     // Consultar las sedes accesibles al cargar la vista
     useEffect(() => {
         const fetchBranches = async () => {
@@ -66,9 +69,8 @@ export default function Index() {
 
     // Botón para nueva apertura de caja
     const handleOpenNewCashRegister = () => {
-        console.log("Abriendo nuevo modal de caja");
-        setCreateRecord(null);
-        setcreateModalOpen(true);
+        setEgresoInitialData(null);
+        setEgresoModalOpen(true);
     };
 
     const handleOpenEdit = (record) => {
@@ -77,11 +79,16 @@ export default function Index() {
 
     // Función para cerrar el modal y refrescar la tabla si se guardó
     const handleClosecreateModal = (shouldRefresh = false) => {
-
         setcreateModalOpen(false);
         setCreateRecord(null);
-        console.log("cerrando modal",shouldRefresh);
+        if (shouldRefresh) {
+            refreshData();
+        }
+    };
 
+    const handleCloseEgresoModal = (shouldRefresh = false) => {
+        setEgresoModalOpen(false);
+        setEgresoInitialData(null);
         if (shouldRefresh) {
             refreshData();
         }
@@ -658,6 +665,11 @@ const columns = [
                 onClose={handleCloseEditModal}
                 record={editRecord}
                 branchOptions={branchOptions}
+            />
+            <RegistrarEgresoModal
+                open={egresoModalOpen}
+                onClose={handleCloseEgresoModal}
+                initialData={egresoInitialData}
             />
         </div>
         </AdminLayout>

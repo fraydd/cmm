@@ -11,7 +11,7 @@ BEGIN
         total_amount DECIMAL(12,2)
     );
     
-    -- 2. Insertar solo IDs válidos (invoice_type_id = 1)
+    -- 2. Insertar solo IDs válidos 
     INSERT INTO temp_valid_invoices (invoice_id, total_amount)
     SELECT id, total_amount
     FROM invoices 
