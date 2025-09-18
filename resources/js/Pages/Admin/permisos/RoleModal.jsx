@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, Select, Checkbox, Button, Space, Typography, Divider } from 'antd';
-import { useNotifications } from '../hooks/useNotifications.jsx';
+import { useNotifications } from '../../../hooks/useNotifications.jsx';
 
 const { Option } = Select;
 const { Title, Text } = Typography;

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { App } from 'antd';
+import { usePermissions } from '../../hooks/usePermissions.jsx';
 import { Button, Space, Typography, Table, Tag, Empty, Input, Select, Tooltip, Popconfirm, message, Pagination } from 'antd';
 import { 
     PlusOutlined, 
@@ -26,6 +27,7 @@ const { Title, Text } = Typography;
 export default function Index({ modelos = [], debug_info }) {
     const { showSuccess, showError } = useNotifications();
     const { selectedBranch } = useBranch(); // Hook para obtener sede seleccionada
+    const { can } = usePermissions();
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [loadingCashRegister, setLoadingCashRegister] = useState(false);
     const [cashRegisterActive, setCashRegisterActive] = useState(null);
@@ -792,6 +794,7 @@ export default function Index({ modelos = [], debug_info }) {
                                 setEditingModeloId(record.id);
                                 setIsModalVisible(true);
                             }}
+                            disabled={!can('editar_modelos')}
                         />
                     </Tooltip>
                     <Tooltip title="Eliminar modelo">
@@ -801,12 +804,14 @@ export default function Index({ modelos = [], debug_info }) {
                             onConfirm={() => handleDeleteModel(record.id)}
                             okText="Sí, eliminar"
                             cancelText="Cancelar"
+                            disabled={!can('editar_modelos')}
                         >
                             <Button 
                                 type="text" 
                                 size={windowWidth <= 768 ? "small" : "middle"} 
                                 danger 
                                 icon={<DeleteOutlined />}
+                                disabled={!can('editar_modelos')}
                             />
                         </Popconfirm>
                     </Tooltip>
@@ -882,12 +887,14 @@ export default function Index({ modelos = [], debug_info }) {
                                 onConfirm={handleBulkDelete}
                                 okText="Sí"
                                 cancelText="No"
+                                disabled={!can('editar_modelos')}
                             >
                                 <Button 
                                     size="small" 
                                     danger 
                                     icon={<DeleteOutlined />}
                                     className={selectedRowKeys.length > 0 ? styles.visibleButton : styles.hiddenButton}
+                                    disabled={!can('editar_modelos')}
                                 >
                                     Eliminar ({selectedRowKeys.length})
                                 </Button>
@@ -908,6 +915,7 @@ export default function Index({ modelos = [], debug_info }) {
                                 type="primary" 
                                 icon={<PlusOutlined />}
                                 onClick={handleAddModel}
+                                disabled={!can('editar_modelos')}
                             >
                                 Agregar Nuevo Modelo
                             </Button>

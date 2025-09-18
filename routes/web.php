@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\CashRegisterController;
 use App\Http\Controllers\Admin\CashMovementsController;
 use App\Http\Controllers\Admin\InvoicesController;
+use App\Http\Controllers\Admin\StoreAdminController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Admin\ModeloController;
@@ -10,6 +11,14 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Controller;
 use \App\Http\Controllers\Admin\BranchesController;
+use \App\Http\Controllers\Admin\DashboardController;
+use \App\Http\Controllers\Admin\EmployeeController;
+use \App\Http\Controllers\Admin\InvitationController;
+use \App\Http\Controllers\Admin\PermissionController;
+use \App\Http\Controllers\Admin\StoreController;
+use \App\Http\Controllers\Admin\AttendanceController;
+use \App\Http\Controllers\Admin\CheckinController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -21,6 +30,10 @@ use \App\Http\Controllers\Admin\BranchesController;
 |
 */
 
+// ============================================================================
+// RUTAS PÚBLICAS
+// ============================================================================
+
 // Ruta principal para marketing
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -28,206 +41,272 @@ Route::get('/', function () {
     ]); 
 })->name('welcome');
 
-// Rutas de autenticación
-Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
-Route::post('/auth/login', [AuthController::class, 'login'])->name('auth.login');
-Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
-Route::get('/logout', [AuthController::class, 'logout'])->name('logout'); // Ruta GET temporal para logout
-
 // Ruta para servir el logo
 Route::get('/admin/logo.png', function () {
     $logoPath = storage_path('img/logo.png');
     if (file_exists($logoPath)) {
         return response()->file($logoPath, [
             'Content-Type' => 'image/png',
-            'Cache-Control' => 'public, max-age=86400' // Cache por 1 día
+            'Cache-Control' => 'public, max-age=86400' 
         ]);
     }
     abort(404);
 })->name('admin.logo');
 
-// Rutas de registro
+// ============================================================================
+// RUTAS DE AUTENTICACIÓN
+// ============================================================================
+
+// Login
+Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+Route::post('/auth/login', [AuthController::class, 'login'])->name('auth.login');
+
+// Logout
+Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
+Route::get('/logout', [AuthController::class, 'logout'])->name('logout'); // Ruta GET temporal para logout
+
+// Registro
 Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
 Route::post('/auth/register', [RegisterController::class, 'register'])->name('auth.register');
 
+// ============================================================================
+// RUTAS DEL PANEL DE ADMINISTRACIÓN
+// ============================================================================
 
-// Rutas del panel de administración
 Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () {
 
-    // Rutas necesarias para la vista de sedes (solo listar y crear)
-    Route::middleware(['permission:view_branches'])->group(function () {
-        Route::get('sedes', [BranchesController::class, 'index'])->name('sedes.index');
-        Route::get('sedes/search-managers', [BranchesController::class, 'searchManagers'])->name('sedes.search-managers');
-    });
-    Route::middleware(['permission:edit_branches'])->group(function () {
-        Route::post('sedes', [BranchesController::class, 'store'])->name('sedes.store');
-        Route::put('sedes/{id}', [BranchesController::class, 'update'])->name('sedes.update');
-    });
-    // Dashboard
-    Route::get('/', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
+    // ------------------------------------------------------------------------
+    // DASHBOARD
+    // ------------------------------------------------------------------------
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    // ------------------------------------------------------------------------
+    // UTILIDADES GENERALES (Solo requieren autenticación)
+    // ------------------------------------------------------------------------
+    Route::get('/branches', function() {
+        $userId = auth()->id();
+        return response()->json(Controller::getBranches($userId));
+    });
+
+    // ------------------------------------------------------------------------
+    // SEDES/BRANCHES
+    // ------------------------------------------------------------------------
+    // Grupo solo para ver sedes
+    Route::middleware(['permission:ver_sedes'])->prefix('sedes')->group(function () {
+        Route::get('/', [BranchesController::class, 'index'])->name('sedes.index');
+        Route::get('/search-managers', [BranchesController::class, 'searchManagers'])->name('sedes.search-managers');
+    });
+
+    // Grupo para editar sedes
+    Route::middleware(['permission:editar_sedes'])->prefix('sedes')->group(function () {
+        Route::post('/', [BranchesController::class, 'store'])->name('sedes.store');
+        Route::put('/{id}', [BranchesController::class, 'update'])->name('sedes.update');
+    });
+
+    // ------------------------------------------------------------------------
+    // MODELOS
+    // ------------------------------------------------------------------------
     // Endpoint para catálogos de modelos (selectores dinámicos) - solo requiere autenticación
-    Route::get('modelos/catalogs', [ModeloController::class, 'catalogs'])->name('modelos.catalogs');
 
     // Rutas para el controlador de Modelos (requieren permiso)
-    Route::middleware(['permission:view_modelos'])->group(function () {
-        Route::resource('modelos', ModeloController::class);
+    // Rutas solo para ver modelos
+    Route::middleware(['permission:ver_modelos'])->group(function () {
+        Route::get('modelos', [ModeloController::class, 'index'])->name('modelos.index');
+        Route::get('modelos/{id}', [ModeloController::class, 'show'])->name('modelos.show');
+        Route::get('modelos/catalogs', [ModeloController::class, 'catalogs'])->name('modelos.catalogs');
+    });
+
+    // Rutas para crear/editar/eliminar modelos
+    Route::middleware(['permission:editar_modelos'])->group(function () {
+        Route::get('modelos/create', [ModeloController::class, 'create'])->name('modelos.create');
+        Route::post('modelos', [ModeloController::class, 'store'])->name('modelos.store');
+        Route::get('modelos/{id}/edit', [ModeloController::class, 'edit'])->name('modelos.edit');
+        Route::put('modelos/{id}', [ModeloController::class, 'update'])->name('modelos.update');
+        Route::patch('modelos/{id}', [ModeloController::class, 'update'])->name('modelos.patch');
+        Route::delete('modelos/{id}', [ModeloController::class, 'destroy'])->name('modelos.destroy');
         Route::post('modelos/upload-image', [ModeloController::class, 'uploadImage'])->name('modelos.upload-image');
         Route::post('modelos/upload-pdf', [ModeloController::class, 'uploadPdf'])->name('modelos.upload-pdf');
-
     });
 
-    // Rutas para el controlador de Empleados con permisos específicos
-    // Catálogos - solo requiere autenticación
-    Route::get('empleados/catalogs', [\App\Http\Controllers\Admin\EmployeeController::class, 'catalogs'])->name('empleados.catalogs')->middleware('auth');
-    
-    // Rutas de visualización
-    Route::middleware(['permission:view_employees'])->group(function () {
-        Route::get('empleados', [\App\Http\Controllers\Admin\EmployeeController::class, 'index'])->name('empleados.index');
-        Route::get('empleados/{id}', [\App\Http\Controllers\Admin\EmployeeController::class, 'show'])->name('empleados.show');
-    });
-    
-    // Rutas de creación
-    Route::middleware(['permission:create_employees'])->group(function () {
-        Route::get('empleados/create', [\App\Http\Controllers\Admin\EmployeeController::class, 'create'])->name('empleados.create');
-        Route::post('empleados', [\App\Http\Controllers\Admin\EmployeeController::class, 'store'])->name('empleados.store');
-    });
-    
-    // Rutas de edición
-    Route::middleware(['permission:edit_employees'])->group(function () {
-        Route::get('empleados/{id}/edit', [\App\Http\Controllers\Admin\EmployeeController::class, 'edit'])->name('empleados.edit');
-        Route::put('empleados/{id}', [\App\Http\Controllers\Admin\EmployeeController::class, 'update'])->name('empleados.update');
-        Route::patch('empleados/{id}', [\App\Http\Controllers\Admin\EmployeeController::class, 'update'])->name('empleados.patch');
-        Route::patch('empleados/{id}/toggle-status', [\App\Http\Controllers\Admin\EmployeeController::class, 'toggleStatus'])->name('empleados.toggle-status');
-    });
-    
-    // Rutas de eliminación
-    Route::middleware(['permission:delete_employees'])->group(function () {
-        Route::delete('empleados/remove-access', [\App\Http\Controllers\Admin\EmployeeController::class, 'removeAccess'])->name('empleados.remove-access');
-        Route::delete('empleados/{id}', [\App\Http\Controllers\Admin\EmployeeController::class, 'destroy'])->name('empleados.destroy');
-    });
-    
-    // Rutas de asignación de sedes
-    Route::middleware(['permission:assign_employee_branches'])->group(function () {
-        Route::post('empleados/{id}/assign-branches', [\App\Http\Controllers\Admin\EmployeeController::class, 'assignBranches'])->name('empleados.assign-branches');
+
+    // ------------------------------------------------------------------------
+    // EMPLEADOS
+    // ------------------------------------------------------------------------
+    // Grupo solo para ver empleados
+    Route::middleware(['permission:ver_empleados'])->group(function () {
+        Route::get('empleados/catalogs', [EmployeeController::class, 'catalogs'])->name('empleados.catalogs');
+        Route::get('empleados', [EmployeeController::class, 'index'])->name('empleados.index');
+        Route::get('empleados/{id}', [EmployeeController::class, 'show'])->name('empleados.show');
     });
 
-    // Rutas para el controlador de Invitaciones (solo admin)
-    Route::middleware(['permission:view_invitations'])->get('invitaciones', [\App\Http\Controllers\Admin\InvitationController::class, 'index'])->name('admin.invitaciones.index');
-    Route::middleware(['permission:delete_invitations'])->delete('invitaciones', [\App\Http\Controllers\Admin\InvitationController::class, 'destroy'])->name('admin.invitaciones.destroy');
-    Route::middleware(['permission:resend_invitations'])->post('invitaciones/{invitation}/resend', [\App\Http\Controllers\Admin\InvitationController::class, 'resend'])->name('invitaciones.resend');
-    Route::middleware(['permission:cancel_invitations'])->delete('invitaciones/{invitation}/cancel', [\App\Http\Controllers\Admin\InvitationController::class, 'cancel'])->name('invitaciones.cancel');
-    Route::middleware(['permission:create_invitations'])->post('invitaciones', [\App\Http\Controllers\Admin\InvitationController::class, 'store'])->name('admin.invitaciones.store');
-    
-    
-    Route::middleware(['auth', 'permission:view_permissions'])->group(function () {
-        Route::get('permisos/get-permissions', [\App\Http\Controllers\Admin\PermissionController::class, 'getPermissions'])->name('permisos.get-permissions');
-        Route::resource('permisos', \App\Http\Controllers\Admin\PermissionController::class);
-    });
-    
-    // Rutas para roles
-    Route::middleware(['auth', 'permission:view_permissions'])->group(function () {
-        Route::post('roles', [\App\Http\Controllers\Admin\PermissionController::class, 'store'])->name('roles.store');
-        Route::put('roles/{id}', [\App\Http\Controllers\Admin\PermissionController::class, 'update'])->name('roles.update');
-        Route::delete('roles/{id}', [\App\Http\Controllers\Admin\PermissionController::class, 'destroy'])->name('roles.destroy');
+    // Grupo para crear/editar/eliminar empleados
+    Route::middleware(['permission:editar_empleados'])->group(function () {
+        Route::get('empleados/create', [EmployeeController::class, 'create'])->name('empleados.create');
+        Route::post('empleados', [EmployeeController::class, 'store'])->name('empleados.store');
+        Route::get('empleados/{id}/edit', [EmployeeController::class, 'edit'])->name('empleados.edit');
+        Route::put('empleados/{id}', [EmployeeController::class, 'update'])->name('empleados.update');
+        Route::patch('empleados/{id}', [EmployeeController::class, 'update'])->name('empleados.patch');
+        Route::patch('empleados/{id}/toggle-status', [EmployeeController::class, 'toggleStatus'])->name('empleados.toggle-status');
+        Route::delete('empleados/remove-access', [EmployeeController::class, 'removeAccess'])->name('empleados.remove-access');
+        Route::delete('empleados/{id}', [EmployeeController::class, 'destroy'])->name('empleados.destroy');
+        Route::post('empleados/{id}/assign-branches', [EmployeeController::class, 'assignBranches'])->name('empleados.assign-branches');
     });
 
-    
-    Route::middleware(['auth'])->group(function () {
-        Route::get('/branches', function() {
-            $userId = auth()->id();
-            return response()->json(Controller::getBranches($userId));
-        });
+    // ------------------------------------------------------------------------
+    // INVITACIONES
+    // ------------------------------------------------------------------------
+    // Ver invitaciones
+    Route::middleware(['permission:ver_invitaciones'])->prefix('invitaciones')->group(function () {
+        Route::get('/', [InvitationController::class, 'index'])->name('admin.invitaciones.index');
     });
-});
 
-// Rutas de asistencias (admin)
-Route::prefix('admin')->middleware(['auth', 'verified'])->group(function () {
-    Route::get('asistencias', [\App\Http\Controllers\Admin\AttendanceController::class, 'index'])
-        ->name('admin.attendance.index')
-        ->middleware('can:view_attendance');
-    Route::post('asistencias/records', [\App\Http\Controllers\Admin\AttendanceController::class, 'getAttendanceRecords'])
-        ->name('admin.attendance.records')
-        ->middleware('can:view_attendance');
-    Route::get('asistencias/{id}', [\App\Http\Controllers\Admin\AttendanceController::class, 'show'])
-        ->name('admin.attendance.show')
-        ->middleware('can:view_attendance');
-    Route::post('asistencias', [\App\Http\Controllers\Admin\AttendanceController::class, 'store'])
-        ->name('admin.attendance.store')
-        ->middleware('can:create_attendance');
-    Route::put('asistencias/{id}', [\App\Http\Controllers\Admin\AttendanceController::class, 'update'])
-        ->name('admin.attendance.update')
-        ->middleware('can:edit_attendance');
-    Route::delete('asistencias/{id}', [\App\Http\Controllers\Admin\AttendanceController::class, 'destroy'])
-        ->name('admin.attendance.destroy')
-        ->middleware('can:delete_attendance');
-    Route::get('asistencias/branches/access', [\App\Http\Controllers\Admin\AttendanceController::class, 'getAccessibleBranches'])
-        ->name('admin.attendance.branches.access');
-});
+    // Editar invitaciones
+    Route::middleware(['permission:editar_invitaciones'])->prefix('invitaciones')->group(function () {
+        Route::post('/', [InvitationController::class, 'store'])->name('admin.invitaciones.store');
+        Route::post('{invitation}/resend', [InvitationController::class, 'resend'])->name('invitaciones.resend');
+        Route::delete('{invitation}/cancel', [InvitationController::class, 'cancel'])->name('invitaciones.cancel');
+        Route::delete('/', [InvitationController::class, 'destroy'])->name('admin.invitaciones.destroy');
+    });
 
-// Rutas de checkin (admin)
-Route::prefix('admin')->middleware(['auth', 'verified'])->group(function () {
-    Route::get('checkin', [\App\Http\Controllers\Admin\CheckinController::class, 'index'])->name('admin.checkin.index');
-    Route::post('checkin', [\App\Http\Controllers\Admin\CheckinController::class, 'store'])->name('admin.checkin.store');
-});
+    // ------------------------------------------------------------------------
+    // PERMISOS Y ROLES
+    // ------------------------------------------------------------------------
+    // Ver roles
+    Route::middleware(['permission:ver_roles'])->group(function () {
+        Route::get('roles', [PermissionController::class, 'index'])->name('roles.index');
+        Route::get('roles/getRoles', [PermissionController::class, 'getRoles'])->name('roles.getRoles');
+    });
 
+    // Editar roles
+    Route::middleware(['permission:editar_roles'])->group(function () {
+        Route::post('roles', [PermissionController::class, 'store'])->name('roles.store');
+        Route::put('roles/{id}', [PermissionController::class, 'update'])->name('roles.update');
+        Route::delete('roles/{id}', [PermissionController::class, 'destroy'])->name('roles.destroy');
+    });
 
-// Rutas protegidas de la tienda (ahora bajo /admin/tienda)
-Route::prefix('admin')->middleware(['auth', 'permission:ver_tienda'])->group(function () {
-    Route::get('/tienda', [\App\Http\Controllers\Admin\StoreController::class, 'index'])->name('admin.store.index');
-    Route::post('/tienda/getCatalog', [\App\Http\Controllers\Admin\StoreController::class, 'getCatalog'])->name('admin.store.getCatalog');
-    Route::post('/tienda/addToCart', [\App\Http\Controllers\Admin\StoreController::class, 'addToCart'])->name('admin.store.addToCart');
-    Route::post('/tienda/getCartItems', [\App\Http\Controllers\Admin\StoreController::class, 'getCartItems'])->name('admin.store.getCartItems');
-    Route::post('/tienda/getCartCount', [\App\Http\Controllers\Admin\StoreController::class, 'getCartCount'])->name('admin.store.getCartCount');
-    Route::post('/tienda/removeCartItem', [\App\Http\Controllers\Admin\StoreController::class, 'removeCartItem'])->name('admin.store.removeCartItem');
-    Route::post('/tienda/updateCartItem', [\App\Http\Controllers\Admin\StoreController::class, 'updateCartItem'])->name('admin.store.updateCartItem');
-    Route::post('/tienda/processPayment', [\App\Http\Controllers\Admin\StoreController::class, 'processPayment'])->name('admin.store.processPayment');
-    Route::get('/tienda/mediosPago', [\App\Http\Controllers\Admin\StoreController::class, 'mediosPago'])->name('admin.store.mediosPago');
-});
+    // ------------------------------------------------------------------------
+    // TIENDA - ADMINISTRACIÓN
+    // ------------------------------------------------------------------------
+    // Ver administración de tienda
+    Route::middleware('permission:ver_admin_tienda')->group(function () {
+        Route::get('/tienda/surtir', [StoreAdminController::class, 'index'])->name('admin.store.surtir.index');
+        Route::post('/tienda/products', [StoreAdminController::class, 'getProducts'])->name('admin.store.products.get');
+        Route::post('/tienda/subscriptions', [StoreAdminController::class, 'getSubscriptions'])->name('admin.store.subscriptions.get');
+        Route::post('/tienda/events', [StoreAdminController::class, 'getEvents'])->name('admin.store.events.get');
+        Route::get('/tienda/categories', [StoreAdminController::class, 'getCategories'])->name('admin.store.categories.get');
+    });
 
-Route::post('admin/tienda/searchPerson', [\App\Http\Controllers\Admin\StoreController::class, 'searchPerson'])
-    ->middleware('auth')
-    ->name('admin.store.searchPerson');
+    // Editar administración de tienda
+    Route::middleware('permission:editar_admin_tienda')->group(function () {
+        Route::post('/store/products/upload-image', [StoreAdminController::class, 'uploadProductImage'])->name('admin.store.products.upload.image');
+        Route::post('/store/products/update', [StoreAdminController::class, 'updateProduct'])->name('admin.store.products.update');
+        Route::post('/store/subscriptions/update', [StoreAdminController::class, 'updateSubscription'])->name('admin.store.subscriptions.update');
+        Route::post('/store/events/update', [StoreAdminController::class, 'updateEvent'])->name('admin.store.events.update');
+        Route::delete('/store/products/delete', [StoreAdminController::class, 'deleteProduct'])->name('admin.store.products.delete');
+        Route::delete('/store/subscriptions/delete', [StoreAdminController::class, 'deleteSubscription'])->name('admin.store.subscriptions.delete');
+        Route::delete('/store/events/delete', [StoreAdminController::class, 'deleteEvent'])->name('admin.store.events.delete');
+    });
 
+    // ------------------------------------------------------------------------
+    // TIENDA - VENTAS
+    // ------------------------------------------------------------------------
+    // Rutas solo para ver tienda (catálogo, carrito, medios de pago, contar items)
+    Route::middleware(['permission:ver_tienda'])->group(function () {
+        Route::get('/tienda', [StoreController::class, 'index'])->name('admin.store.index');
+        Route::post('/tienda/getCatalog', [StoreController::class, 'getCatalog'])->name('admin.store.getCatalog');
+        Route::post('/tienda/getCartItems', [StoreController::class, 'getCartItems'])->name('admin.store.getCartItems');
+        Route::post('/tienda/getCartCount', [StoreController::class, 'getCartCount'])->name('admin.store.getCartCount');
+        Route::get('/tienda/mediosPago', [StoreController::class, 'mediosPago'])->name('admin.store.mediosPago');
+        Route::post('tienda/searchPerson', [StoreController::class, 'searchPerson'])->name('admin.store.searchPerson');
+    });
 
-Route::prefix('admin')->middleware(['auth', 'permission:view_cash_registers'])->group(function () {
-    Route::get('cash-register', [CashRegisterController::class, 'index'])->name('admin.cash_register.index');
-    Route::post('cash-register/list', [CashRegisterController::class, 'getCashRegisters'])->name('admin.cash_register.list');
-    Route::post('cash-register/open', [CashRegisterController::class, 'open'])->name('admin.cash_register.open');
-    Route::post('cash-register/edit', [CashRegisterController::class, 'edit'])->name('admin.cash_register.edit');
-});
+    // Rutas para editar tienda (agregar, editar, eliminar, procesar pago)
+    Route::middleware(['permission:editar_tienda'])->group(function () {
+        Route::post('/tienda/addToCart', [StoreController::class, 'addToCart'])->name('admin.store.addToCart');
+        Route::post('/tienda/removeCartItem', [StoreController::class, 'removeCartItem'])->name('admin.store.removeCartItem');
+        Route::post('/tienda/updateCartItem', [StoreController::class, 'updateCartItem'])->name('admin.store.updateCartItem');
+        Route::post('/tienda/processPayment', [StoreController::class, 'processPayment'])->name('admin.store.processPayment');
+    });
 
-Route::prefix('admin')->middleware(['auth', 'verified'])->group(function () {
-    Route::get('cash-register/getActive/{branch_id}', [CashRegisterController::class, 'getActive'])->name('admin.cash_register.getActive');
-});
+    // ------------------------------------------------------------------------
+    // CAJA REGISTRADORA
+    // ------------------------------------------------------------------------
+    // Rutas solo para ver cajas
+    Route::middleware(['permission:ver_cajas'])->group(function () {
+        Route::get('cash-register', [CashRegisterController::class, 'index'])->name('admin.cash_register.index');
+        Route::post('cash-register/list', [CashRegisterController::class, 'getCashRegisters'])->name('admin.cash_register.list');
+    });
 
-Route::prefix('admin')->middleware(['auth', 'permission:view_cash_movements'])->group(function () {
-    Route::get('cash-movements', [CashMovementsController::class, 'index'])->name('admin.cash_movements.index');
-    Route::post('cash-movements/list', [CashMovementsController::class, 'getCashMovements'])->name('admin.cash_movements.list');
-    Route::post('cash-movements/createEgreso', [CashMovementsController::class, 'createEgreso'])->name('admin.cash_movements.createEgreso');
-    Route::post('cash-movements/edit', [CashMovementsController::class, 'edit'])->name('admin.cash_movements.edit');
-});
+    // Rutas para editar cajas
+    Route::middleware(['permission:editar_cajas'])->group(function () {
+        Route::post('cash-register/open', [CashRegisterController::class, 'open'])->name('admin.cash_register.open');
+        Route::post('cash-register/edit', [CashRegisterController::class, 'edit'])->name('admin.cash_register.edit');
+    });
 
-Route::prefix('admin')->middleware(['auth', 'permission:view_invoices'])->group(function () {
+    // Obtener caja activa (solo requiere autenticación y verificación)
+    Route::middleware(['verified'])->group(function () {
+        Route::get('cash-register/getActive/{branch_id}', [CashRegisterController::class, 'getActive'])->name('admin.cash_register.getActive');
+    });
 
-    // Ruta para registrar egresos desde InvoicesController
-    Route::post('/invoices/createEgreso', [InvoicesController::class, 'createEgreso'])->name('admin.invoices.createEgreso');
-    Route::get('invoices', [InvoicesController::class, 'index'])->name('admin.invoices.index');
-    Route::post('invoices/list', [InvoicesController::class, 'getInvoices'])->name('admin.invoices.list');
-    Route::get('invoices/{id}/pdf', [InvoicesController::class, 'downloadPdf'])->name('admin.invoices.pdf');
-    Route::get('invoices/edit/{id}', [InvoicesController::class, 'Edit'])->name('admin.invoices.edit');
-    Route::get('/invoices/mediosPago', [\App\Http\Controllers\Admin\StoreController::class, 'mediosPago'])->name('admin.store.mediosPago');
-    Route::post('/invoices/createPayment', [InvoicesController::class, 'createPayment'])->name('admin.invoices.createPayment');
-    Route::put('/invoices/updatePayment/{id}', [InvoicesController::class, 'updatePayment'])->name('admin.invoices.updatePayment');
-    Route::put('/invoices/updateInvoice/{id}', [InvoicesController::class, 'updateInvoice'])->name('admin.invoices.updateInvoice');
-    Route::delete('/invoices/deletePayment/{id}', [InvoicesController::class, 'deletePayment'])->name('admin.invoices.deletePayment');
-    
+    // ------------------------------------------------------------------------
+    // MOVIMIENTOS DE CAJA
+    // ------------------------------------------------------------------------
+    Route::middleware(['permission:ver_cajas'])->group(function () {
+        Route::get('cash-movements', [CashMovementsController::class, 'index'])->name('admin.cash_movements.index');
+        Route::post('cash-movements/list', [CashMovementsController::class, 'getCashMovements'])->name('admin.cash_movements.list');
+        Route::post('cash-movements/createEgreso', [CashMovementsController::class, 'createEgreso'])->name('admin.cash_movements.createEgreso');
+        Route::post('cash-movements/edit', [CashMovementsController::class, 'edit'])->name('admin.cash_movements.edit');
+    });
 
-    // Route::post('cash-movements/createEgreso', [CashMovementsController::class, 'createEgreso'])->name('admin.cash_movements.createEgreso');
-    // Route::post('cash-movements/edit', [CashMovementsController::class, 'edit'])->name('admin.cash_movements.edit');
-});
+    // ------------------------------------------------------------------------
+    // FACTURAS
+    // ------------------------------------------------------------------------
+    // Grupo solo para ver facturas
+    Route::middleware(['permission:ver_facturas'])->group(function () {
+        Route::get('invoices', [InvoicesController::class, 'index'])->name('admin.invoices.index');
+        Route::post('invoices/list', [InvoicesController::class, 'getInvoices'])->name('admin.invoices.list');
+        Route::get('invoices/{id}/pdf', [InvoicesController::class, 'downloadPdf'])->name('admin.invoices.pdf');
+        Route::get('/invoices/mediosPago', [StoreController::class, 'mediosPago'])->name('admin.store.mediosPago');
+    });
 
-Route::prefix('admin')->middleware(['auth'])->group(function () {
+    // Grupo para editar facturas
+    Route::middleware(['permission:editar_facturas'])->group(function () {
+        Route::get('invoices/edit/{id}', [InvoicesController::class, 'Edit'])->name('admin.invoices.edit');
+        Route::post('/invoices/createEgreso', [InvoicesController::class, 'createEgreso'])->name('admin.invoices.createEgreso');
+        Route::post('/invoices/createPayment', [InvoicesController::class, 'createPayment'])->name('admin.invoices.createPayment');
+        Route::put('/invoices/updatePayment/{id}', [InvoicesController::class, 'updatePayment'])->name('admin.invoices.updatePayment');
+        Route::put('/invoices/updateInvoice/{id}', [InvoicesController::class, 'updateInvoice'])->name('admin.invoices.updateInvoice');
+        Route::delete('/invoices/deletePayment/{id}', [InvoicesController::class, 'deletePayment'])->name('admin.invoices.deletePayment');
+    });
+
+    // Búsqueda de personas para facturas
     Route::get('/search/people', [InvoicesController::class, 'searchPeople']);
+
+    // ------------------------------------------------------------------------
+    // ASISTENCIAS
+    // ------------------------------------------------------------------------
+    // Grupo solo para ver asistencias
+    Route::middleware(['permission:ver_asistencias'])->group(function () {
+        Route::get('asistencias', [AttendanceController::class, 'index'])->name('admin.attendance.index');
+        Route::post('asistencias/records', [AttendanceController::class, 'getAttendanceRecords'])->name('admin.attendance.records');
+        Route::get('asistencias/{id}', [AttendanceController::class, 'show'])->name('admin.attendance.show');
+    });
+
+    // Grupo para editar asistencias
+    Route::middleware(['permission:editar_asistencias'])->group(function () {
+        Route::post('asistencias', [AttendanceController::class, 'store'])->name('admin.attendance.store');
+        Route::put('asistencias/{id}', [AttendanceController::class, 'update'])->name('admin.attendance.update');
+        Route::delete('asistencias/{id}', [AttendanceController::class, 'destroy'])->name('admin.attendance.destroy');
+    });
+        Route::get('asistencias/branches/access', [AttendanceController::class, 'getAccessibleBranches'])->name('admin.attendance.branches.access');
+
+    // ------------------------------------------------------------------------
+    // CHECK-IN
+    // ------------------------------------------------------------------------
+    Route::middleware(['permission:crear_asistencias'])->group(function () {
+        Route::get('checkin', [CheckinController::class, 'index'])->name('admin.checkin.index');
+        Route::post('checkin', [CheckinController::class, 'store'])->name('admin.checkin.store');
+    });
+
 });

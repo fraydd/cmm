@@ -10,6 +10,7 @@ import {
 } from '@ant-design/icons';
 import { useNotifications } from '../../../hooks/useNotifications.jsx';
 import { useBranch } from '../../../hooks/useBranch.jsx';
+import { usePermissions } from '../../../hooks/usePermissions.jsx';
 import AdminLayout from '../../../Layouts/AdminLayout.jsx';
 import styles from './Index.module.scss';
 
@@ -22,6 +23,7 @@ export default function AttendanceIndex() {
     const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
     const [containerHeight, setContainerHeight] = useState(0);
     const [baseAttendances, setBaseAttendances] = useState([]);
+    const { can } = usePermissions();
     const [filteredData, setFilteredData] = useState([]);
     const [dateRange, setDateRange] = useState([
         dayjs().startOf('month'),
@@ -487,6 +489,7 @@ const columns = [
                             type="text"
                             icon={<EditOutlined style={{ color: '#48a41aff', fontSize: 20 }} />}
                             onClick={() => handleOpenEditCashRegister(record)}
+                            disabled={!can('editar_cajas')}
                         />
                     </Tooltip>
                 </Space>
@@ -512,7 +515,12 @@ const columns = [
                             <span> • {Array.isArray(baseAttendances) ? baseAttendances.length : 0} registro(s)</span>
                         </Text>
                     </div>
-                    <Button type="primary" onClick={handleOpenNewCashRegister}>
+                    <Button 
+                    type="primary"
+                    onClick={handleOpenNewCashRegister}
+                    disabled={!can('editar_cajas')}
+                    title={!can('editar_cajas') ? 'No tienes permiso para abrir caja' : 'Nueva apertura de caja'}
+                    >
                         Nueva apertura de caja
                     </Button>
                 </div>

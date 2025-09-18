@@ -18,10 +18,12 @@ import {
 } from '@ant-design/icons';
 import AdminLayout from '../../../Layouts/AdminLayout';
 import styles from './Show.module.scss';
+import { usePermissions } from '../../../hooks/usePermissions.jsx';
 
 const { Title, Text } = Typography;
 
 export default function Show({ empleado, sedes = [], contactos_emergencia = [], asistencias = [] }) {
+    const { can } = usePermissions();
     // Formatear fecha para mostrar
     const formatDate = (date) => {
         if (!date) return 'No disponible';
@@ -133,14 +135,6 @@ export default function Show({ empleado, sedes = [], contactos_emergencia = [], 
                             </Text>
                         </div>
                     </Space>
-                    <Button 
-                        type="primary" 
-                        icon={<EditOutlined />}
-                        onClick={() => window.location.href = `/admin/empleados/${empleado?.id}/edit`}
-                        size="large"
-                    >
-                        Editar Empleado
-                    </Button>
                 </div>
 
                 <Row gutter={[24, 24]}>

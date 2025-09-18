@@ -26,6 +26,7 @@ import {
 } from '@ant-design/icons';
 import { router, useForm } from '@inertiajs/react';
 import { useNotifications } from '../../../hooks/useNotifications.jsx';
+import { usePermissions } from '../../../hooks/usePermissions.jsx';
 import AdminLayout from '../../../Layouts/AdminLayout';
 import InvitationModal from '../../../Components/InvitationModal';
 import styles from './Index.module.scss';
@@ -33,6 +34,7 @@ import styles from './Index.module.scss';
 const { Title, Text } = Typography;
 
 export default function InvitationsIndex({ invitations, errors, success, error }) {
+    const { can } = usePermissions();
     const { notification } = App.useApp();
     const { showSuccess, showError, showInfo, showWarning } = useNotifications();
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -413,6 +415,7 @@ export default function InvitationsIndex({ invitations, errors, success, error }
                 const canResend = isActive && (status === 'expired' || status === 'cancelled');
                 const canCancel = isActive && status === 'pending';
                 const canDelete = isActive && status !== 'accepted';
+                const noEditPerm = !can('editar_invitaciones');
                 return (
                     <Space>
                         <Tooltip title="Reenviar invitación">
@@ -421,7 +424,7 @@ export default function InvitationsIndex({ invitations, errors, success, error }
                                 size="small"
                                 icon={<ReloadOutlined />}
                                 onClick={() => handleResend(record.id)}
-                                disabled={!canResend}
+                                disabled={noEditPerm || !canResend}
                             />
                         </Tooltip>
                         <Tooltip title="Cancelar invitación">
@@ -437,7 +440,7 @@ export default function InvitationsIndex({ invitations, errors, success, error }
                                     size="small"
                                     danger 
                                     icon={<CloseOutlined />}
-                                    disabled={!canCancel}
+                                    disabled={noEditPerm || !canCancel}
                                 />
                             </Popconfirm>
                         </Tooltip>
@@ -454,7 +457,7 @@ export default function InvitationsIndex({ invitations, errors, success, error }
                                     size="small"
                                     danger 
                                     icon={<DeleteOutlined />}
-                                    disabled={!canDelete}
+                                    disabled={noEditPerm || !canDelete}
                                 />
                             </Popconfirm>
                         </Tooltip>
@@ -493,6 +496,7 @@ export default function InvitationsIndex({ invitations, errors, success, error }
                                     size="small" 
                                     icon={<ReloadOutlined />}
                                     className={selectedRowKeys.length > 0 ? styles.visibleButton : styles.hiddenButton}
+                                    disabled={!can('editar_invitaciones')}
                                 >
                                     Reenviar ({selectedRowKeys.length})
                                 </Button>
@@ -508,6 +512,7 @@ export default function InvitationsIndex({ invitations, errors, success, error }
                                     danger 
                                     icon={<CloseOutlined />}
                                     className={selectedRowKeys.length > 0 ? styles.visibleButton : styles.hiddenButton}
+                                    disabled={!can('editar_invitaciones')}
                                 >
                                     Cancelar ({selectedRowKeys.length})
                                 </Button>
@@ -524,6 +529,7 @@ export default function InvitationsIndex({ invitations, errors, success, error }
                                     danger 
                                     icon={<DeleteOutlined />}
                                     className={selectedRowKeys.length > 0 ? styles.visibleButton : styles.hiddenButton}
+                                    disabled={!can('editar_invitaciones')}
                                 >
                                     Eliminar ({selectedRowKeys.length})
                                 </Button>
@@ -544,6 +550,7 @@ export default function InvitationsIndex({ invitations, errors, success, error }
                                 type="primary" 
                                 icon={<UserAddOutlined />}
                                 onClick={handleAddInvitation}
+                                disabled={!can('editar_invitaciones')}
                             >
                                 Enviar Nueva Invitación
                             </Button>
@@ -589,6 +596,7 @@ export default function InvitationsIndex({ invitations, errors, success, error }
                                     type="primary" 
                                     icon={<UserAddOutlined />}
                                     onClick={handleAddInvitation}
+                                    disabled={!can('editar_invitaciones')}
                                 >
                                     Enviar Primera Invitación
                                 </Button>

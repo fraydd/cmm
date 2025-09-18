@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { usePermissions } from '../../../hooks/usePermissions.jsx';
 import { usePage } from '@inertiajs/react';
 import {
     Layout,
@@ -37,6 +38,7 @@ const { TabPane } = Tabs;
 const { Meta } = Card;
 
 export default function Index(props) {
+    const { can } = usePermissions();
     const { selectedBranch } = useBranch(); // Hook para obtener sede seleccionada
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [productos, setProductos] = useState([]);
@@ -178,6 +180,10 @@ export default function Index(props) {
             identificacion = clienteIdentificacion;
         }
 
+        if (!can('editar_tienda')) {
+            showError('No tienes permiso para buscar clientes.');
+            return;
+        }
 
         if (!identificacion) return;
         try {
@@ -215,6 +221,10 @@ export default function Index(props) {
     };
 
     const addToCart = async (item) => {
+        if (!can('editar_tienda')) {
+            showError('No tienes permiso para editar la tienda.');
+            return;
+        }
         // Validar que clienteInfo esté correctamente llena
         try {
             if (!clienteInfo || !clienteInfo.id || !clienteInfo.identification) {
@@ -324,6 +334,7 @@ export default function Index(props) {
                                     stock_quantity: producto.stock_quantity ?? null,
                                 }}
                                 onAddToCart={addToCart}
+                                disabled={!can('editar_tienda')}
                             />
                         </div>
                     ))}
@@ -379,6 +390,8 @@ export default function Index(props) {
                             type: 'Suscripción'
                         })}
                         className={styles.membershipButton}
+                        disabled={!can('editar_tienda')}
+                        title={!can('editar_tienda') ? 'No tienes permiso para agregar al carrito' : 'Agregar al carrito'}
                     >
                         Agregar al carrito
                     </Button>
@@ -390,7 +403,7 @@ export default function Index(props) {
         <div className={styles.eventsGrid}>
             {eventos.map(evento => {
                 const cuposDisponibles = evento.max_participants - evento.current_participants;
-                const disabled = cuposDisponibles <= 0;
+                const disabled = cuposDisponibles <= 0 || !can('editar_tienda');
                 return (
                     <div className={styles.eventCardWrapper} key={evento.id}>
                         <Card hoverable className={styles.eventCard} bodyStyle={{ display: 'flex', flexDirection: 'column', height: '420px', justifyContent: 'space-between', padding: 0 }}>
@@ -431,6 +444,7 @@ export default function Index(props) {
                                         id: evento.id,
                                         type: 'Evento',
                                     })}
+                                    title={!can('editar_tienda') ? 'No tienes permiso para reservar' : 'Reservar Lugar'}
                                 >
                                     Reservar Lugar
                                 </Button>
@@ -529,6 +543,7 @@ export default function Index(props) {
                                     }}
                                     onBlur={handleClienteIdentificacionFinalizada}
                                     onPressEnter={handleClienteIdentificacionFinalizada}
+                                    disabled={!can('editar_tienda')}
                                 />
                             </div>
                         )}

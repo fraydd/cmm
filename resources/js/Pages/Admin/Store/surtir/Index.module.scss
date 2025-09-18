@@ -1,0 +1,710 @@
+/* Estilos para la vista de administración de tienda */
+
+.storeSurtirContainer {
+  padding: 24px;
+  background-color: #f5f5f5;
+  min-height: calc(100vh - 64px);
+}
+
+.headerSection {
+  margin-bottom: 24px;
+  background: white;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.headerIcon {
+  margin-right: 12px;
+  font-size: 24px;
+  color: #1890ff;
+}
+
+.branchInfo {
+  color: #666;
+  font-size: 14px;
+}
+
+.filtersCard {
+  margin-bottom: 24px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.filtersRow {
+  align-items: center;
+}
+
+.searchInput {
+  width: 250px;
+}
+
+.categoryFilter {
+  width: 200px;
+}
+
+.newButton {
+  height: 40px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.tabsContainer {
+  margin-top: 16px;
+}
+
+.tabsContainer .ant-tabs-tab {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.contentArea {
+  margin-top: 16px;
+}
+
+/* Estilos para tarjetas de productos */
+.productCard {
+  margin-bottom: 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+
+    .actionButtons {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .actionButtons {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    z-index: 1;
+    display: flex;
+    gap: 6px;
+    background: var(--cmm-bg-secondary);
+    backdrop-filter: blur(8px);
+    border-radius: 8px;
+    padding: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(109, 103, 103, 0.08);
+    opacity: 0;
+    transform: translateY(4px);
+    transition: all 0.3s ease;
+
+    .actionButton {
+      padding: 6px;
+      height: 28px;
+      width: 28px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      border: none;
+      background: transparent;
+
+      &:hover {
+        background: rgba(24, 144, 255, 0.1);
+        transform: scale(1.1);
+        box-shadow: 0 2px 4px rgba(24, 144, 255, 0.2);
+      }
+
+      &.danger {
+        &:hover {
+          background: rgba(255, 77, 79, 0.1);
+          box-shadow: 0 2px 4px rgba(255, 77, 79, 0.2);
+        }
+      }
+
+      .anticon {
+        font-size: 14px;
+      }
+    }
+  }
+
+  .productContent {
+    .productRow {
+      .imageContainer {
+        .productImage {
+          width: 100%;
+          height: 80px;
+          object-fit: cover;
+          border-radius: 4px;
+        }
+
+        .productImagePlaceholder {
+          width: 100%;
+          height: 80px;
+          background-color: #f0f0f0;
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #999;
+          font-size: 12px;
+        }
+      }
+
+      .contentContainer {
+        padding-top: 8px;
+
+        .productInfo {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+
+          .productMainInfo {
+            flex: 1;
+
+            .productTitle {
+              margin: 0 0 4px 0 !important;
+              font-size: 16px;
+              font-weight: 600;
+              padding-right: 60px;
+            }
+
+            .productCategory {
+              margin-bottom: 8px;
+            }
+
+            .productDescription {
+              display: block;
+              margin-top: 8px;
+              font-size: 12px;
+              color: #666;
+              line-height: 1.4;
+            }
+          }
+
+          .productPriceInfo {
+            text-align: right;
+            margin-left: 16px;
+            min-width: 120px;
+
+            .productPrice {
+              margin: 0 !important;
+              color: #1890ff;
+              font-size: 18px;
+              font-weight: 700;
+            }
+
+            .stockBadge {
+              margin-top: 8px;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/* Estilos para tarjetas de suscripciones */
+.subscriptionCard {
+  margin-bottom: 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+
+    .actionButtons {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .actionButtons {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    z-index: 1;
+    display: flex;
+    gap: 6px;
+    background: var(--cmm-bg-secondary);
+    backdrop-filter: blur(8px);
+    border-radius: 8px;
+    padding: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    opacity: 0;
+    transform: translateY(4px);
+    transition: all 0.3s ease;
+
+    .actionButton {
+      padding: 6px;
+      height: 28px;
+      width: 28px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      border: none;
+      background: transparent;
+
+      &:hover {
+        background: rgba(24, 144, 255, 0.1);
+        transform: scale(1.1);
+        box-shadow: 0 2px 4px rgba(24, 144, 255, 0.2);
+      }
+
+      &.danger {
+        &:hover {
+          background: rgba(255, 77, 79, 0.1);
+          box-shadow: 0 2px 4px rgba(255, 77, 79, 0.2);
+        }
+      }
+
+      .anticon {
+        font-size: 14px;
+      }
+    }
+  }
+
+  .subscriptionContent {
+    .subscriptionRow {
+      .iconContainer {
+        .subscriptionIcon {
+          width: 50px;
+          height: 50px;
+          background-color: #1890ff;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-size: 20px;
+        }
+      }
+
+      .contentContainer {
+        .subscriptionInfo {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+
+          .subscriptionMainInfo {
+            flex: 1;
+
+            .subscriptionTitle {
+              margin: 0 0 4px 0 !important;
+              font-size: 16px;
+              font-weight: 600;
+              padding-right: 60px;
+            }
+
+            .subscriptionDescription {
+              display: block;
+              margin-bottom: 8px;
+              font-size: 12px;
+              color: #666;
+              line-height: 1.4;
+            }
+
+            .subscriptionDuration {
+              margin-bottom: 8px;
+            }
+          }
+
+          .subscriptionPriceInfo {
+            text-align: right;
+            margin-left: 16px;
+            min-width: 120px;
+
+            .subscriptionPrice {
+              margin: 0 !important;
+              color: #1890ff;
+              font-size: 18px;
+              font-weight: 700;
+            }
+
+            .originalPrice {
+              font-size: 12px;
+              color: #999;
+              margin-top: 4px;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/* Estilos para tarjetas de eventos */
+.eventCard {
+  margin-bottom: 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+
+    .actionButtons {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .actionButtons {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    z-index: 1;
+    display: flex;
+    gap: 6px;
+    background: var(--cmm-bg-secondary);
+    backdrop-filter: blur(8px);
+    border-radius: 8px;
+    padding: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    opacity: 0;
+    transform: translateY(4px);
+    transition: all 0.3s ease;
+
+    .actionButton {
+      padding: 6px;
+      height: 28px;
+      width: 28px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      border: none;
+      background: transparent;
+
+      &:hover {
+        background: rgba(24, 144, 255, 0.1);
+        transform: scale(1.1);
+        box-shadow: 0 2px 4px rgba(24, 144, 255, 0.2);
+      }
+
+      &.danger {
+        &:hover {
+          background: rgba(255, 77, 79, 0.1);
+          box-shadow: 0 2px 4px rgba(255, 77, 79, 0.2);
+        }
+      }
+
+      .anticon {
+        font-size: 14px;
+      }
+    }
+  }
+
+  .eventContent {
+    .eventRow {
+      .iconContainer {
+        .eventIcon {
+          width: 50px;
+          height: 50px;
+          background-color: #52c41a;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-size: 20px;
+        }
+      }
+
+      .contentContainer {
+        .eventInfo {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+
+          .eventMainInfo {
+            flex: 1;
+
+            .eventTitle {
+              margin: 0 0 4px 0 !important;
+              font-size: 16px;
+              font-weight: 600;
+              padding-right: 60px;
+            }
+
+            .eventDescription {
+              display: block;
+              margin-bottom: 8px;
+              font-size: 12px;
+              color: #666;
+              line-height: 1.4;
+            }
+
+            .eventDates {
+              margin-bottom: 8px;
+            }
+
+            .eventParticipants {
+              font-size: 11px;
+              color: #666;
+              margin-top: 8px;
+            }
+          }
+
+          .eventPriceInfo {
+            text-align: right;
+            margin-left: 16px;
+            min-width: 120px;
+
+            .eventPrice {
+              margin: 0 !important;
+              color: #1890ff;
+              font-size: 18px;
+              font-weight: 700;
+            }
+
+            .originalPrice {
+              font-size: 12px;
+              color: #999;
+              margin-top: 4px;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/* Estilos para el modal */
+.modalForm {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.formRow {
+  margin-bottom: 16px;
+}
+
+.uploadArea {
+  border: 2px dashed #d9d9d9;
+  border-radius: 6px;
+  background: #fafafa;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.uploadArea:hover {
+  border-color: #1890ff;
+}
+
+.uploadIcon {
+  font-size: 24px;
+  color: #999;
+  margin-bottom: 8px;
+}
+
+.uploadText {
+  color: #666;
+  font-size: 14px;
+}
+
+/* Estados responsivos */
+@media (max-width: 768px) {
+  .storeSurtirContainer {
+    padding: 16px;
+  }
+  
+  .filtersRow {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .searchInput {
+    width: 100%;
+  }
+  
+  .categoryFilter {
+    width: 100%;
+  }
+  
+  .productInfo,
+  .subscriptionInfo,
+  .eventInfo {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .productPriceInfo,
+  .subscriptionPriceInfo,
+  .eventPriceInfo {
+    margin-left: 0;
+    text-align: left;
+    min-width: auto;
+  }
+}
+
+/* Estados de carga */
+.loadingState {
+  padding: 64px;
+  text-align: center;
+  color: #666;
+}
+
+.emptyState {
+  padding: 64px;
+  text-align: center;
+  color: #999;
+  
+  .ant-empty {
+    padding: 40px 20px;
+    
+    .ant-empty-image {
+      margin-bottom: 32px;
+    }
+    
+    .ant-empty-description {
+      margin-bottom: 24px;
+      
+      .ant-typography {
+        margin-bottom: 8px !important;
+      }
+      
+      .ant-typography-caption {
+        font-size: 14px;
+        line-height: 1.5;
+        color: #999;
+      }
+    }
+    
+    .ant-btn {
+      border-radius: 6px;
+      font-weight: 500;
+      box-shadow: 0 2px 4px rgba(24, 144, 255, 0.2);
+      
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(24, 144, 255, 0.3);
+      }
+    }
+  }
+}
+
+.emptyStateIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.emptyStateText {
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.emptyStateSubtext {
+  font-size: 14px;
+  color: #bbb;
+}
+
+/* Animaciones */
+.fadeIn {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slideUp {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Personalización de componentes Ant Design */
+.ant-card-actions {
+  background: #fafafa;
+  border-top: 1px solid #f0f0f0;
+}
+
+.ant-card-actions > li {
+  margin: 8px 0;
+}
+
+.ant-card-actions > li > span {
+  color: #666;
+  font-size: 13px;
+}
+
+.ant-card-actions > li:hover > span {
+  color: #1890ff;
+}
+
+.ant-modal-header {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 20px 24px;
+}
+
+.ant-modal-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.ant-tabs-tab {
+  padding: 12px 20px !important;
+}
+
+.ant-tabs-tab-active {
+  font-weight: 600 !important;
+}
+
+/* Badges y tags personalizados */
+.statusBadge {
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+}
+
+.statusBadge.active {
+  background: #f6ffed;
+  border: 1px solid #b7eb8f;
+  color: #52c41a;
+}
+
+.statusBadge.inactive {
+  background: #fff2e8;
+  border: 1px solid #ffbb96;
+  color: #fa8c16;
+}

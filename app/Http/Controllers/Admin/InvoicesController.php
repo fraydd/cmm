@@ -69,13 +69,13 @@ class InvoicesController extends Controller
                 i.id,
                 i.branch_id as idSede,
                 b.name as sede,
-                CONCAT(p.first_name , ' ' , p.last_name) as nombre,
+                CONCAT(p.first_name, COALESCE(CONCAT(' ', p.last_name), '')) as nombre,
                 i.total_amount,
                 i.paid_amount,
                 is2.name as invoice_status,
                 it.name as invoice_type,
                 i.observations,
-                COALESCE(CONCAT(p2.first_name,' ',p2.last_name), u.name) as responsable,
+                COALESCE(CONCAT(p2.first_name, COALESCE(CONCAT(' ', p2.last_name), '')), u.name) as responsable,
                 i.invoice_date
                 FROM invoices i 
                 INNER JOIN people p on i.person_id = p.id
@@ -434,7 +434,7 @@ class InvoicesController extends Controller
         $invoice = DB::select("
             SELECT 
                 invoices.*,
-                CONCAT(people.first_name, ' ', people.last_name) as person_name,
+                CONCAT(people.first_name, COALESCE(CONCAT(' ', people.last_name), '')) as person_name,
                 people.first_name,
                 people.last_name,
                 people.identification_number,
@@ -512,19 +512,19 @@ class InvoicesController extends Controller
             $people = DB::select('
                 SELECT 
                     id,
-                    CONCAT(first_name, " ", last_name, ": ", identification_number) as name
+                    CONCAT(first_name, COALESCE(CONCAT(" ", last_name), ""), ": ", identification_number) as name
                 FROM people
                 WHERE 
                     first_name LIKE ?
                     OR last_name LIKE ?
                     OR identification_number LIKE ?
-                    OR CONCAT(first_name, " ", last_name) LIKE ?
+                    OR CONCAT(first_name, COALESCE(CONCAT(" ", last_name), "")) LIKE ?
                 ORDER BY 
                     CASE 
                         WHEN first_name LIKE ? THEN 1
                         WHEN last_name LIKE ? THEN 2
                         WHEN identification_number LIKE ? THEN 3
-                        WHEN CONCAT(first_name, " ", last_name) LIKE ? THEN 4
+                        WHEN CONCAT(first_name, COALESCE(CONCAT(" ", last_name), "")) LIKE ? THEN 4
                         ELSE 5 
                     END,
                     first_name ASC,

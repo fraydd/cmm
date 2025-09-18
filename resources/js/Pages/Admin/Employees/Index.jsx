@@ -1,3 +1,4 @@
+import { usePermissions } from '../../../hooks/usePermissions.jsx';
 import React, { useEffect, useState } from 'react';
 import { App } from 'antd';
 import { Card, Button, Space, Typography, Table, Tag, Empty, Divider, Alert, Row, Col, Input, Select, DatePicker, Tooltip, Popconfirm, message, Pagination } from 'antd';
@@ -26,6 +27,7 @@ import styles from './Index.module.scss';
 const { Title, Text } = Typography;
 
 export default function Index({ empleados = [] }) {
+    const { can } = usePermissions();
     const { notification } = App.useApp();
     const { showSuccess, showError, showInfo, showWarning } = useNotifications();
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -688,6 +690,7 @@ export default function Index({ empleados = [] }) {
                     </Tooltip>
                     <Tooltip title="Editar">
                         <Button
+                            disabled={!can('editar_empleados')}
                             type="text"
                             icon={<EditOutlined />}
                             size="small"
@@ -707,6 +710,7 @@ export default function Index({ empleados = [] }) {
                                 cancelText="Cancelar"
                             >
                                 <Button
+                                    disabled={!can('editar_empleados')}
                                     type="text"
                                     icon={<UserDeleteOutlined />}
                                     size="small"
@@ -724,6 +728,7 @@ export default function Index({ empleados = [] }) {
                             cancelText="Cancelar"
                         >
                             <Button
+                                disabled={!can('editar_empleados')}
                                 type="text"
                                 danger
                                 icon={<DeleteOutlined />}
@@ -813,6 +818,7 @@ export default function Index({ empleados = [] }) {
                                             size="small" 
                                             icon={<UserDeleteOutlined />}
                                             style={{ color: '#faad14', borderColor: '#faad14' }}
+                                            disabled={!can('editar_empleados')}
                                         >
                                             Eliminar Acceso ({selectedRowKeys.length})
                                         </Button>
@@ -827,7 +833,8 @@ export default function Index({ empleados = [] }) {
                                         <Button 
                                             size="small" 
                                             danger 
-                                            icon={<DeleteOutlined />}
+                                            icon={<DeleteOutlined />} 
+                                            disabled={!can('editar_empleados')}
                                         >
                                             Eliminar ({selectedRowKeys.length})
                                         </Button>
@@ -850,6 +857,7 @@ export default function Index({ empleados = [] }) {
                                 type="primary" 
                                 icon={<PlusOutlined />}
                                 onClick={handleAddEmployee}
+                                disabled={!can('editar_empleados')}
                             >
                                 Agregar Nuevo Empleado
                             </Button>

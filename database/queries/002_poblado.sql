@@ -23,13 +23,13 @@ INSERT INTO `blood_types` (`name`, `is_active`, `created_at`, `updated_at`) VALU
 
 -- ===== TIPOS DE IDENTIFICACIÓN (COLOMBIA) =====
 INSERT INTO `identification_types` (`name`, `description`, `is_active`, `created_at`, `updated_at`) VALUES
-('Cédula de Ciudadanía', 'Documento de identidad para mayores de 18 años', true, NOW(), NOW()),
-('Tarjeta de Identidad', 'Documento de identidad para menores de 18 años', true, NOW(), NOW()),
-('Cédula de Extranjería', 'Documento para extranjeros residentes en Colombia', true, NOW(), NOW()),
-('Pasaporte', 'Documento de viaje internacional', true, NOW(), NOW()),
-('Permiso Especial de Permanencia', 'Permiso para venezolanos en Colombia', true, NOW(), NOW()),
-('Número Único de Identificación Personal', 'Número único para identificación', true, NOW(), NOW()),
-('Número de Identificación Tributaria', 'Número para personas jurídicas', true, NOW(), NOW());
+('Pasaporte', 'Documento de viaje internacional (Colombia)', true, NOW(), NOW()),
+('Cédula de ciudadania', 'Documento principal de identificación para ciudadanos colombianos', true, NOW(), NOW()),
+('Tarjeta de identidad', 'Identificación para menores de edad en Colombia', true, NOW(), NOW()),
+('Cédula extranjera', 'Identificación para extranjeros residentes en Colombia', true, NOW(), NOW()),
+('Número de identificación personal', 'NIP asignado en Colombia', true, NOW(), NOW()),
+('Número de identificación tributaria', 'NIT para personas o empresas en Colombia', true, NOW(), NOW()),
+('Indocumentado', 'Persona sin documento de identificación en Colombia', true, NOW(), NOW());
 
 -- ===== MÉTODOS DE PAGO =====
 INSERT INTO `payment_methods` (`name`, `description`, `is_active`, `created_at`, `updated_at`) VALUES
@@ -73,8 +73,7 @@ INSERT INTO `invoice_statuses` (`name`) VALUES
 
 -- ===== SEDE PRINCIPAL =====
 INSERT INTO `branches` (`name`, `address`, `phone`, `email`, `manager_id`, `is_active`, `created_at`, `updated_at`) VALUES
-('Sede Principal', 'Calle 123 # 45-67, Bogotá D.C.', '3001234567', 'sede.principal@cmm.com', NULL, true, NOW(), NOW()),
-('Sede Norte', 'Avenida 45 # 100-20, Bogotá D.C.', '3009876543', 'sede.norte@cmm.com', NULL, true, NOW(), NOW());
+('Sede Principal', 'ejemplo', '3000', 'sede.principal@cmm.com', NULL, true, NOW(), NOW());
 
 
 -- ===== CATEGORÍAS DE PRODUCTOS =====
@@ -84,28 +83,8 @@ INSERT INTO `product_categories` (`name`, `description`, `is_active`, `created_a
 ('Accesorios', 'Bolsos, joyas, relojes y otros accesorios', true, NOW(), NOW()),
 ('Cosméticos', 'Productos de belleza y cuidado personal', true, NOW(), NOW()),
 ('Fotografía', 'Servicios y productos fotográficos', true, NOW(), NOW()),
-('Capacitación', 'Cursos y talleres de modelaje', true, NOW(), NOW()),
-('Eventos', 'Entradas y servicios para eventos', true, NOW(), NOW()),
 ('Material Promocional', 'Fotos, videos y material publicitario', true, NOW(), NOW());
 
--- ===== PLANES DE SUSCRIPCIÓN =====
-INSERT INTO `subscription_plans` (`name`, `description`, `price`, `duration_months`, `is_active`, `created_at`, `updated_at`) VALUES
-('Plan Básico', 'Acceso básico a clases y eventos', 150000.00, 1, true, NOW(), NOW()),
-('Plan Estándar', 'Acceso completo a clases, eventos y material', 250000.00, 1, true, NOW(), NOW()),
-('Plan Premium', 'Acceso completo + sesiones fotográficas incluidas', 350000.00, 1, true, NOW(), NOW()),
-('Plan Anual Básico', 'Plan básico con descuento anual', 1500000.00, 12, true, NOW(), NOW()),
-('Plan Anual Estándar', 'Plan estándar con descuento anual', 2500000.00, 12, true, NOW(), NOW()),
-('Plan Anual Premium', 'Plan premium con descuento anual', 3500000.00, 12, true, NOW(), NOW());
-
--- ===== PLANES POR SEDE (branch_subscription_plans) =====
--- Asocia todos los planes a la sede 1 (Sede Principal) con el mismo precio por defecto
-INSERT INTO `branch_subscription_plans` (`branch_id`, `subscription_plan_id`, `custom_price`, `is_active`, `created_at`, `updated_at`) VALUES
-(1, 1, 150000.00, true, NOW(), NOW()),
-(1, 2, 250000.00, true, NOW(), NOW()),
-(1, 3, 350000.00, true, NOW(), NOW()),
-(1, 4, 1500000.00, true, NOW(), NOW()),
-(1, 5, 2500000.00, true, NOW(), NOW()),
-(1, 6, 3500000.00, true, NOW(), NOW());
 
 -- ===== ROLES DEL SISTEMA (Compatibles con RolesAndPermissionsSeeder) =====
 INSERT INTO `roles` (`name`, `guard_name`, `created_at`, `updated_at`) VALUES
@@ -113,77 +92,49 @@ INSERT INTO `roles` (`name`, `guard_name`, `created_at`, `updated_at`) VALUES
 ('empleado', 'web', NOW(), NOW());
 
 -- ===== PERMISOS DEL SISTEMA (Compatibles con RolesAndPermissionsSeeder) =====
-INSERT INTO `permissions` (`name`, `guard_name`, `created_at`, `updated_at`) VALUES
+INSERT INTO `permissions` (`name`, `guard_name`, `description`, `created_at`, `updated_at`) VALUES
 -- Dashboard
-('view_dashboard', 'web', NOW(), NOW()),
+('ver_dashboard', 'web', 'Acceso al panel principal del sistema', NOW(), NOW()),
 
 -- Gestión de invitaciones (solo admin)
-('view_invitations', 'web', NOW(), NOW()),
-('create_invitations', 'web', NOW(), NOW()),
-('resend_invitations', 'web', NOW(), NOW()),
-('cancel_invitations', 'web', NOW(), NOW()),
-('delete_invitations', 'web', NOW(), NOW()),
+('ver_invitaciones', 'web', 'Ver lista de invitaciones enviadas', NOW(), NOW()),
+('editar_invitaciones', 'web', 'Crear y gestionar invitaciones de usuario', NOW(), NOW()),
 
 -- Gestión de modelos (todos)
-('view_modelos', 'web', NOW(), NOW()),
-('create_modelos', 'web', NOW(), NOW()),
-('edit_modelos', 'web', NOW(), NOW()),
-('delete_modelos', 'web', NOW(), NOW()),
-
--- Gestión de usuarios (solo admin)
-('view_users', 'web', NOW(), NOW()),
-('create_users', 'web', NOW(), NOW()),
-('edit_users', 'web', NOW(), NOW()),
-('delete_users', 'web', NOW(), NOW()),
+('ver_modelos', 'web', 'Ver lista y perfiles de modelos', NOW(), NOW()),
+('editar_modelos', 'web', 'Crear y editar información de modelos', NOW(), NOW()),
 
 -- Gestión de roles (solo admin)
-('view_roles', 'web', NOW(), NOW()),
-('create_roles', 'web', NOW(), NOW()),
-('edit_roles', 'web', NOW(), NOW()),
-('delete_roles', 'web', NOW(), NOW()),
+('ver_roles', 'web', 'Ver roles y permisos del sistema', NOW(), NOW()),
+('editar_roles', 'web', 'Gestionar roles y asignar permisos', NOW(), NOW()),
 
 -- Gestión de asistencias
-('view_attendance', 'web', NOW(), NOW()),
-('create_attendance', 'web', NOW(), NOW()),
-('edit_attendance', 'web', NOW(), NOW()),
-('delete_attendance', 'web', NOW(), NOW()),
+('ver_asistencias', 'web', 'Ver registros de asistencia', NOW(), NOW()),
+('editar_asistencias', 'web', 'Modificar registros de asistencia', NOW(), NOW()),
+('crear_asistencias', 'web', 'Registrar nueva asistencia', NOW(), NOW()),
+
 
 -- Gestión de empleados
-('view_employees', 'web', NOW(), NOW()),
-('create_employees', 'web', NOW(), NOW()),
-('edit_employees', 'web', NOW(), NOW()),
-('delete_employees', 'web', NOW(), NOW()),
-('assign_employee_branches', 'web', NOW(), NOW()),
+('ver_empleados', 'web', 'Ver lista de empleados', NOW(), NOW()),
+('editar_empleados', 'web', 'Crear y editar información de empleados', NOW(), NOW()),
 
--- tienda
-('view_store', 'web', NOW(), NOW()),
-('edit_store', 'web', NOW(), NOW()),
-('vender', 'web', NOW(), NOW()),
-('ver_tienda', 'web', NOW(), NOW()),
+-- Tienda
+('ver_tienda', 'web', 'Acceso al sistema de ventas', NOW(), NOW()),
+('editar_tienda', 'web', 'Realizar ventas y gestionar carrito', NOW(), NOW()),
+('ver_admin_tienda', 'web', 'Ver administración de productos/planes', NOW(), NOW()),
+('editar_admin_tienda', 'web', 'Gestionar productos, planes y eventos', NOW(), NOW()),
 
--- ventas
-('view_sales', 'web', NOW(), NOW()),
-('edit_sales', 'web', NOW(), NOW()),
+-- Cierres de caja
+('ver_cajas', 'web', 'Ver cierres y movimientos de caja', NOW(), NOW()),
+('editar_cajas', 'web', 'Abrir/cerrar caja y registrar movimientos', NOW(), NOW()),
 
--- 
+-- Facturas
+('ver_facturas', 'web', 'Ver facturas y reportes de ventas', NOW(), NOW()),
+('editar_facturas', 'web', 'Generar y modificar facturas', NOW(), NOW()),
 
--- permisos 
-('view_permissions', 'web', NOW(), NOW()),
-
--- cierres de caja
-('view_cash_registers', 'web', NOW(), NOW()),
-('edit_cash_registers', 'web', NOW(), NOW()),
-
--- movimientos de caja
-('view_cash_movements', 'web', NOW(), NOW()),
-
-
-('edit_cash_movements', 'web', NOW(), NOW()),
-('view_invoices', 'web', NOW(), NOW()),
-('edit_invoices', 'web', NOW(), NOW()),
-
-('edit_branches', 'web', NOW(), NOW()),
-('view_branches', 'web', NOW(), NOW());
+-- Sedes
+('ver_sedes', 'web', 'Ver información de sedes', NOW(), NOW()),
+('editar_sedes', 'web', 'Crear y gestionar sedes', NOW(), NOW());
 
 
 -- ===== ASIGNACIÓN DE PERMISOS A ROLES =====
@@ -194,17 +145,15 @@ SELECT p.id, r.id
 FROM `permissions` p, `roles` r 
 WHERE r.name = 'empleado' 
 AND p.name IN (
-    'view_dashboard',
-    'view_modelos',
-    'create_modelos',
-    'edit_modelos',
-    'delete_modelos',
-    'view_attendance',
-    'create_attendance',
-    'edit_attendance',
-    'view_employees',
+    'ver_dashboard',
+    'ver_modelos',
+    'editar_modelos',
+    'ver_asistencias',
+    'crear_asistencias',
+    'ver_empleados',
     'ver_tienda',
-    'vender'
+    'editar_tienda',
+    'ver_cajas'
 );
 
 -- Admin: Todos los permisos
@@ -213,60 +162,13 @@ SELECT p.id, r.id
 FROM `permissions` p, `roles` r 
 WHERE r.name = 'admin';
 
--- ===== USUARIO ROOT (ADMIN) =====
--- NOTA: El usuario admin se crea automáticamente por RootUserServiceProvider
--- cuando Laravel se inicia, usando las variables de entorno:
--- ROOT_USER_EMAIL, ROOT_USER_NAME, ROOT_USER_PASSWORD
-
-
-
--- ===== PRODUCTOS DE EJEMPLO =====
-INSERT INTO `products` (`category_id`, `name`, `description`, `price`, `stock_quantity`, `is_active`, `created_at`, `updated_at`) VALUES
-(1, 'Camiseta Básica', 'Camiseta de algodón 100% para modelaje', 45000.00, 50, true, NOW(), NOW()),
-(1, 'Jeans Clásicos', 'Jeans de alta calidad para sesiones fotográficas', 120000.00, 30, true, NOW(), NOW()),
-(2, 'Tacones Profesionales', 'Tacones de 10cm para desfiles', 180000.00, 25, true, NOW(), NOW()),
-(3, 'Bolso de Modelaje', 'Bolso profesional para modelos', 95000.00, 20, true, NOW(), NOW()),
-(4, 'Kit de Maquillaje Profesional', 'Kit completo de maquillaje para sesiones', 250000.00, 15, true, NOW(), NOW()),
-(5, 'Sesión Fotográfica Básica', 'Sesión de fotos de 1 hora con 10 fotos editadas', 150000.00, 999, true, NOW(), NOW()),
-(5, 'Sesión Fotográfica Premium', 'Sesión de fotos de 2 horas con 20 fotos editadas y video', 300000.00, 999, true, NOW(), NOW()),
-(6, 'Curso de Pasarela', 'Curso intensivo de pasarela de 8 horas', 200000.00, 999, true, NOW(), NOW()),
-(6, 'Taller de Poses', 'Taller de poses fotográficas de 4 horas', 120000.00, 999, true, NOW(), NOW());
-
-INSERT INTO `product_files` (`product_id`, `file_path`, `file_name`,`file_type`, `created_at`, `updated_at`) VALUES
-(1, '/storage/products/camisa.jpeg', 'camisa', 'producto', NOW(), NOW()),
-(1, '/storage/products/jeans.jpeg', 'jeans', 'producto', NOW(), NOW());
-
--- ===== EVENTOS DE EJEMPLO =====
-INSERT INTO `events` (`name`, `description`, `event_date`, `registration_deadline`, `price`, `max_participants`, `current_participants`, `is_active`, `created_at`, `updated_at`) VALUES
-('Desfile Primavera-Verano 2024', 'Desfile de moda con las últimas tendencias', '2024-03-15', '2024-03-10', 50000.00, 50, 0, true, NOW(), NOW()),
-('Workshop de Fotografía', 'Taller práctico de fotografía de moda', '2024-03-20', '2024-03-18', 80000.00, 30, 0, true, NOW(), NOW()),
-('Casting Nacional', 'Casting para agencias de modelaje', '2024-04-05', '2024-04-01', 25000.00, 100, 0, true, NOW(), NOW()),
-('Fashion Week Bogotá', 'Semana de la moda en Bogotá', '2024-05-10', '2024-05-05', 150000.00, 200, 0, true, NOW(), NOW());
-
--- ===== ACCESO DE EVENTOS A SEDE =====
-INSERT INTO `event_branch_access` (`event_id`, `branch_id`, `max_participants`, `custom_price`, `current_participants`, `is_active`, `created_at`, `updated_at`) VALUES
-(1, 1, 50, 50000.00, 0, true, NOW(), NOW()),
-(2, 1, 30, 70000.00, 0, true, NOW(), NOW()),
-(3, 1, 100, 26000.00, 0, true, NOW(), NOW()),
-(4, 1, 200, NULL, 0, true, NOW(), NOW());
-
--- ===== ACCESO DE PRODUCTOS A SEDE =====
-INSERT INTO `product_branch_access` (`product_id`, `branch_id`, `stock_quantity`, `is_active`, `created_at`, `updated_at`) VALUES
-(1, 1, 50, true, NOW(), NOW()),
-(2, 1, 30, true, NOW(), NOW()),
-(3, 1, 25, true, NOW(), NOW()),
-(4, 1, 20, true, NOW(), NOW()),
-(5, 1, 15, true, NOW(), NOW()),
-(6, 1, 999, true, NOW(), NOW()),
-(7, 1, 999, true, NOW(), NOW()),
-(8, 1, 999, true, NOW(), NOW()),
-(9, 1, 999, true, NOW(), NOW());
 
 -- ===== COLORES DE CABELLO =====
 INSERT INTO `hair_colors` (`name`, `is_active`, `created_at`, `updated_at`) VALUES
 ('Negro', true, NOW(), NOW()),
 ('Castaño oscuro', true, NOW(), NOW()),
 ('Castaño claro', true, NOW(), NOW()),
+('Castaño medio', true, NOW(), NOW()),
 ('Rubio', true, NOW(), NOW()),
 ('Pelirrojo', true, NOW(), NOW()),
 ('Gris', true, NOW(), NOW()),
@@ -311,18 +213,3 @@ INSERT INTO `relationships` (`name`, `is_active`, `created_at`, `updated_at`) VA
 ('Tutor legal', true, NOW(), NOW()),
 ('Pareja', true, NOW(), NOW()),
 ('Otro', true, NOW(), NOW());
-
-
--- ===== PRODUCTOS DE EJEMPLO PARA SEDE SECUNDARIA =====
-INSERT INTO `product_branch_access` (`product_id`, `branch_id`, `stock_quantity`, `is_active`, `created_at`, `updated_at`) VALUES
-(1, 2, 20, true, NOW(), NOW()), -- Camiseta Básica
-(3, 2, 10, true, NOW(), NOW()); -- Tacones Profesionales
-
--- ===== EVENTO DE EJEMPLO PARA SEDE SECUNDARIA =====
-INSERT INTO `event_branch_access` (`event_id`, `branch_id`, `max_participants`, `current_participants`, `is_active`, `created_at`, `updated_at`) VALUES
-(2, 2, 15, 0, true, NOW(), NOW()); -- Workshop de Fotografía
-
--- ===== PLANES POR SEDE SECUNDARIA (branch_subscription_plans) =====
-INSERT INTO `branch_subscription_plans` (`branch_id`, `subscription_plan_id`, `custom_price`, `is_active`, `created_at`, `updated_at`) VALUES
-(2, 1, 160000.00, true, NOW(), NOW()), -- Plan Básico con precio diferente
-(2, 2, 260000.00, true, NOW(), NOW()); -- Plan Estándar

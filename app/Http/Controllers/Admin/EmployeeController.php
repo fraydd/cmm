@@ -700,6 +700,20 @@ class EmployeeController extends \App\Http\Controllers\Controller
                 'is_active' => true,
                 'updated_at' => now(),
             ]);
+                // 2.1. Sincronizar el rol en model_has_roles si el empleado tiene usuario
+                if (!empty($employee->user_id)) {
+                    // Eliminar roles anteriores del usuario
+                    DB::table('model_has_roles')
+                        ->where('model_id', $employee->user_id)
+                        ->where('model_type', 'App\\Models\\User')
+                        ->delete();
+                    // Insertar el nuevo rol
+                    DB::table('model_has_roles')->insert([
+                        'role_id' => $data['role_id'],
+                        'model_type' => 'App\\Models\\User',
+                        'model_id' => $employee->user_id
+                    ]);
+                }
 
             // 3. Actualizar acceso a sedes
             DB::table('employee_branch_access')->where('employee_id', $id)->delete();

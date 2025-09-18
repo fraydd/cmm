@@ -1,4 +1,5 @@
 import EditAttendanceModal from './EditAttendanceModal';
+import { usePermissions } from '../../../hooks/usePermissions.jsx';
 import React, { useEffect, useState, useRef } from 'react';
 import { App } from 'antd';
 import { Button, Space, Typography, Table, Tag, Empty, Input, Select, Tooltip, Popconfirm, message, Pagination, Radio } from 'antd';
@@ -20,6 +21,7 @@ const { Title, Text } = Typography;
 import dayjs from 'dayjs';
 
 export default function AttendanceIndex() {
+    const { can } = usePermissions();
     const { showSuccess, showError } = useNotifications();
     const { selectedBranch } = useBranch();
     const [loading, setLoading] = useState(false);
@@ -445,6 +447,7 @@ const columns = [
                             setEditRecord(record);
                             setEditModalOpen(true);
                         }}
+                        disabled={!can('editar_asistencias')}
                     />
                 </Tooltip>
                 <Tooltip title="Eliminar asistencia">
@@ -483,6 +486,7 @@ const columns = [
                             size={windowWidth <= 768 ? "small" : "middle"}
                             danger
                             icon={<DeleteOutlined />}
+                            disabled={!can('editar_asistencias')}
                         />
                     </Popconfirm>
                 </Tooltip>

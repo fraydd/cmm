@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+import { usePermissions } from '../../../hooks/usePermissions.jsx';
 import { router } from '@inertiajs/react';
 import AdminLayout from '../../../Layouts/AdminLayout.jsx';
-import { Button, Tag, Space } from 'antd';
+import { Button, Tag, Space, Popover } from 'antd';
 import { EyeOutlined, EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import AgregarSedeModal from './AgregarSedeModal.jsx';
 import { useNotifications } from '../../../hooks/useNotifications.jsx';
@@ -11,6 +12,7 @@ import { HomeOutlined } from '@ant-design/icons';
 const { Title } = Typography;
 
 export default function BranchesIndex({ branches = [] }) {
+    const { can } = usePermissions();
     const { showSuccess, showError } = useNotifications();
     const [modalOpen, setModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState('create');
@@ -49,10 +51,11 @@ export default function BranchesIndex({ branches = [] }) {
             <div className={styles.branchesList}>
                 <div
                     className={styles.addBranchCard}
-                    onClick={handleAdd}
+                    onClick={can('editar_sedes') ? handleAdd : undefined}
                     tabIndex={0}
                     role="button"
                     aria-label="Agregar nueva sede"
+                    style={{ pointerEvents: can('editar_sedes') ? 'auto' : 'none', opacity: can('editar_sedes') ? 1 : 0.5, cursor: can('editar_sedes') ? 'pointer' : 'not-allowed' }}
                 >
                     <PlusOutlined style={{ fontSize: 32 }} />
                 </div>
@@ -79,9 +82,14 @@ export default function BranchesIndex({ branches = [] }) {
                                 </Tag>
                             </div>
                             <Space className={styles.branchActions}>
-                                <Button icon={<EditOutlined />} onClick={() => handleEdit(branch.id)}>
-                                    Editar
-                                </Button>
+                                <Popover
+                                    content={!can('editar_sedes') ? 'No tienes permiso para editar sedes' : null}
+                                    trigger="hover"
+                                >
+                                    <Button icon={<EditOutlined />} onClick={() => handleEdit(branch.id)} disabled={!can('editar_sedes')}>
+                                        Editar
+                                    </Button>
+                                </Popover>
                             </Space>
                         </div>
                     ))

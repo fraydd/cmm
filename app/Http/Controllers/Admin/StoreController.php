@@ -101,7 +101,11 @@ class StoreController extends Controller
             $producto['price'] = '$' . number_format($producto['price'], 0, ',', '.');
             // Procesar imágenes: convertir string a array, o array vacío si null/vacío
             if (!empty($producto['images'])) {
-                $producto['images'] = array_filter(explode(',', $producto['images']));
+                $imagePaths = array_filter(explode(',', $producto['images']));
+                // Convertir rutas relativas a URLs completas
+                $producto['images'] = array_map(function ($path) {
+                    return !str_starts_with($path, 'http') ? asset($path) : $path;
+                }, $imagePaths);
             } else {
                 $producto['images'] = [];
             }
@@ -511,6 +515,15 @@ class StoreController extends Controller
                 WHERE c.person_id = ?
                     AND c.branch_id = ?
             SQL, [$personId, $branchId]);
+
+            // Procesar imágenes de productos del carrito
+            $productos = array_map(function ($producto) {
+                $producto = (array) $producto;
+                if (!empty($producto['image'])) {
+                    $producto['image'] = !str_starts_with($producto['image'], 'http') ? asset($producto['image']) : $producto['image'];
+                }
+                return $producto;
+            }, $productos);
 
             return response()->json([
                 'productos' => $productos,

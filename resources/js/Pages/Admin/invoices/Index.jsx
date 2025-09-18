@@ -1,7 +1,9 @@
 import EditCashMovementModal from './EditCashMovementModal.jsx';
 import RegistrarEgresoModal from './RegistrarEgresoModal.jsx';
 import React, { useEffect, useState } from 'react';
-import { Button, Space, Typography, Table, Tag, Empty, Input, Select, Tooltip, Popconfirm, message, Pagination, DatePicker, Popover } from 'antd';
+import { usePermissions } from '../../../hooks/usePermissions.jsx';
+import { Button, Space, Typography, Table, Tag, Empty, Input, Select, Tooltip, Popconfirm, message, Pagination, Popover } from 'antd';
+import CustomDateRangePicker from '../../../Components/CustomDateRangePicker.jsx';
 import {
     DollarOutlined,
     SearchOutlined,
@@ -21,6 +23,7 @@ const { Title, Text } = Typography;
 import dayjs from 'dayjs';
 
 export default function Index() {
+    const { can } = usePermissions();
     const { showSuccess, showError } = useNotifications();
     const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
     const [containerHeight, setContainerHeight] = useState(0);
@@ -28,8 +31,18 @@ export default function Index() {
     const [filteredData, setFilteredData] = useState([]);
     const [dateRange, setDateRange] = useState([
         dayjs().startOf('month'),
-        dayjs()
+        dayjs().endOf('month')
     ]);
+    const dateRangePickerRef = React.useRef();
+    // Al montar, setear el rango al mes actual
+    useEffect(() => {
+        if (dateRangePickerRef.current && dateRangePickerRef.current.setRange) {
+            const start = dayjs().startOf('month');
+            const end = dayjs().endOf('month');
+            dateRangePickerRef.current.setRange([start, end]);
+            setDateRange([start, end]);
+        }
+    }, []);
     const [selectedBranchFilter, setSelectedBranchFilter] = useState([]);
     const [branchOptions, setBranchOptions] = useState([]);
     const [pagination, setPagination] = useState({
@@ -517,6 +530,7 @@ const columns = [
                                 size={windowWidth <= 768 ? "small" : "middle"} 
                                 danger 
                                 icon={<DeleteOutlined />}
+                                disabled={!can('editar_facturas')}
                             />
                         </Popconfirm>
                     </Tooltip>
@@ -526,6 +540,7 @@ const columns = [
                             size={windowWidth <= 768 ? "small" : "middle"} 
                             icon={<EditOutlined style={{ color: '#48a41aff'}} />}
                             onClick={() => handleOpenEdit(record)}
+                            disabled={!can('editar_facturas')}
                         />
                     </Tooltip>
                 </Space>
@@ -551,7 +566,7 @@ const columns = [
                             <span> • {Array.isArray(baseData) ? baseData.length : 0} registro(s)</span>
                         </Text>
                     </div>
-                    <Button type="primary" onClick={handleOpenNewCashRegister}>
+                    <Button type="primary" onClick={handleOpenNewCashRegister} disabled={!can('editar_facturas')}>
                         Registrar egreso
                     </Button>
                 </div>
@@ -562,11 +577,12 @@ const columns = [
                 {/* CONTENEDOR 1 - Filtros */}
 
                 <div className={styles.filtersSection}>
-                    <DatePicker.RangePicker
+                    <CustomDateRangePicker
+                        ref={dateRangePickerRef}
+                        format="YYYY-MM-DD"
                         value={dateRange}
                         onChange={setDateRange}
-                        format="YYYY-MM-DD"
-                        allowClear={false}
+                        style={{ marginRight: 8 }}
                     />
                     <Select
                         mode="multiple"

@@ -72,6 +72,7 @@ CREATE TABLE `permissions` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `guard_name` varchar(255) NOT NULL,
+  `description` varchar(255) NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -201,7 +202,7 @@ CREATE TABLE `employees` (
   `end_date` date NULL,
   `salary` decimal(12,2) NULL,
   `job_description` text NULL,
-  `role_id` bigint unsigned NOT NULL,
+  `role_id` bigint unsigned NULL,
   `is_active` boolean NOT NULL DEFAULT true,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
@@ -248,12 +249,12 @@ CREATE TABLE `model_profiles` (
   `bust` int NOT NULL,
   `waist` int NOT NULL,
   `hips` int NOT NULL,
-  `hair_color_id` bigint unsigned NOT NULL,
-  `eye_color_id` bigint unsigned NOT NULL,
-  `skin_color_id` bigint unsigned NOT NULL,
-  `pants_size` varchar(20) NOT NULL,
-  `shirt_size` varchar(20) NOT NULL,
-  `shoe_size` varchar(20) NOT NULL,
+  `hair_color_id` bigint unsigned NULL,
+  `eye_color_id` bigint unsigned NULL,
+  `skin_color_id` bigint unsigned NULL,
+  `pants_size` varchar(20) NULL,
+  `shirt_size` varchar(20) NULL,
+  `shoe_size` varchar(20) NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
@@ -649,7 +650,7 @@ ALTER TABLE `people` ADD CONSTRAINT `people_blood_type_id_foreign` FOREIGN KEY (
 -- Relaciones de Personas y Empleados
 ALTER TABLE `employees` ADD CONSTRAINT `employees_person_id_foreign` FOREIGN KEY (`person_id`) REFERENCES `people` (`id`);
 ALTER TABLE `employees` ADD CONSTRAINT `employees_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
-ALTER TABLE `employees` ADD CONSTRAINT `employees_role_id_foreign` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`);
+ALTER TABLE `employees` ADD CONSTRAINT `employees_role_id_foreign` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE SET NULL;
 
 -- Relaciones de Personas y Modelos
 ALTER TABLE `models` ADD CONSTRAINT `models_person_id_foreign` FOREIGN KEY (`person_id`) REFERENCES `people` (`id`);

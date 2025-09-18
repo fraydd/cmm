@@ -71,7 +71,7 @@ class ModeloController extends \App\Http\Controllers\Controller
         $sql = <<<SQL
             SELECT
                 m.id,
-                CONCAT(p.first_name, ' ', p.last_name) AS nombre_completo,
+                CONCAT(p.first_name, COALESCE(CONCAT(' ', p.last_name), '')) AS nombre_completo,
                 p.identification_number AS numero_identificacion,
                 CASE 
                     WHEN mp.bust IS NOT NULL AND mp.waist IS NOT NULL AND mp.hips IS NOT NULL 

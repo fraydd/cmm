@@ -10,7 +10,9 @@ import {
     SkinOutlined,
     ClockCircleOutlined,
     CheckCircleOutlined,
-    IdcardOutlined
+    IdcardOutlined,
+    ShopOutlined,
+    ToolOutlined
 } from '@ant-design/icons';
 import { router, usePage } from '@inertiajs/react';
 import { usePermissions } from '../hooks/usePermissions';
@@ -23,7 +25,7 @@ const { Sider } = Layout;
 const { Title } = Typography;
 
 const Sidebar = forwardRef(({ collapsed, auth, onToggle, isMobile = false, isVisible = true }, ref) => {
-    const { can } = usePermissions();
+    const { can, permissions: userPermissions } = usePermissions();
     const { selectedBranch } = useBranch();
     const { url } = usePage();
     const [selectedKeys, setSelectedKeys] = useState(['dashboard']);
@@ -53,14 +55,20 @@ const Sidebar = forwardRef(({ collapsed, auth, onToggle, isMobile = false, isVis
         } else if (path.includes('/admin/invitaciones')) {
             setSelectedKeys(['empleados.invitaciones']);
             // No establecer openKeys automáticamente
+        } else if (path.includes('/admin/tienda/surtir')) {
+            setSelectedKeys(['tienda.administrar']);
+            // No establecer openKeys automáticamente
+        } else if (path.includes('/admin/tienda')) {
+            setSelectedKeys(['tienda.ventas']);
+            // No establecer openKeys automáticamente
         } else if (path.includes('/admin/caja')) {
             setSelectedKeys(['caja.index']);
             // No establecer openKeys automáticamente
         } else if (path.includes('/admin/academia')) {
             setSelectedKeys(['academia.index']);
             // No establecer openKeys automáticamente
-        } else if (path.includes('/admin/permisos')) {
-            setSelectedKeys(['settings.permissions']);
+        } else if (path.includes('/admin/roles')) {
+            setSelectedKeys(['settings.roles']);
             // No establecer openKeys automáticamente
         } else if (path.includes('/admin/settings')) {
             setSelectedKeys(['settings.users']);
@@ -112,18 +120,23 @@ const Sidebar = forwardRef(({ collapsed, auth, onToggle, isMobile = false, isVis
         }));
     };
 
-    // Menú basado en permisos
-    const menuItems = [
+    // Definición completa del menú con permisos requeridos
+    const allMenuItems = [
+        // Dashboard - Sin permisos requeridos (siempre visible)
         {
             key: 'dashboard',
             icon: <DashboardOutlined />,
             label: 'Dashboard',
-            onClick: () => router.visit('/admin/dashboard')
+            onClick: () => router.visit('/admin/dashboard'),
+            requiredPermissions: [] // Sin permisos = siempre visible
         },
+        
+        // Modelos
         {
             key: 'modelos',
             icon: <UserOutlined />,
             label: 'Modelos',
+            requiredPermissions: ['ver_modelos'],
             children: [
                 { 
                     key: 'modelos.index', 
@@ -133,118 +146,168 @@ const Sidebar = forwardRef(({ collapsed, auth, onToggle, isMobile = false, isVis
                             ? `/admin/modelos?branch_id=${selectedBranch.id}`
                             : '/admin/modelos';
                         router.visit(url);
-                    }
-                },
+                    },
+                    requiredPermissions: ['ver_modelos']
+                }
             ]
         },
+        
+        // Empleados
         {
             key: 'empleados',
             icon: <IdcardOutlined />, 
             label: 'Empleados',
+            requiredPermissions: ['ver_empleados', 'ver_invitaciones'], // OR logic
             children: [
                 { 
                     key: 'empleados.index', 
                     label: 'Lista de Empleados',
-                    onClick: () => router.visit('/admin/empleados')
+                    onClick: () => router.visit('/admin/empleados'),
+                    requiredPermissions: ['ver_empleados']
                 },
                 { 
                     key: 'empleados.invitaciones', 
                     label: 'Invitaciones',
-                    onClick: () => router.visit('/admin/invitaciones')
+                    onClick: () => router.visit('/admin/invitaciones'),
+                    requiredPermissions: ['ver_invitaciones']
                 }
             ]
         },
-        ...(can('ver_tienda') ? [{
+        
+        // Tienda
+        {
             key: 'tienda',
             icon: <DollarOutlined />,
             label: 'Tienda',
-            onClick: () => {
-                const url = '/admin/tienda';
-                router.visit(url);
-            }
-        }] : []),
+            requiredPermissions: ['ver_tienda', 'ver_admin_tienda'], // OR logic
+            children: [
+                {
+                    key: 'tienda.ventas',
+                    label: 'Ventas',
+                    icon: <ShopOutlined />,
+                    onClick: () => router.visit('/admin/tienda'),
+                    requiredPermissions: ['ver_tienda']
+                },
+                {
+                    key: 'tienda.administrar',
+                    label: 'Administrar',
+                    icon: <ToolOutlined />,
+                    onClick: () => router.visit('/admin/tienda/surtir'),
+                    requiredPermissions: ['ver_admin_tienda']
+                }
+            ]
+        },
+        
+        // Asistencia
         {
             key: 'asistencia',
             label: 'Asistencia',
             icon: <ClockCircleOutlined />,
+            requiredPermissions: ['ver_asistencias', 'crear_asistencias'],
             children: [
                 {
                     key: 'checkin',
                     label: 'Check-in',
                     icon: <CheckCircleOutlined />,
-                    onClick: () => router.visit('/admin/checkin')
+                    onClick: () => router.visit('/admin/checkin'),
+                    requiredPermissions: ['crear_asistencias']
                 },
                 {
                     key: 'asistencias',
                     label: 'Asistencias',
                     icon: <ClockCircleOutlined />,
-                    onClick: () => router.visit('/admin/asistencias')
+                    onClick: () => router.visit('/admin/asistencias'),
+                    requiredPermissions: ['ver_asistencias']
                 }
             ]
         },
+        
+        // Caja
         {
             key: 'cash_register',
             icon: <DollarOutlined />,
             label: 'Caja',
+            requiredPermissions: ['ver_cajas', 'ver_facturas'], // OR logic
             children: [
                 {
                     key: 'cash_register.index',
                     label: 'Cierres de caja',
-                    onClick: () => router.visit('/admin/cash-register')
-                }
-                // { 
-                //     key: 'cash_register.movements', 
-                //     label: 'Movimientos',
-                //     onClick: () => router.visit('/admin/cash-movements')
-                // }
-                ,{ 
+                    onClick: () => router.visit('/admin/cash-register'),
+                    requiredPermissions: ['ver_cajas']
+                },
+                { 
                     key: 'cash_register.invoices', 
                     label: 'Facturas',
-                    onClick: () => router.visit('/admin/invoices')
+                    onClick: () => router.visit('/admin/invoices'),
+                    requiredPermissions: ['ver_facturas']
                 }
             ]
         },
+        
+        // Configuración - Sin permisos requeridos (siempre visible)
         {
             key: 'settings',
             icon: <SettingOutlined />,
             label: 'Configuración',
+            requiredPermissions: [], // Sin permisos = siempre visible
             children: [
                 { 
                     key: 'settings.users', 
                     label: 'Usuarios',
-                    onClick: () => router.visit('/admin/settings/users')
+                    onClick: () => router.visit('/admin/settings/users'),
+                    requiredPermissions: [] // Siempre visible
                 },
-                ...(can('view_branches') ? [{
+                {
                     key: 'settings.sedes',
                     label: 'Sedes',
-                    onClick: () => router.visit('/admin/sedes')
-                }] : []),
-                ...(can('view_permissions') ? [{ 
-                    key: 'settings.permissions', 
-                    label: 'Permisos',
-                    onClick: () => router.visit('/admin/permisos')
-                }] : []),
+                    onClick: () => router.visit('/admin/sedes'),
+                    requiredPermissions: ['ver_sedes']
+                },
                 { 
                     key: 'settings.roles', 
                     label: 'Roles y Permisos',
-                    onClick: () => router.visit('/admin/settings/roles')
+                    onClick: () => router.visit('/admin/roles'),
+                    requiredPermissions: ['ver_roles']
                 },
-                themeSubmenu
+                themeSubmenu // Temas siempre visibles
             ]
         }
-    ].filter(item => {
-        // Filtrar por permisos
-        if (item.key === 'dashboard') return true;
-        if (item.key === 'settings') return true; // Configuración disponible para todos
-        if (item.key === 'modelos') return can('view_modelos');
-        if (item.key === 'empleados') return can('view_employees') || can('view_invitations');
-        if (item.key === 'cash_register') return can('view_cash_registers');
-        if (item.key === 'academia') return can('view_academia');
-        return true;
-    });
+    ];
+
+    // Función para verificar si el usuario tiene al menos uno de los permisos requeridos
+    const hasRequiredPermission = (requiredPermissions) => {
+        // Si no hay permisos requeridos, siempre es visible
+        if (!requiredPermissions || requiredPermissions.length === 0) {
+            return true;
+        }
+        
+        // Verificar si el usuario tiene al menos uno de los permisos (OR logic)
+        return requiredPermissions.some(permission => can(permission));
+    };
+
+    // Función para filtrar menús recursivamente
+    const filterMenuItems = (menuItems) => {
+        return menuItems
+            .filter(item => hasRequiredPermission(item.requiredPermissions))
+            .map(item => ({
+                ...item,
+                // Si tiene children, filtrarlos también
+                ...(item.children && {
+                    children: filterMenuItems(item.children)
+                })
+            }))
+            // Remover elementos que no tienen children visibles (si originalmente tenían children)
+            .filter(item => {
+                if (!item.children) return true;
+                return item.children.length > 0;
+            });
+    };
+
+    // Aplicar filtros de permisos
+    const visibleMenuItems = filterMenuItems(allMenuItems);
 
     // Crear elementos del menú con manejo de clics para móvil
-    const processedMenuItems = createMenuItems(menuItems);
+    const processedMenuItems = createMenuItems(visibleMenuItems);
 
     // Overlay para móvil
     const overlay = isMobile && isVisible && (
@@ -295,4 +358,4 @@ const Sidebar = forwardRef(({ collapsed, auth, onToggle, isMobile = false, isVis
     );
 });
 
-export default Sidebar; 
+export default Sidebar;
