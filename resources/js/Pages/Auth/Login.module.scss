@@ -1,0 +1,184 @@
+// Login.module.scss
+.loginOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.loginContainer {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  max-width: 400px;
+  width: 100%;
+  padding: 40px;
+  position: relative;
+}
+
+.backButton {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  color: #666;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.iconContainer {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+}
+
+.icon {
+  font-size: 24px;
+  color: white;
+}
+
+.title {
+  margin: 0;
+  color: #333 !important;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: rgb(44, 44, 44) !important;
+}
+
+.errorAlert {
+  margin-bottom: 16px;
+}
+
+.inputField {
+  border-radius: 8px;
+  height: 48px;
+  border: 1px solid #d9d9d9;
+  background-color: white;
+
+
+  // Forzar estilos claros por defecto independientemente del tema
+  :global(.ant-input) {
+    background-color: #ffffff !important; // Fondo blanco claro
+    color: #333333 !important; // Texto oscuro para buena legibilidad
+    border-color: #d9d9d9 !important; // Borde gris claro
+
+    &::placeholder {
+      color: #8c8c8c !important; // Placeholder gris estándar
+    }
+
+    &:hover {
+      background-color: #ffffff !important;
+      color: #333333 !important;
+      border-color: #40a9ff !important; // Borde azul al hover
+    }
+
+    &:focus {
+      background-color: #ffffff !important;
+      color: #333333 !important;
+      border-color: #40a9ff !important; // Borde azul al focus
+      box-shadow: 0 0 0 2px rgba(64, 169, 255, 0.2) !important;
+    }
+  }
+
+  // Para el input de password
+  :global(.ant-input-password) {
+    background-color: #ffffff !important;
+    border-color: #d9d9d9 !important;
+    
+    &:hover {
+      border-color: #40a9ff !important;
+    }
+    
+    &:focus-within {
+      border-color: #40a9ff !important;
+      box-shadow: 0 0 0 2px rgba(64, 169, 255, 0.2) !important;
+    }
+    
+    :global(.ant-input) {
+      background-color: #ffffff !important;
+      color: #333333 !important;
+      border: none !important;
+      box-shadow: none !important;
+      
+      &::placeholder {
+        color: #8c8c8c !important;
+      }
+    }
+  }
+
+  // Para los iconos de los inputs (mantener colores estándar)
+  :global(.ant-input-prefix) {
+    color: #8c8c8c !important;
+  }
+  
+  // Para los iconos del password (eye icons)
+  :global(.ant-input-password-icon) {
+    color: #8c8c8c !important;
+    
+    &:hover {
+      color: #40a9ff !important;
+    }
+  }
+}
+
+.inputIcon {
+  color: #bfbfbf;
+}
+
+.rememberContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.forgotPassword {
+  padding: 0;
+}
+
+.submitButton {
+  width: 100%;
+  height: 48px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.divider {
+  margin: 24px 0;
+}
+
+.dividerText {
+  font-size: 12px;
+  color: rgb(44, 44, 44) !important;
+}   
+
+.footer {
+  text-align: center;
+}
+
+.footerText {
+  font-size: 14px;
+  color: rgb(44, 44, 44) !important;
+}

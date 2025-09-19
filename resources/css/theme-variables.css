@@ -1,0 +1,71 @@
+:root {
+  /* Colores Base CMM (Tema Light por defecto) */
+  --cmm-primary-50: #f8fafc;
+  --cmm-primary-100: #f1f5f9;
+  --cmm-primary-200: #e2e8f0;
+  --cmm-primary-300: #cbd5e1;
+  --cmm-primary-400: #94B4C1;
+  --cmm-primary-500: #547792;
+  --cmm-primary-600: #3d5a7a;
+  --cmm-primary-700: #2d4a6a;
+  --cmm-primary-800: #213448;
+  --cmm-primary-900: #1a2a3a;
+
+  /* Color de Acento */
+  --cmm-accent: #ECEFCA;
+
+  /* Colores de Estado */
+  --cmm-success: #16a34a;
+  --cmm-success-500: #16a34a;
+  --cmm-warning: #d97706;
+  --cmm-warning-500: #d97706;
+  --cmm-error: #dc2626;
+  --cmm-error-500: #dc2626;
+  --cmm-info: #3b82f6;
+  --cmm-info-500: #3b82f6;
+
+  /* Colores Semánticos */
+  --cmm-bg-primary: var(--cmm-primary-50);
+  --cmm-bg-secondary: #ffffff;
+  --cmm-bg-sidebar: var(--cmm-primary-900);
+  --cmm-bg-header: #ffffff;
+  --cmm-bg-card: #ffffff;
+  --cmm-bg-tooltip: var(--cmm-primary-800);
+
+  --cmm-text-primary: var(--cmm-primary-800);
+  --cmm-text-secondary: #86340b;
+  --cmm-text-tertiary: var(--cmm-primary-400);
+  --cmm-text-placeholder: var(--cmm-primary-400);
+  --cmm-text-sidebar: var(--cmm-accent);
+  --cmm-text-light: #ffffff;
+
+  --cmm-border-primary: var(--cmm-primary-200);
+  --cmm-border-secondary: var(--cmm-primary-100);
+  --cmm-border-sidebar: var(--cmm-primary-700);
+  --cmm-border-color: var(--cmm-primary-200);
+
+  /* Sombras */
+  --cmm-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --cmm-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --cmm-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --cmm-shadow-color: rgba(0, 0, 0, 0.1);
+
+  /* Transiciones */
+  --cmm-transition-fast: 0.1s;
+  --cmm-transition-normal: 0.2s;
+  --cmm-transition-slow: 0.3s;
+  --cmm-ease-in-out: cubic-bezier(0.645, 0.045, 0.355, 1);
+
+  /* Espaciados */
+  --cmm-spacing-xs: 4px;
+  --cmm-spacing-sm: 8px;
+  --cmm-spacing-md: 16px;
+  --cmm-spacing-lg: 24px;
+  --cmm-spacing-xl: 32px;
+
+  /* Bordes redondeados */
+  --cmm-radius-sm: 4px;
+  --cmm-radius-md: 6px;
+  --cmm-radius-lg: 8px;
+  --cmm-radius-xl: 12px;
+} 

@@ -1,0 +1,260 @@
+.modeloFormContent {
+  min-height: 75vh;
+  max-height: 75vh;
+  height: auto;
+  overflow-y: auto;
+  padding: 1.5vw;
+  line-height: normal;
+  text-align: left;
+  background-color: var(--cmm-bg-primary);
+  border-radius: var(--cmm-radius-lg);
+  border: 1px dashed var(--cmm-border-primary);
+  margin-top: clamp(12px, 2vw, 20px); // Margen dinámico
+  margin-bottom: 0;
+  color: var(--cmm-text-primary);
+
+  // Responsive padding
+  @media (max-width: 768px) {
+    padding: 16px;
+    min-height: 50vh;
+    max-height: 55vh;
+  }
+
+  @media (max-width: 576px) {
+    padding: 12px;
+    min-height: 45vh;
+    max-height: 50vh;
+  }
+
+  // Responsive typography
+  @media (max-width: 768px) {
+    :global(.ant-typography h4) {
+      font-size: 18px !important;
+      margin-bottom: 16px !important;
+    }
+  }
+
+  @media (max-width: 576px) {
+    :global(.ant-typography h4) {
+      font-size: 16px !important;
+      margin-bottom: 12px !important;
+    }
+  }
+
+  // Mejorar espaciado en mobile
+  @media (max-width: 768px) {
+    :global(.ant-form-item) {
+      margin-bottom: 16px !important;
+    }
+    
+    :global(.ant-form-item-label) {
+      padding-bottom: 4px !important;
+      
+      & > label {
+        font-size: 14px !important;
+      }
+    }
+  }
+
+  @media (max-width: 576px) {
+    :global(.ant-form-item) {
+      margin-bottom: 12px !important;
+    }
+    
+    :global(.ant-form-item-label) {
+      padding-bottom: 2px !important;
+      
+      & > label {
+        font-size: 13px !important;
+      }
+    }
+  }
+
+  // Responsive inputs y selects
+  @media (max-width: 576px) {
+    :global(.ant-input),
+    :global(.ant-select-selector),
+    :global(.ant-picker),
+    :global(.ant-input-number) {
+      font-size: 14px !important;
+      padding: 8px 11px !important;
+    }
+    
+    :global(.ant-input-number-input) {
+      font-size: 14px !important;
+    }
+  }
+
+  // Responsive dividers
+  @media (max-width: 768px) {
+    :global(.ant-divider) {
+      margin: 16px 0 !important;
+      font-size: 14px !important;
+    }
+  }
+
+  @media (max-width: 576px) {
+    :global(.ant-divider) {
+      margin: 12px 0 !important;
+      font-size: 13px !important;
+    }
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--cmm-text-secondary); // Un gris más oscuro
+    opacity: 1;
+  }
+
+  // Placeholder de los Select de Ant Design
+  :global(.ant-select-selection-placeholder) {
+    color: var(--cmm-text-secondary) !important;
+    opacity: 1 !important;
+  }
+
+  // Placeholder de los InputNumber de Ant Design
+  :global(.ant-input-number-input::placeholder) {
+    color: var(--cmm-text-secondary) !important;
+    opacity: 1 !important;
+  }
+
+  // Mejorar DatePicker en mobile
+  @media (max-width: 576px) {
+    :global(.ant-picker-input input) {
+      font-size: 14px !important;
+    }
+  }
+}
+
+.modeloFormButtons {
+  height: 60px; // Alto fijo para evitar desbordamiento
+  min-height: 60px;
+  margin-top: 16px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  
+  // Responsive buttons
+  @media (max-width: 768px) {
+    height: 56px;
+    min-height: 56px;
+    margin-top: 12px;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  @media (max-width: 576px) {
+    height: 50px;
+    min-height: 50px;
+    margin-top: 8px;
+    gap: 6px;
+    
+    // Mantener en fila horizontal en lugar de columna
+    justify-content: space-between;
+    flex-direction: row;
+  }
+}
+
+// Botón primario (Siguiente/Finalizar)
+.modeloFormButtonPrimary {
+  padding: 6px 18px;
+  font-size: 16px;
+  background-color: var(--cmm-primary-600);
+  color: var(--cmm-text-light);
+  border-radius: var(--cmm-radius-md);
+  border: none;
+  transition: all var(--cmm-transition-normal);
+  cursor: pointer;
+  
+  &:hover {
+    background-color: var(--cmm-primary-500) !important;
+    color: var(--cmm-text-light) !important;
+    border-color: var(--cmm-primary-500) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  &:focus {
+    background-color: var(--cmm-primary-600) !important;
+    color: var(--cmm-text-light) !important;
+    border-color: var(--cmm-primary-600) !important;
+  }
+
+  &:disabled {
+    background-color: var(--cmm-primary-300) !important;
+    color: var(--cmm-text-light) !important;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  
+  // Responsive button sizing
+  @media (max-width: 768px) {
+    padding: 6px 14px;
+    font-size: 14px;
+    min-width: 100px;
+  }
+
+  @media (max-width: 576px) {
+    padding: 6px 12px;
+    font-size: 13px;
+    min-width: 80px;
+    flex: 1;
+    max-width: 120px;
+  }
+}
+
+// Botón secundario (Anterior)
+.modeloFormButtonSecondary {
+  padding: 6px 18px;
+  font-size: 16px;
+  background-color: var(--cmm-bg-secondary);
+  color: var(--cmm-text-primary);
+  border: 1px solid var(--cmm-border-primary);
+  border-radius: var(--cmm-radius-md);
+  transition: all var(--cmm-transition-normal);
+  cursor: pointer;
+  
+  &:hover {
+    background-color: var(--cmm-bg-primary) !important;
+    color: var(--cmm-text-primary) !important;
+    border-color: var(--cmm-primary-400) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  &:focus {
+    background-color: var(--cmm-bg-secondary) !important;
+    color: var(--cmm-text-primary) !important;
+    border-color: var(--cmm-primary-600) !important;
+  }
+  
+  // Responsive button sizing
+  @media (max-width: 768px) {
+    padding: 6px 14px;
+    font-size: 14px;
+    min-width: 100px;
+  }
+
+  @media (max-width: 576px) {
+    padding: 6px 12px;
+    font-size: 13px;
+    min-width: 80px;
+    flex: 1;
+    max-width: 120px;
+  }
+} 
+.pdfUploader {
+  width: 300px !important; // Ancho fijo
+  max-width: 100%;
+  
+  :global(.ant-upload-list-item) {
+    width: 100% !important;
+  }
+  
+  :global(.ant-upload-select) {
+    width: 100% !important;
+  }
+}

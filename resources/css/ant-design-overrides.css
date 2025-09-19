@@ -1,0 +1,401 @@
+/* Separar iconos de las pestañas del texto */
+.ant-tabs-tab .anticon {
+  margin-right: 8px;
+  vertical-align: middle;
+}
+/* Overrides para Ant Design - Box Shadows de Botones */
+
+/* Botón primario - estado normal */
+.ant-btn-primary {
+  box-shadow: 0 2px 0 var(--cmm-primary-700)40 !important;
+}
+
+/* Botón primario - hover */
+.ant-btn-primary:hover {
+  box-shadow: 0 2px 0 var(--cmm-primary-600)40 !important;
+}
+
+/* Botón primario - active/presionado */
+.ant-btn-primary:active {
+  box-shadow: 0 1px 0 var(--cmm-primary-800)40 !important;
+}
+
+/* Botón primario - focus */
+.ant-btn-primary:focus {
+  box-shadow: 0 2px 0 var(--cmm-primary-700)40 !important;
+}
+
+/* Botón primario - disabled */
+.ant-btn-primary:disabled {
+  box-shadow: none !important;
+}
+
+/* Botones secundarios y otros - remover box-shadow por defecto */
+.ant-btn:not(.ant-btn-primary) {
+  box-shadow: none !important;
+}
+
+/* Botones de tamaño grande */
+.ant-btn-lg.ant-btn-primary {
+  box-shadow: 0 3px 0 var(--cmm-primary-700)40 !important;
+}
+
+.ant-btn-lg.ant-btn-primary:hover {
+  box-shadow: 0 3px 0 var(--cmm-primary-600)40 !important;
+}
+
+.ant-btn-lg.ant-btn-primary:active {
+  box-shadow: 0 2px 0 var(--cmm-primary-800)40 !important;
+}
+
+/* Botones de tamaño pequeño */
+.ant-btn-sm.ant-btn-primary {
+  box-shadow: 0 1px 0 var(--cmm-primary-700)40 !important;
+}
+
+.ant-btn-sm.ant-btn-primary:hover {
+  box-shadow: 0 1px 0 var(--cmm-primary-600)40 !important;
+}
+
+.ant-btn-sm.ant-btn-primary:active {
+  box-shadow: 0 1px 0 var(--cmm-primary-800)40 !important;
+}
+
+/* Overrides para tabla usando variables CSS dinámicas */
+.ant-table-thead > tr > th {
+  background-color: var(--cmm-table-header) !important;
+  color: var(--cmm-text-primary) !important;
+  border-bottom: 1px solid var(--cmm-primary-200) !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 2 !important;
+}
+
+.ant-table-thead > tr > th:hover {
+  background-color: var(--cmm-table-header-hover) !important;
+}
+
+/* Mantener el fondo del header cuando se ordena */
+.ant-table-thead > tr > th.ant-table-column-sort {
+  background-color: var(--cmm-table-header) !important;
+}
+
+.ant-table-thead > tr > th.ant-table-column-sort:hover {
+  background-color: var(--cmm-table-header-hover) !important;
+}
+
+/* Mantener el fondo de las celdas del cuerpo cuando se ordena la columna */
+.ant-table-tbody > tr > td.ant-table-column-sort {
+  background-color: transparent !important;
+}
+
+.ant-table-tbody > tr:hover > td.ant-table-column-sort {
+  background-color: var(--cmm-table-hover) !important;
+}
+
+.ant-table-tbody > tr > td {
+  border-bottom: 1px solid var(--cmm-primary-200) !important;
+}
+
+.ant-table-tbody > tr:hover > td {
+  background-color: var(--cmm-primary-50) !important;
+}
+
+/* Asegurar que el contenedor de la tabla tenga scroll */
+.ant-table-container {
+  overflow: auto !important;
+}
+
+/* Asegurar que el header se mantenga fijo */
+.ant-table-header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 2 !important;
+  background-color: var(--cmm-table-header) !important;
+}
+
+/* Quitar el borde molesto del scrollbar */
+.ant-table-cell-scrollbar:not([rowspan]) {
+  box-shadow: none !important;
+}
+
+/* Quitar el borde del scrollbar en el header también */
+.ant-table-thead .ant-table-cell-scrollbar:not([rowspan]) {
+  box-shadow: none !important;
+} 
+
+/* Overrides para notificaciones usando variables CSS dinámicas */
+.ant-notification {
+  color: var(--cmm-text-primary) !important;
+}
+
+.ant-notification-notice {
+  background-color: var(--cmm-bg-primary) !important;
+  border: 1px solid var(--cmm-border-color) !important;
+  box-shadow: 0 4px 12px var(--cmm-shadow-color) !important;
+}
+
+.ant-notification-notice-message {
+  color: var(--cmm-text-primary) !important;
+}
+
+.ant-notification-notice-description {
+  color: var(--cmm-text-secondary) !important;
+}
+
+/* Notificación de éxito */
+.ant-notification-notice-success {
+  border-left: 4px solid var(--cmm-success-500) !important;
+}
+
+.ant-notification-notice-success .ant-notification-notice-icon {
+  color: var(--cmm-success-500) !important;
+}
+
+/* Notificación de error */
+.ant-notification-notice-error {
+  border-left: 4px solid var(--cmm-error-500) !important;
+}
+
+.ant-notification-notice-error .ant-notification-notice-icon {
+  color: var(--cmm-error-500) !important;
+}
+
+/* Notificación de advertencia */
+.ant-notification-notice-warning {
+  border-left: 4px solid var(--cmm-warning-500) !important;
+}
+
+.ant-notification-notice-warning .ant-notification-notice-icon {
+  color: var(--cmm-warning-500) !important;
+}
+
+/* Notificación de información */
+.ant-notification-notice-info {
+  border-left: 4px solid var(--cmm-info-500) !important;
+}
+
+.ant-notification-notice-info .ant-notification-notice-icon {
+  color: var(--cmm-info-500) !important;
+}
+
+/* Botón de cerrar notificación */
+.ant-notification-notice-close {
+  color: var(--cmm-text-secondary) !important;
+}
+
+.ant-notification-notice-close:hover {
+  color: var(--cmm-text-primary) !important;
+}
+
+/* =====================================================
+   OVERRIDES PARA SELECT - Todos los temas
+   ===================================================== */
+
+/* Select principal - usar variables CSS dinámicas */
+.ant-select {
+  color: var(--cmm-text-primary) !important;
+}
+
+.ant-select .ant-select-selector {
+  background-color: var(--cmm-bg-secondary) !important;
+  border-color: var(--cmm-border-input) !important;
+  color: var(--cmm-text-primary) !important;
+}
+
+.ant-select .ant-select-selection-placeholder {
+  color: var(--cmm-text-placeholder) !important;
+}
+
+/* Select hover state */
+.ant-select:not(.ant-select-disabled):hover .ant-select-selector {
+  border-color: var(--cmm-primary-500) !important;
+}
+
+/* Select focus state */
+.ant-select-focused .ant-select-selector {
+  border-color: var(--cmm-primary-500) !important;
+  box-shadow: 0 0 0 2px var(--cmm-primary-500)20 !important;
+}
+
+/* Select open state */
+.ant-select-open .ant-select-selector {
+  border-color: var(--cmm-primary-500) !important;
+  box-shadow: 0 0 0 2px var(--cmm-primary-500)20 !important;
+}
+
+/* Dropdown del Select */
+.ant-select-dropdown {
+  background-color: var(--cmm-bg-secondary) !important;
+  border: 1px solid var(--cmm-border-color) !important;
+  box-shadow: 0 4px 12px var(--cmm-shadow-color) !important;
+}
+
+/* Opciones del Select */
+.ant-select-item {
+  color: var(--cmm-text-primary) !important;
+  background-color: transparent !important;
+}
+
+/* Opción hover */
+.ant-select-item:hover {
+  background-color: var(--cmm-table-hover) !important;
+}
+
+/* Opción seleccionada */
+.ant-select-item-option-selected {
+  background-color: var(--cmm-primary-100) !important;
+  color: var(--cmm-text-primary) !important;
+  font-weight: 600 !important;
+}
+
+/* Opción activa (con teclado) */
+.ant-select-item-option-active {
+  background-color: var(--cmm-primary-50) !important;
+}
+
+/* Flecha del Select */
+.ant-select-arrow {
+  color: var(--cmm-text-secondary) !important;
+}
+
+/* Select múltiple - tags */
+.ant-select-multiple .ant-select-selection-item {
+  background-color: var(--cmm-primary-100) !important;
+  border: 1px solid var(--cmm-primary-200) !important;
+  color: var(--cmm-text-primary) !important;
+}
+
+.ant-select-multiple .ant-select-selection-item-remove {
+  color: var(--cmm-text-secondary) !important;
+}
+
+.ant-select-multiple .ant-select-selection-item-remove:hover {
+  color: var(--cmm-error) !important;
+}
+
+/* Overrides específicos para modo oscuro */
+[data-theme="dark"] .ant-select-item-option-selected,
+.dark-theme .ant-select-item-option-selected {
+  background-color: var(--cmm-primary-600) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .ant-select-item:hover,
+.dark-theme .ant-select-item:hover {
+  background-color: var(--cmm-primary-700) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .ant-select-item-option-active,
+.dark-theme .ant-select-item-option-active {
+  background-color: var(--cmm-primary-800) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .ant-select-multiple .ant-select-selection-item,
+.dark-theme .ant-select-multiple .ant-select-selection-item {
+  background-color: var(--cmm-primary-700) !important;
+  border-color: var(--cmm-primary-600) !important;
+  color: #ffffff !important;
+}
+
+/* Overrides específicos para tema azul */
+[data-theme="blue"] .ant-select-item-option-selected,
+.blue-theme .ant-select-item-option-selected {
+  background-color: var(--cmm-primary-500) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="blue"] .ant-select-item:hover,
+.blue-theme .ant-select-item:hover {
+  background-color: var(--cmm-primary-100) !important;
+}
+
+[data-theme="blue"] .ant-select-item-option-active,
+.blue-theme .ant-select-item-option-active {
+  background-color: var(--cmm-primary-50) !important;
+}
+
+/* Select disabled state */
+.ant-select-disabled .ant-select-selector {
+  background-color: var(--cmm-primary-50) !important;
+  border-color: var(--cmm-primary-200) !important;
+  color: var(--cmm-text-placeholder) !important;
+  cursor: not-allowed !important;
+}
+
+/* Select con error */
+.ant-select-status-error .ant-select-selector {
+  border-color: var(--cmm-error) !important;
+}
+
+.ant-select-status-error.ant-select-focused .ant-select-selector {
+  border-color: var(--cmm-error) !important;
+  box-shadow: 0 0 0 2px var(--cmm-error)20 !important;
+}
+
+/* Vacío/empty state */
+.ant-select-item-empty {
+  color: var(--cmm-text-placeholder) !important;
+}
+
+/* Loading state */
+.ant-select-item-option-loading {
+  color: var(--cmm-text-secondary) !important;
+}
+
+/* Clear button */
+.ant-select-clear {
+  color: var(--cmm-text-placeholder) !important;
+}
+
+.ant-select-clear:hover {
+  color: var(--cmm-text-secondary) !important;
+}
+
+/* =====================================================
+   ANTI-AUTOCOMPLETADO - Deshabilitar sugerencias
+   ===================================================== */
+
+/* Ocultar cualquier dropdown de autocompletado del navegador */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px var(--cmm-bg-secondary) inset !important;
+  -webkit-text-fill-color: var(--cmm-text-primary) !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+
+/* Prevenir autocompletado en todos los inputs del formulario de modelos */
+.ant-form input[type="text"],
+.ant-form input[type="email"],
+.ant-form input[type="tel"],
+.ant-form input[type="number"],
+.ant-form textarea {
+  -webkit-autofill: false !important;
+  -webkit-autocomplete: off !important;
+  -moz-autocomplete: off !important;
+}
+
+/* Ocultar dropdowns de autocompletado específicos de Chrome */
+input::-webkit-contacts-auto-fill-button,
+input::-webkit-credentials-auto-fill-button {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  right: 0 !important;
+}
+
+/* Prevenir autocompletado para campos específicos */
+input[name*="nombre"],
+input[name*="apellido"],
+input[name*="identificacion"],
+input[name*="telefono"],
+input[name*="direccion"],
+input[name*="email"],
+input[name*="acudiente"] {
+  -webkit-autocomplete: off !important;
+}

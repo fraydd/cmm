@@ -1,0 +1,465 @@
+
+// Variables SCSS para breakpoints (para usar en media queries)
+$breakpoint-xs: 480px;    // Extra pequeño (móviles pequeños)
+$breakpoint-sm: 576px;    // Pequeño (móviles)
+$breakpoint-md: 768px;    // Mediano (tablets)
+$breakpoint-lg: 992px;    // Grande (desktops pequeños)
+$breakpoint-xl: 1200px;   // Extra grande (desktops)
+$breakpoint-xxl: 1600px;  // Extra extra grande (pantallas grandes)
+
+// Variables
+$header-height: 64px;
+$header-height-mobile: 56px;
+$transition-duration: var(--cmm-transition-normal);
+
+// Mixins
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin flex-start {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+// Layout principal
+.adminLayout {
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+}
+
+// Layout interno (que contiene header y content)
+.adminLayout > .ant-layout {
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+}
+
+// Header
+.header {
+  background: var(--cmm-bg-header) !important;
+  padding: 0 var(--cmm-spacing-md) !important;
+  @include flex-between;
+  box-shadow: var(--cmm-shadow-md) !important;
+  height: $header-height;
+  border-bottom: 1px solid var(--cmm-border-primary);
+  flex-shrink: 0;
+  min-height: $header-height-mobile;
+  
+  // Responsive breakpoints
+  @media (max-width: $breakpoint-md) {
+    height: $header-height-mobile; // Altura fija para una sola fila
+    padding: 0 var(--cmm-spacing-md) !important;
+    justify-content: space-between; // Botón izquierda, contenido derecha
+  }
+  
+  @media (max-width: $breakpoint-sm) {
+    padding: 0 var(--cmm-spacing-sm) !important;
+  }
+}
+
+// Botón hamburguesa para móvil
+.mobileMenuButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cmm-text-primary) !important;
+  background: transparent !important;
+  border: none !important;
+  padding: var(--cmm-spacing-xs) !important;
+  border-radius: var(--cmm-radius-md) !important;
+  transition: all $transition-duration var(--cmm-ease-in-out);
+  margin-right: var(--cmm-spacing-sm);
+  
+  &:hover {
+    background: var(--cmm-bg-hover) !important;
+    color: var(--cmm-primary-600) !important;
+  }
+  
+  &:active {
+    background: var(--cmm-bg-active) !important;
+  }
+  
+  .anticon {
+    font-size: clamp(16px, 4vw, 18px);
+  }
+  
+  @media (min-width: 769px) {
+    display: none !important;
+  }
+}
+
+// Contenedor del botón hamburguesa (solo para móvil)
+.mobileButtonContainer {
+  display: none; // Oculto por defecto en desktop
+  
+  @media (max-width: $breakpoint-md) {
+    display: flex; // Mostrar solo en móvil
+    align-items: center;
+    justify-content: flex-start;
+  }
+}
+
+// Contenedor del título
+.titleContainer {
+  @include flex-start;
+  align-items: center;
+  gap: var(--cmm-spacing-md);
+  flex: 1;
+  min-width: 0; // Allow flex shrinking
+  
+  @media (max-width: $breakpoint-md) {
+    display: none; // Ocultar completamente en móvil
+  }
+}
+
+// Título del header
+.headerTitle {
+  margin: 0 !important;
+  color: var(--cmm-text-primary) !important;
+  font-weight: 600 !important;
+  font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  
+  @media (max-width: $breakpoint-md) {
+    font-size: clamp(1rem, 4vw, 1.3rem);
+    white-space: normal;
+    word-break: break-word;
+  }
+  
+  @media (max-width: $breakpoint-sm) {
+    font-size: clamp(0.9rem, 5vw, 1.1rem);
+  }
+}
+
+// Contenedor de usuario
+.userContainer {
+  @include flex-start;
+  align-items: center;
+  gap: var(--cmm-spacing-sm);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  
+  @media (max-width: $breakpoint-md) {
+    flex-basis: 100%;
+    justify-content: space-between;
+    gap: var(--cmm-spacing-xs);
+  }
+  
+  @media (max-width: $breakpoint-sm) {
+    justify-content: center;
+    align-items: center;
+    gap: var(--cmm-spacing-xs);
+  }
+}
+
+// Dropdown de usuario
+.userDropdown {
+  cursor: pointer;
+  padding: var(--cmm-spacing-md);
+  border-radius: var(--cmm-radius-lg);
+  transition: all $transition-duration var(--cmm-ease-in-out);
+  display: flex;
+  align-items: center;
+  gap: var(--cmm-spacing-md);
+  
+  @media (max-width: $breakpoint-md) {
+    padding: var(--cmm-spacing-sm);
+    gap: var(--cmm-spacing-sm);
+  }
+  
+  @media (max-width: $breakpoint-sm) {
+    padding: var(--cmm-spacing-xs) var(--cmm-spacing-sm);
+    gap: var(--cmm-spacing-xs);
+    justify-content: center;
+  }
+  
+  &:hover {
+    .userName {
+      color: var(--cmm-primary-600);
+    }
+    
+    .userRole {
+      color: var(--cmm-primary-400);
+    }
+  }
+}
+
+// Contenedor del avatar
+.avatarContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Contenedor de información del usuario
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  
+  @media (max-width: $breakpoint-sm) {
+    align-items: center;
+    text-align: center;
+  }
+}
+
+// Nombre del usuario
+.userName {
+  color: var(--cmm-text-primary);
+  font-weight: 600;
+  font-size: clamp(12px, 2vw, 14px);
+  line-height: 1.2;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+  
+  @media (max-width: $breakpoint-md) {
+    max-width: 120px;
+    font-size: clamp(11px, 2.5vw, 13px);
+  }
+  
+  @media (max-width: $breakpoint-sm) {
+    max-width: 100%;
+    white-space: normal;
+    text-align: center;
+  }
+}
+
+// Rol del usuario
+.userRole {
+  color: var(--cmm-text-secondary);
+  font-size: clamp(10px, 1.8vw, 12px);
+  font-weight: 400;
+  line-height: 1.2;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+  
+  @media (max-width: $breakpoint-md) {
+    max-width: 120px;
+    font-size: clamp(9px, 2vw, 11px);
+  }
+  
+  @media (max-width: $breakpoint-sm) {
+    max-width: 100%;
+    white-space: normal;
+    text-align: center;
+  }
+}
+
+// Contenido principal
+.content {
+  margin: var(--cmm-spacing-lg) !important;
+  background: var(--cmm-bg-primary) !important;
+  border-radius: var(--cmm-radius-lg) !important;
+  overflow: hidden;
+  box-shadow: var(--cmm-shadow-sm);
+  border: 1px solid var(--cmm-border-primary);
+  height: calc(100vh - $header-height - 2 * var(--cmm-spacing-lg));
+  max-height: calc(100vh - $header-height - 2 * var(--cmm-spacing-lg));
+  
+  @media (max-width: $breakpoint-md) {
+    margin: var(--cmm-spacing-md) !important;
+    height: calc(100vh - $header-height-mobile - 2 * var(--cmm-spacing-md));
+    max-height: calc(100vh - $header-height-mobile - 2 * var(--cmm-spacing-md));
+    border-radius: var(--cmm-radius-md) !important;
+  }
+  
+  @media (max-width: $breakpoint-sm) {
+    margin: var(--cmm-spacing-sm) !important;
+    height: calc(100vh - $header-height-mobile - 2 * var(--cmm-spacing-sm));
+    max-height: calc(100vh - $header-height-mobile - 2 * var(--cmm-spacing-sm));
+  }
+}
+
+// Contenedor interno del contenido
+.contentInner {
+  background: var(--cmm-bg-secondary) !important;
+  padding: var(--cmm-spacing-lg) !important;
+  border-radius: var(--cmm-radius-lg) !important;
+  height: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-shadow: var(--cmm-shadow-sm);
+  
+  @media (max-width: $breakpoint-md) {
+    padding: var(--cmm-spacing-md) !important;
+    border-radius: var(--cmm-radius-md) !important;
+  }
+  
+  @media (max-width: $breakpoint-sm) {
+    padding: var(--cmm-spacing-sm) !important;
+  }
+}
+
+// Avatar del usuario
+.userAvatar {
+  background: linear-gradient(135deg, var(--cmm-primary-500) 0%, var(--cmm-primary-600) 100%);
+  color: var(--cmm-text-light);
+  border: 2px solid var(--cmm-bg-primary);
+  box-shadow: var(--cmm-shadow-sm);
+  transition: all $transition-duration var(--cmm-ease-in-out);
+  
+  &:hover {
+    background: linear-gradient(135deg, var(--cmm-primary-600) 0%, var(--cmm-primary-700) 100%);
+  }
+}
+
+// Indicador de estado del avatar
+.avatarStatus {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 12px;
+  height: 12px;
+  background-color: var(--cmm-success-500);
+  border: 2px solid var(--cmm-bg-primary);
+  border-radius: 50%;
+  box-shadow: var(--cmm-shadow-sm);
+}
+
+// Contenedor de usuario y sede
+.userAndBranchContainer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-left: auto;
+  
+  @media (max-width: $breakpoint-md) {
+    margin-left: auto; // Mantener alineado a la derecha
+    justify-content: flex-end;
+    gap: var(--cmm-spacing-sm);
+    align-items: center;
+  }
+  
+  @media (max-width: $breakpoint-sm) {
+    gap: var(--cmm-spacing-xs);
+    align-items: center;
+    justify-content: flex-end;
+  }
+}
+
+// Selector de sede tipo texto
+.branchSelector {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  font-size: 16px;
+  min-width: 160px;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  
+  @media (max-width: $breakpoint-md) {
+    font-size: clamp(14px, 2.5vw, 16px);
+    min-width: auto; // Permitir que se ajuste
+    max-width: none; // Sin límite máximo
+    overflow: visible; // Permitir que se vea el texto completo
+    white-space: nowrap; // Mantener en una línea
+  }
+  
+  @media (max-width: $breakpoint-sm) {
+    justify-content: flex-end;
+    min-width: auto;
+    max-width: none; // Sin límite máximo
+    font-size: clamp(13px, 3vw, 15px);
+    overflow: visible; // Permitir que se vea el texto completo
+  }
+}
+
+.branchSelectorName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: middle;
+  max-width: 140px;
+  
+  @media (max-width: $breakpoint-md) {
+    max-width: none; // Sin límite para mostrar texto completo
+    overflow: visible; // Permitir que se vea todo el texto
+    text-overflow: unset; // Quitar los puntos suspensivos
+    white-space: nowrap; // Mantener en una línea
+  }
+  
+  @media (max-width: $breakpoint-sm) {
+    max-width: none; // Sin límite para mostrar texto completo
+    text-align: right; // Alineación a la derecha
+    overflow: visible; // Permitir que se vea todo el texto
+    text-overflow: unset; // Quitar los puntos suspensivos
+  }
+}
+
+// Estilos globales para dropdowns
+:global(.ant-dropdown-menu) {
+  background: var(--cmm-bg-secondary) !important;
+  border: 1px solid var(--cmm-border-color) !important;
+  border-radius: var(--cmm-radius-md) !important;
+  box-shadow: var(--cmm-shadow-lg) !important;
+  padding: var(--cmm-spacing-xs) !important;
+}
+
+:global(.ant-dropdown-menu-item) {
+  color: var(--cmm-text-primary) !important;
+  padding: var(--cmm-spacing-sm) var(--cmm-spacing-md) !important;
+  border-radius: var(--cmm-radius-sm) !important;
+  margin: 2px 0 !important;
+  transition: all $transition-duration var(--cmm-ease-in-out) !important;
+  
+  &:hover {
+    background: var(--cmm-primary-500) !important;
+    color: #ffffff !important;
+  }
+  
+  .anticon {
+    color: inherit !important;
+  }
+}
+
+// Estilos específicos para item seleccionado en selector de sede
+:global(.ant-dropdown-menu-item.branch-selected) {
+  background: var(--cmm-primary-100) !important;
+  color: var(--cmm-primary-700) !important;
+  font-weight: 600 !important;
+  position: relative !important;
+  
+  &::after {
+    content: "✓" !important;
+    position: absolute !important;
+    right: var(--cmm-spacing-sm) !important;
+    color: var(--cmm-primary-600) !important;
+    font-weight: bold !important;
+  }
+  
+  &:hover {
+    background: var(--cmm-primary-500) !important;
+    color: #ffffff !important;
+    
+    &::after {
+      color: #ffffff !important;
+    }
+  }
+}

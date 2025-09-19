@@ -1,0 +1,724 @@
+// ===========================================
+// DIAGRAMA DE BASE DE DATOS MEJORADO
+// Sistema de Gestión de Modelos y Empleados
+// Versión: 3.0 - Con Sistema de Facturación Integrado
+// ===========================================
+
+// ===== TABLAS DEL SISTEMA Y AUTENTICACIÓN (LARAVEL) =====
+
+Table password_resets {
+  email varchar(255) [pk]
+  token varchar(255) [not null]
+  created_at timestamp [null]
+}
+
+Table personal_access_tokens {
+  id bigint [pk]
+  tokenable_type varchar(255) [not null]
+  tokenable_id bigint [not null]
+  name varchar(255) [not null]
+  token varchar(64) [not null, unique]
+  abilities text [null]
+  last_used_at timestamp [null]
+  expires_at timestamp [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    (tokenable_type, tokenable_id)
+  }
+}
+
+Table failed_jobs {
+  id bigint [pk]
+  uuid varchar(255) [not null, unique]
+  connection text [not null]
+  queue text [not null]
+  payload longtext [not null]
+  exception longtext [not null]
+  failed_at timestamp [not null]
+}
+
+Table migrations {
+  id int [pk]
+  migration varchar(255) [not null]
+  batch int [not null]
+}
+
+Table invitations {
+  id bigint [pk]
+  email varchar(255) [not null, unique]
+  token varchar(255) [not null, unique]
+  status varchar(20) [not null, default: 'pending']
+  is_active boolean [default: true, not null]
+  expires_at timestamp [not null]
+  invited_by bigint [null]
+  accepted_by bigint [null]
+  accepted_at timestamp [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    (email, status)
+    (token, status)
+    expires_at
+    invited_by
+    accepted_by
+  }
+}
+
+Table permissions {
+  id bigint [pk]
+  name varchar(255) [not null]
+  guard_name varchar(255) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    (name, guard_name) [unique]
+  }
+}
+
+Table roles {
+  id bigint [pk]
+  name varchar(255) [not null]
+  guard_name varchar(255) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    (name, guard_name) [unique]
+  }
+}
+
+Table model_has_roles {
+  role_id bigint [not null]
+  model_type varchar(255) [not null]
+  model_id bigint [not null]
+  
+  indexes {
+    (model_id, model_type)
+    (role_id, model_id, model_type) [pk]
+  }
+}
+
+Table model_has_permissions {
+  permission_id bigint [not null]
+  model_type varchar(255) [not null]
+  model_id bigint [not null]
+  
+  indexes {
+    (model_id, model_type)
+    (permission_id, model_id, model_type) [pk]
+  }
+}
+
+Table role_has_permissions {
+  permission_id bigint [not null]
+  role_id bigint [not null]
+  
+  indexes {
+    (role_id, permission_id) [pk]
+  }
+}
+
+// ===== TABLAS DE AUTENTICACIÓN Y PERMISOS =====
+
+Table users {
+  id bigint [pk]
+  name varchar(255) [not null]
+  email varchar(255) [unique, not null]
+  password varchar(255) [not null]
+  email_verified_at timestamp [null]
+  remember_token varchar(100) [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    email
+  }
+}
+
+// ===== TABLAS DE CATÁLOGOS =====
+
+Table genders {
+  id bigint [pk]
+  name varchar(50) [not null]
+  code varchar(10) [unique, not null]
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table blood_types {
+  id bigint [pk]
+  name varchar(20) [not null]
+  code varchar(5) [unique, not null]
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table identification_types {
+  id bigint [pk]
+  name varchar(100) [not null]
+  code varchar(20) [unique, not null]
+  description text [null]
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table payment_methods {
+  id bigint [pk]
+  name varchar(100) [not null]
+  description text [null]
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+// ===== TABLA PRINCIPAL DE PERSONAS =====
+
+Table people {
+  id bigint [pk]
+  first_name varchar(255) [not null]
+  last_name varchar(255) [not null]
+  identification_number varchar(20) [unique, not null]
+  identification_type_id bigint [not null]
+  identification_place varchar(255) [not null]
+  birth_date date [not null]
+  address text [not null]
+  phone varchar(20) [not null]
+  email varchar(255) [unique, not null]
+  gender_id bigint [not null]
+  blood_type_id bigint [not null]
+  photo varchar(500) [null]
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    identification_number
+    email
+    (first_name, last_name)
+  }
+}
+
+// ===== TABLAS DE EMPLEADOS =====
+
+Table employees {
+  id bigint [pk]
+  person_id bigint [not null]
+  user_id bigint [null]
+  role varchar(100) [not null] // Rol del empleado (Manager, Staff, Instructor, etc.)
+  hire_date date [not null]
+  end_date date [null] // null si es indefinido
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table employee_branch_access {
+  id bigint [pk]
+  employee_id bigint [not null]
+  branch_id bigint [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+// ===== TABLAS DE MODELOS =====
+
+Table models {
+  id bigint [pk]
+  person_id bigint [not null]
+  model_code varchar(50) [unique, not null]
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    model_code
+  }
+}
+
+// ===== NUEVOS CATÁLOGOS PARA MODELOS =====
+
+Table hair_colors {
+  id bigint [pk]
+  name varchar(100) [not null, unique]
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table eye_colors {
+  id bigint [pk]
+  name varchar(100) [not null, unique]
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table skin_colors {
+  id bigint [pk]
+  name varchar(100) [not null, unique]
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table relationships {
+  id bigint [pk]
+  name varchar(100) [not null, unique]
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+// Modificar model_profiles para usar los catálogos
+Table model_profiles {
+  id bigint [pk]
+  model_id bigint [not null]
+  height decimal(3,2) [not null]
+  bust int [not null]
+  waist int [not null]
+  hips int [not null]
+  hair_color_id bigint [not null, ref: > hair_colors.id]
+  eye_color_id bigint [not null, ref: > eye_colors.id]
+  skin_color_id bigint [not null, ref: > skin_colors.id]
+  pants_size varchar(20) [not null]
+  shirt_size varchar(20) [not null]
+  shoe_size varchar(20) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table model_social_media {
+  id bigint [pk]
+  model_id bigint [not null] 
+  social_media_platform_id bigint [not null]
+  url varchar(500) [null]
+  is_active boolean [default: true]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    (model_id)
+  }
+}
+
+Table social_media_platforms {
+  id bigint [pk]
+  name varchar(50) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+// Modificar guardians para usar el catálogo de relationships
+Table guardians {
+  id bigint [pk]
+  model_id bigint [not null]
+  person_id bigint [not null]
+  relationship_id bigint [not null, ref: > relationships.id]
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+// ===== TABLAS DE CATÁLOGOS Y CONFIGURACIÓN =====
+
+Table item_types {
+  id bigint [pk]
+  name varchar(20) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table invoice_types {
+  id bigint [pk]
+  name varchar(20) [not null]
+}
+
+Table invoice_statuses {
+  id bigint [pk]
+  name varchar(20) [not null]
+}
+
+// ===== TABLAS DE PRODUCTOS Y SERVICIOS =====
+
+Table product_categories {
+  id bigint [pk]
+  name varchar(100) [not null]
+  description text [null]
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table products {
+  id bigint [pk]
+  category_id bigint [not null]
+  name varchar(255) [not null]
+  description text [null]
+  price decimal(10,2) [not null]
+  stock_quantity int [default: 0, not null]
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    category_id
+  }
+}
+
+// ===== TABLAS DE PLANES Y SUSCRIPCIONES =====
+
+Table subscription_plans {
+  id bigint [pk]
+  name varchar(255) [not null]
+  description text [null]
+  price decimal(10,2) [not null]
+  duration_months int [not null, default: 1]
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table subscriptions {
+  id bigint [pk]
+  model_id bigint [not null]
+  branch_subscription_plan_id bigint [not null, ref: > branch_subscription_plans.id]
+  start_date date [not null]
+  end_date date [not null]
+  status varchar(20) [not null, default: 'active'] // active, expired, cancelled
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    (model_id, status)
+    (start_date, end_date)
+  }
+}
+
+// ===== TABLAS DE EVENTOS =====
+
+Table events {
+  id bigint [pk]
+  name varchar(255) [not null]
+  description text [null]
+  event_date date [not null]
+  registration_deadline date [not null]
+  price decimal(10,2) [not null]
+  max_participants int [null]
+  current_participants int [default: 0, not null]
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    event_date
+    registration_deadline
+  }
+}
+
+Table event_registrations {
+  id bigint [pk]
+  model_id bigint [not null]
+  event_id bigint [not null]
+  registration_date timestamp [not null]
+  status varchar(20) [not null, default: 'registered'] // registered, cancelled
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    (model_id, event_id)
+    (event_id, status)
+  }
+}
+
+Table event_branch_access {
+  id bigint [pk]
+  event_id bigint [not null]
+  branch_id bigint [not null]
+  max_participants int [null] // Límite específico por sede
+  current_participants int [default: 0, not null] // Participantes actuales por sede
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+// ===== TABLAS DE CARRITO DE COMPRAS =====
+
+Table cart {
+  id bigint [pk]
+  person_id bigint [not null]
+  item_type_id bigint [not null]
+  subscription_id bigint [null]
+  event_id bigint [null]
+  product_id bigint [null]
+  quantity int [not null, default: 1]
+  unit_price decimal(10,2) [not null]
+  total_price decimal(10,2) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    person_id
+    item_type_id
+    (person_id, created_at)
+  }
+}
+
+// ===== TABLAS DE SEDES =====
+
+Table branches {
+  id bigint [pk]
+  name varchar(255) [not null]
+  code varchar(20) [unique, not null]
+  address text [not null]
+  phone varchar(20) [not null]
+  email varchar(255) [null]
+  manager_id bigint [null] // Usuario responsable de la sede
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    code
+    manager_id
+  }
+}
+
+Table subscription_branch_access {
+  id bigint [pk]
+  subscription_id bigint [not null]
+  branch_id bigint [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table product_branch_access {
+  id bigint [pk]
+  product_id bigint [not null]
+  branch_id bigint [not null]
+  stock_quantity int [default: 0, not null] // Stock específico por sede
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+// ===== RELACIÓN MUCHOS A MUCHOS: PLANES DE SUSCRIPCIÓN POR SEDE =====
+
+Table branch_subscription_plans {
+  id bigint [pk]
+  branch_id bigint [not null, ref: > branches.id]
+  subscription_plan_id bigint [not null, ref: > subscription_plans.id]
+  custom_price decimal(10,2) [null] // Opcional: precio personalizado por sede
+  is_active boolean [default: true, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+// Un plan puede estar en varias sedes y una sede puede tener varios planes disponibles.
+
+// ===== TABLAS DE FACTURACIÓN =====
+
+Table invoices {
+  id bigint [pk]
+  branch_id bigint [not null] // Sede donde se emite la factura
+  person_id bigint [null] // null para facturas de proveedores
+  invoice_date date [not null]
+  total_amount decimal(10,2) [not null]
+  paid_amount decimal(10,2) [not null, default: 0]
+  remaining_amount decimal(10,2) [not null, default: 0]
+  status_id bigint [not null]
+  invoice_type_id bigint [not null, default: 1] // ingreso, egreso
+  observations text [null]
+  created_by bigint [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    branch_id
+    person_id
+    invoice_date
+  }
+}
+
+Table invoice_items {
+  id bigint [pk]
+  invoice_id bigint [not null]
+  item_type_id bigint [not null]
+  subscription_id bigint [null]
+  event_id bigint [null]
+  product_id bigint [null]
+  quantity int [not null, default: 1]
+  unit_price decimal(10,2) [not null]
+  total_price decimal(10,2) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+// ===== TABLAS DE PAGOS =====
+
+Table payments {
+  id bigint [pk]
+  branch_id bigint [not null] // Sede donde se recibe el pago
+  invoice_id bigint [not null]
+  payment_method_id bigint [not null]
+  amount decimal(10,2) [not null]
+  payment_date timestamp [not null]
+  observations text [null]
+  created_by bigint [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    branch_id
+    invoice_id
+    payment_date
+  }
+}
+
+// ===== TABLAS DE CONTROL DE CAJA =====
+
+Table cash_register {
+  id bigint [pk]
+  branch_id bigint [not null] // Sede donde se abre la caja
+  opening_date timestamp [not null]
+  closing_date timestamp [null]
+  initial_amount decimal(10,2) [not null]
+  final_amount decimal(10,2) [null]
+  total_income decimal(10,2) [default: 0, not null]
+  total_expenses decimal(10,2) [default: 0, not null]
+  status varchar(20) [not null, default: 'open'] // open, closed
+  responsible_user_id bigint [not null]
+  observations text [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    branch_id
+    opening_date
+    status
+  }
+}
+
+Table cash_movements {
+  id bigint [pk]
+  cash_register_id bigint [not null]
+  movement_type varchar(20) [not null] // income, expense
+  invoice_id bigint [null] // Relacionado con una factura específica
+  payment_id bigint [null] // Relacionado con un pago específico
+  amount decimal(10,2) [not null]
+  concept varchar(255) [not null]
+  observations text [null]
+  movement_date timestamp [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    (cash_register_id, movement_date)
+    movement_type
+  }
+}
+// Nueva tabla para múltiples imágenes de modelos
+Table model_files {
+  id bigint [pk]
+  model_id bigint [not null]
+  file_path varchar(500) [not null]
+  file_name varchar(255) [not null]
+  file_type varchar(50) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    model_id
+  }
+}
+
+// ===== TABLAS DE ASISTENCIA =====
+
+Table attendance_records {
+  id bigint [pk]
+  branch_id bigint [not null] // Sede donde se registra la asistencia
+  employee_id bigint [null] // null si es asistencia de modelo
+  model_id bigint [null] // null si es asistencia de empleado
+  check_in timestamp [not null]
+  check_out timestamp [null]
+  observations text [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  
+  indexes {
+    branch_id
+    employee_id
+    model_id
+    check_in
+  }
+}
+
+// ===== RELACIONES PRINCIPALES =====
+
+ref: subscription_branch_access.subscription_id > subscriptions.id
+ref: event_branch_access.event_id > events.id
+Ref: identification_types.id < people.identification_type_id
+Ref: genders.id < people.gender_id
+Ref: blood_types.id < people.blood_type_id
+Ref: people.id < employees.person_id
+Ref: users.id < employees.user_id
+Ref: models.id < model_files.model_id
+Ref: people.id < models.person_id
+Ref: models.id < model_profiles.model_id
+Ref: models.id < model_social_media.model_id
+Ref: social_media_platforms.id < model_social_media.social_media_platform_id
+Ref: models.id < guardians.model_id
+Ref: people.id < guardians.person_id
+Ref: people.id < cart.person_id
+Ref: people.id < invoices.person_id
+Ref: branches.id < invoices.branch_id
+Ref: users.id < invoices.created_by
+Ref: users.id < payments.created_by
+Ref: branches.id < payments.branch_id
+Ref: users.id < cash_register.responsible_user_id
+Ref: branches.id < employee_branch_access.branch_id
+Ref: branches.id < subscription_branch_access.branch_id
+Ref: branches.id < product_branch_access.branch_id
+Ref: branches.id < event_branch_access.branch_id
+Ref: users.id < branches.manager_id
+Ref: product_branch_access.product_id < products.id
+Ref: item_types.id < invoice_items.item_type_id
+Ref: item_types.id < cart.item_type_id
+Ref: invoice_types.id < invoices.invoice_type_id
+Ref: invoice_statuses.id < invoices.status_id
+Ref: payment_methods.id < payments.payment_method_id
+Ref: product_categories.id < products.category_id
+Ref: cart.product_id < products.id
+Ref: invoice_items.product_id < products.id
+Ref: models.id < subscriptions.model_id
+Ref: cart.subscription_id < subscriptions.id
+Ref: invoice_items.subscription_id < subscriptions.id
+Ref: events.id < event_registrations.event_id
+Ref: models.id < event_registrations.model_id
+Ref: cart.event_id < events.id
+Ref: invoice_items.event_id < events.id
+Ref: invoices.id < invoice_items.invoice_id
+Ref: invoices.id < payments.invoice_id
+Ref: branches.id < cash_register.branch_id
+Ref: cash_register.id < cash_movements.cash_register_id
+Ref: invoices.id < cash_movements.invoice_id
+Ref: payments.id < cash_movements.payment_id
+ref: employee_branch_access.employee_id > employees.id
+Ref: employees.id < attendance_records.employee_id
+Ref: models.id < attendance_records.model_id
+Ref: branches.id < attendance_records.branch_id
+
+// ===== RELACIONES DEL SISTEMA Y AUTENTICACIÓN (LARAVEL) =====
+
+Ref: users.id < invitations.invited_by
+Ref: users.id < invitations.accepted_by
+Ref: permissions.id < model_has_permissions.permission_id
+Ref: permissions.id < role_has_permissions.permission_id
+Ref: roles.id < model_has_roles.role_id
+Ref: roles.id < role_has_permissions.role_id

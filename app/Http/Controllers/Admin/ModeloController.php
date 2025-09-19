@@ -1,0 +1,2262 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+use Inertia\Inertia;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\WelcomeMail;
+use App\Http\Controllers\Admin\InvoicesController;
+
+class ModeloController extends \App\Http\Controllers\Controller
+{
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index(Request $request)
+    {
+        $inicio = microtime(true);
+        
+        Log::info('Accediendo a la lista de modelos');
+        Log::debug('Parámetros de la petición:', request()->all());
+
+        // Obtener y validar branch_id
+        $branchId = $request->query('branch_id');
+
+        if (!$branchId) {
+            abort(400, 'El parámetro branch_id es obligatorio.');
+        }
+
+        // Validar que la sede existe
+        $branchExists = DB::table('branches')
+            ->where('id', $branchId)
+            ->where('is_active', true)
+            ->exists();
+
+        if (!$branchExists) {
+            abort(404, 'No se encontró la sucursal especificada.');
+        }
+
+        // Validar que el usuario autenticado tenga acceso a esta sede
+        $user = auth()->user();
+        if (!$user) {
+            abort(401, 'Usuario no autenticado.');
+        }
+
+        // Obtener el empleado asociado al usuario
+        $employee = DB::table('employees')
+            ->where('user_id', $user->id)
+            ->where('is_active', true)
+            ->first();
+
+        if ($employee) {
+            // Verificar que el empleado tenga acceso a la sede especificada
+            $hasAccess = DB::table('employee_branch_access')
+                ->where('employee_id', $employee->id)
+                ->where('branch_id', $branchId)
+                ->exists();
+
+            if (!$hasAccess) {
+                abort(403, 'No tiene permisos para acceder a los modelos de esta sede.');
+            }
+        }
+
+        // Consulta SQL con parámetro seguro
+        $sql = <<<SQL
+            SELECT
+                m.id,
+                CONCAT(p.first_name, COALESCE(CONCAT(' ', p.last_name), '')) AS nombre_completo,
+                p.identification_number AS numero_identificacion,
+                CASE 
+                    WHEN mp.bust IS NOT NULL AND mp.waist IS NOT NULL AND mp.hips IS NOT NULL 
+                    THEN CONCAT(mp.bust, '-', mp.waist, '-', mp.hips)
+                    ELSE 'No registradas'
+                END AS medidas_corporales,
+                sp.name AS plan_suscripcion,
+                CASE 
+                    WHEN s.start_date IS NULL AND s.end_date IS NULL THEN 'Sin suscripción'
+                    WHEN s.start_date > CURDATE() THEN 'Pronto'
+                    WHEN s.start_date <= CURDATE() AND s.end_date >= CURDATE() THEN 'Activo'
+                    WHEN s.end_date < CURDATE() THEN 'Vencido'
+                    ELSE 'Sin suscripción'
+                END AS estado_suscripcion,
+                s.start_date AS fecha_inicio_suscripcion,
+                s.end_date AS fecha_fin_suscripcion
+            FROM models m
+            JOIN people p ON m.person_id = p.id
+            LEFT JOIN model_profiles mp ON m.id = mp.model_id
+            LEFT JOIN subscriptions s ON m.id = s.model_id 
+                AND s.id = (
+                    SELECT s1.id
+                    FROM subscriptions s1
+                    WHERE s1.model_id = m.id
+                    AND EXISTS (
+                        SELECT 1 
+                        FROM branch_subscription_plans bsp 
+                        WHERE bsp.subscription_plan_id = s1.subscription_plan_id 
+                        AND bsp.branch_id = :branch_id
+                        AND bsp.is_active = TRUE
+                    )
+                    ORDER BY 
+                        CASE 
+                            WHEN CURDATE() BETWEEN s1.start_date AND s1.end_date THEN 1  -- vigente
+                            WHEN s1.start_date > CURDATE() THEN 2  -- futura
+                            ELSE 3  -- vencida
+                        END,
+                        CASE 
+                            WHEN s1.start_date > CURDATE() THEN s1.start_date  -- futura (orden asc)
+                            ELSE NULL
+                        END ASC,
+                        CASE 
+                            WHEN CURDATE() BETWEEN s1.start_date AND s1.end_date THEN s1.start_date  -- vigente (orden desc)
+                            ELSE NULL
+                        END DESC,
+                        CASE 
+                            WHEN s1.end_date < CURDATE() THEN s1.end_date  -- vencida (orden desc)
+                            ELSE NULL
+                        END DESC
+                    LIMIT 1
+                )
+            LEFT JOIN subscription_plans sp ON s.subscription_plan_id = sp.id
+            WHERE m.is_active = TRUE 
+            AND p.is_active = TRUE
+            ORDER BY m.created_at DESC;
+        SQL;
+
+        $modelos = collect(DB::select($sql, ['branch_id' => $branchId]))
+            ->map(function($modelo) {
+                return [
+                    'id' => $modelo->id,
+                    'nombre_completo' => $modelo->nombre_completo,
+                    'numero_identificacion' => $modelo->numero_identificacion,
+                    'medidas_corporales' => $modelo->medidas_corporales,
+                    'plan_suscripcion' => $modelo->plan_suscripcion ?? 'N/A',
+                    'estado_suscripcion' => $modelo->estado_suscripcion,
+                    'fecha_inicio_suscripcion' => $modelo->fecha_inicio_suscripcion ? date('Y-m-d', strtotime($modelo->fecha_inicio_suscripcion)) : 'N/A',
+                    'fecha_fin_suscripcion' => $modelo->fecha_fin_suscripcion ? date('Y-m-d', strtotime($modelo->fecha_fin_suscripcion)) : 'N/A',
+                ];
+            })
+        ->toArray();
+
+        // Si es una petición AJAX/fetch específica para recargar datos, devolver JSON
+        if (request()->ajax() && request()->header('X-Requested-With') === 'XMLHttpRequest' && request()->header('Content-Type') === 'application/json') {
+            return response()->json([
+                'modelos' => $modelos,
+                'timestamp' => now()->toISOString()
+            ]);
+        }
+        
+        // Si no, devolver la vista Inertia normal
+        return Inertia::render('Modelos/Index', [
+            'modelos' => $modelos
+        ]);
+    }
+
+    public function catalogs(Request $request)
+    {
+        $branchId = $request->query('branch_id');
+        $plans = [];
+        if ($branchId) {
+            $plansRaw = DB::table('branch_subscription_plans as bsp')
+                ->join('subscription_plans as sp', 'bsp.subscription_plan_id', '=', 'sp.id')
+                ->where('bsp.branch_id', $branchId)
+                ->where('bsp.is_active', true)
+                ->where('sp.is_active', true)
+                ->orderBy('sp.name')
+                ->select('sp.id', 'sp.name', 'sp.description', DB::raw('COALESCE(bsp.custom_price, sp.price) as price'), 'sp.duration_months')
+                ->get();
+            
+            // Formatear los planes con precio en pesos colombianos
+            $plans = $plansRaw->map(function($plan) {
+                $precioFormateado = '$' . number_format($plan->price, 0, ',', '.') . ' COP';
+                return [
+                    'id' => $plan->id,
+                    'name' => $plan->name . ' - ' . $precioFormateado,
+                    'description' => $plan->description,
+                    'price' => $plan->price,
+                    'duration_months' => $plan->duration_months
+                ];
+            });
+        }
+        return response()->json([
+            'identification_types' => DB::table('identification_types')->select('id', 'name')->where('is_active', true)->orderBy('name')->get(),
+            'genders' => DB::table('genders')->select('id', 'name')->where('is_active', true)->orderBy('name')->get(),
+            'blood_types' => DB::table('blood_types')->select('id', 'name')->where('is_active', true)->orderBy('name')->get(),
+            'payment_methods' => DB::table('payment_methods')->select('id', 'name')->where('is_active', true)->orderBy('name')->get(),
+            'hair_colors' => DB::table('hair_colors')->select('id', 'name')->where('is_active', true)->orderBy('name')->get(),
+            'eye_colors' => DB::table('eye_colors')->select('id', 'name')->where('is_active', true)->orderBy('name')->get(),
+            'skin_colors' => DB::table('skin_colors')->select('id', 'name')->where('is_active', true)->orderBy('name')->get(),
+            'relationships' => DB::table('relationships')->select('id', 'name')->where('is_active', true)->orderBy('name')->get(),
+            'subscription_plans' => $plans,
+        ]);
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        //
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        try {
+      
+        $data = $request->all();
+        // Log del objeto completo en JSON
+        Log::info('=== DATOS DEL FORMULARIO DE MODELO ===');
+        Log::info('Objeto completo: ' . json_encode($data, JSON_PRETTY_PRINT));
+        Log::info('=== FIN DATOS FORMULARIO ===');
+
+        Log::info('=== INICIANDO VALIDACIONES ===');
+        
+        // PRIMERA VALIDACIÓN: Verificar si la persona ya existe
+        $existingPerson = DB::table('people')->where('identification_number', $data['numero_identificacion'])->first();
+        
+        if ($existingPerson) {
+            // Verificar si esta persona ya es modelo activo
+            $existingActiveModel = DB::table('models')
+                ->where('person_id', $existingPerson->id)
+                ->where('is_active', true)
+                ->first();
+
+            if ($existingActiveModel) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Ya existe un modelo registrado con el número de identificación: {$data['numero_identificacion']}. Por favor verifique los datos."
+                ], 422);
+            }
+
+            // Verificar si existe un modelo inactivo (soft deleted)
+            $inactiveModel = DB::table('models')
+                ->where('person_id', $existingPerson->id)
+                ->where('is_active', false)
+                ->first();
+        }
+        
+        $validationRules = [
+            'nombres' => 'required|string|max:255',
+            'apellidos' => 'required|string|max:255',
+            'identification_type_id' => 'required|exists:identification_types,id',
+            'lugar_expedicion' => 'nullable|string|max:255',
+            'fecha_nacimiento' => 'nullable|date|before:today',
+            'direccion' => 'nullable|string|max:500',
+            'telefono' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'gender_id' => 'nullable|exists:genders,id',
+            'blood_type_id' => 'nullable|exists:blood_types,id',
+            
+            // Validaciones de perfil físico
+            'estatura' => 'nullable|numeric|min:0.5|max:3.0',
+            'busto' => 'nullable|integer|min:50|max:200',
+            'cintura' => 'nullable|integer|min:40|max:150',
+            'cadera' => 'nullable|integer|min:60|max:200',
+            'cabello' => 'nullable|exists:hair_colors,id',
+            'ojos' => 'nullable|exists:eye_colors,id',
+            'piel' => 'nullable|exists:skin_colors,id',
+            'pantalon' => 'nullable|string|max:20',
+            'camisa' => 'nullable|string|max:20',
+            'calzado' => 'nullable|string|max:20',
+            
+            // Validaciones de acudiente
+            'acudiente_nombres' => 'required|string|max:255',
+            'acudiente_apellidos' => 'required|string|max:255',
+            'acudiente_identificacion' => 'required|string|max:20',
+            'acudiente_tipo_identificacion' => 'required|exists:identification_types,id',
+            'acudiente_lugar_expedicion' => 'required|string|max:255',
+            'acudiente_parentesco' => 'required|exists:relationships,id',
+            'acudiente_telefono' => 'required|string|max:20',
+            'acudiente_email' => 'nullable|email|max:255',
+            'acudiente_direccion' => 'required|string|max:500',
+        ];
+
+        // Solo agregar la validación unique si la persona NO existe
+        if (!$existingPerson) {
+            // Si la persona no existe, necesitamos crearla, por lo que aplicamos unique
+            $validationRules['numero_identificacion'] = [
+                'required',
+                'string',
+                'max:20',
+                Rule::unique('people', 'identification_number')
+            ];
+        } else {
+            // Si la persona existe, simplemente la actualizaremos, NO aplicamos unique
+            $validationRules['numero_identificacion'] = 'required|string|max:20';
+        }
+
+        // VALIDACIONES BÁSICAS
+        $request->validate($validationRules);
+
+        Log::info('=== VALIDACIONES BÁSICAS PASADAS ===');
+
+        // VERIFICACIÓN MANUAL PARA DEBUG
+        $peopleWithSameId = DB::table('people')->where('identification_number', $data['numero_identificacion'])->get();
+        Log::info('=== PERSONAS CON ESTA IDENTIFICACIÓN ===');
+        Log::info('Cantidad: ' . $peopleWithSameId->count());
+        Log::info('Datos: ' . json_encode($peopleWithSameId, JSON_PRETTY_PRINT));
+        Log::info('=== FIN VERIFICACIÓN MANUAL ===');
+
+        // VALIDACIÓN ESPECÍFICA: El modelo y el acudiente no pueden tener la misma identificación
+        if ($data['numero_identificacion'] === $data['acudiente_identificacion']) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'El modelo y el acudiente no pueden tener el mismo número de identificación. Por favor, verifique los datos ingresados.'
+            ], 422);
+        }
+          } catch (\Throwable $th) {
+            log('Error al guardar modelo: ' . $th->getMessage());
+            return response()->json(['success' => false, 'message' => 'Error al guardar modelo.'], 500);
+        }
+
+        // VALIDACIÓN ADICIONAL: Verificar que el acudiente no es el mismo modelo (validación de autoreferencia)
+        // NOTA: Removemos la validación que impedía que un acudiente fuera modelo, 
+        // ya que una persona SÍ puede ser modelo y acudiente de otros modelos
+        // Solo impedimos que un modelo sea su propio acudiente (lo cual ya validamos arriba)
+
+        $imagesMeta = json_decode($request->input('model_images_meta'), true) ?? [];
+
+        DB::beginTransaction();
+        try {
+            // 1. MANEJO DE LA PERSONA DEL MODELO (Aplicando lógica de soft delete como en empleados)
+            if ($existingPerson) {
+                // La persona ya existe, actualizar sus datos y usar su ID
+                $personId = $existingPerson->id;
+                DB::table('people')->where('id', $personId)->update([
+                    'first_name' => $data['nombres'],
+                    'last_name' => $data['apellidos'],
+                    'identification_type_id' => $data['identification_type_id'],
+                    'identification_place' => $data['lugar_expedicion'],
+                    'birth_date' => $data['fecha_nacimiento'],
+                    'address' => $data['direccion'],
+                    'phone' => $data['telefono'],
+                    'email' => $data['email'],
+                    'gender_id' => $data['gender_id'],
+                    'blood_type_id' => $data['blood_type_id'],
+                    'is_active' => true,
+                    'updated_at' => now(),
+                ]);
+                Log::info('Persona existente actualizada para convertir en modelo', ['person_id' => $personId]);
+
+                if ($inactiveModel) {
+                    // Reactivar el modelo inactivo y actualizar sus datos en el perfil
+                    DB::table('models')->where('id', $inactiveModel->id)->update([
+                        'is_active' => true,
+                        'updated_at' => now(),
+                    ]);
+                    $modelId = $inactiveModel->id;
+                    Log::info('Modelo inactivo reactivado', ['model_id' => $modelId]);
+                    
+                    // NO reactivar suscripciones anteriores - deben permanecer inactivas
+                    // Las suscripciones desactivadas permanecen así por decisión de negocio
+                    Log::info('Las suscripciones anteriores permanecen inactivas por política de negocio', [
+                        'model_id' => $modelId
+                    ]);
+                } else {
+                    // La persona existe pero no es modelo, crear nuevo registro de modelo
+                    $modelId = DB::table('models')->insertGetId([
+                        'person_id' => $personId,
+                        'is_active' => true,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                    Log::info('Nuevo modelo creado para persona existente', ['model_id' => $modelId]);
+                }
+            } else {
+                // Crear nueva persona
+                $personId = DB::table('people')->insertGetId([
+                    'first_name' => $data['nombres'],
+                    'last_name' => $data['apellidos'],
+                    'identification_number' => $data['numero_identificacion'],
+                    'identification_type_id' => $data['identification_type_id'],
+                    'identification_place' => $data['lugar_expedicion'],
+                    'birth_date' => $data['fecha_nacimiento'],
+                    'address' => $data['direccion'],
+                    'phone' => $data['telefono'],
+                    'email' => $data['email'],
+                    'gender_id' => $data['gender_id'],
+                    'blood_type_id' => $data['blood_type_id'],
+                    'is_active' => true,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                Log::info('Nueva persona creada para modelo', ['person_id' => $personId]);
+
+                // Crear nuevo modelo
+                $modelId = DB::table('models')->insertGetId([
+                    'person_id' => $personId,
+                    'is_active' => true,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                Log::info('Nuevo modelo creado para nueva persona', ['model_id' => $modelId]);
+            }
+
+            // 2. Actualizar o crear perfil del modelo
+            DB::table('model_profiles')->updateOrInsert(
+                ['model_id' => $modelId],
+                [
+                    'height' => $data['estatura'],
+                    'bust' => $data['busto'],
+                    'waist' => $data['cintura'],
+                    'hips' => $data['cadera'],
+                    'hair_color_id' => $data['cabello'],
+                    'eye_color_id' => $data['ojos'],
+                    'skin_color_id' => $data['piel'],
+                    'pants_size' => $data['pantalon'],
+                    'shirt_size' => $data['camisa'],
+                    'shoe_size' => $data['calzado'],
+                    'updated_at' => now(),
+                ]
+            );
+
+            // 3. Mover imágenes de temporal a definitivo y registrar en base de datos
+            if (!empty($imagesMeta)) {
+                // Crear directorio definitivo para las imágenes del modelo
+                $definitiveImagePath = 'storage/modelos/' . $modelId;
+                $fullDefinitivePath = public_path($definitiveImagePath);
+                
+                if (!file_exists($fullDefinitivePath)) {
+                    mkdir($fullDefinitivePath, 0755, true);
+                }
+
+                foreach ($imagesMeta as $img) {
+                    // Construir rutas - CORREGIDO: usar public/storage/temp/modelos
+                    $tempFilePath = public_path('storage/temp/modelos/' . $img['temp_id']);
+                    $definitiveFileName = $img['temp_id']; // Mantener el nombre temporal único
+                    $definitiveFilePath = $fullDefinitivePath . '/' . $definitiveFileName;
+                    $relativeDefinitivePath = $definitiveImagePath . '/' . $definitiveFileName;
+
+                    // Mover archivo de temporal a definitivo
+                    if (file_exists($tempFilePath)) {
+                        if (rename($tempFilePath, $definitiveFilePath)) {
+                            // Si se movió exitosamente, registrar en base de datos
+                            DB::table('model_files')->insert([
+                                'model_id' => $modelId,
+                                'file_path' => $relativeDefinitivePath, // Ruta definitiva
+                                'file_name' => $definitiveFileName,
+                                'file_type' => 'imagen', // Tipo por defecto
+                                'created_at' => now(),
+                                'updated_at' => now(),
+                            ]);
+                        } else {
+                            Log::warning("No se pudo mover la imagen temporal: {$tempFilePath}");
+                        }
+                    } else {
+                        Log::warning("Archivo temporal no encontrado: {$tempFilePath}");
+                    }
+                }
+            }
+
+            // Procesar PDF si se envió
+            if (!empty($data['pdf_document_meta'])) {
+                $pdfMeta = json_decode($data['pdf_document_meta'], true);
+                
+                if (!empty($pdfMeta) && is_array($pdfMeta)) {
+                    // Crear directorio definitivo para los PDFs del modelo
+                    $definitivePdfPath = 'storage/modelos/' . $modelId . '/catalogos';
+                    $fullDefinitivePath = public_path($definitivePdfPath);
+                    
+                    if (!file_exists($fullDefinitivePath)) {
+                        mkdir($fullDefinitivePath, 0755, true);
+                    }
+
+                    foreach ($pdfMeta as $pdf) {
+                        if (isset($pdf['temp_id']) && !empty($pdf['temp_id'])) {
+                            $tempFilePath = public_path('storage/temp/pdfs/' . $pdf['temp_id']);
+                            $definitiveFileName = $pdf['temp_id'];
+                            $definitiveFilePath = $fullDefinitivePath . '/' . $definitiveFileName;
+                            $relativeDefinitivePath = $definitivePdfPath . '/' . $definitiveFileName;
+
+                            // Mover archivo de temporal a definitivo
+                            if (file_exists($tempFilePath)) {
+                                if (rename($tempFilePath, $definitiveFilePath)) {
+                                    // Registrar en base de datos con file_type = 'catalogo'
+                                    DB::table('model_files')->insert([
+                                        'model_id' => $modelId,
+                                        'file_path' => $relativeDefinitivePath,
+                                        'file_name' => $definitiveFileName,
+                                        'file_type' => 'catalogo',
+                                        'created_at' => now(),
+                                        'updated_at' => now(),
+                                    ]);
+                                } else {
+                                    Log::warning("No se pudo mover el PDF temporal: {$tempFilePath}");
+                                }
+                            } else {
+                                Log::warning("Archivo PDF temporal no encontrado: {$tempFilePath}");
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 4. Insertar redes sociales
+            $socialMediaData = [
+                'facebook' => $data['facebook'] ?? null,
+                'instagram' => $data['instagram'] ?? null,
+                'twitter' => $data['twitter'] ?? null,
+                'tiktok' => $data['tiktok'] ?? null,
+                'other' => $data['otra_red_social'] ?? null,
+            ];
+
+            // Mapeo de nombres de plataformas a IDs
+            $platformMapping = [
+                'facebook' => 1, // Facebook
+                'instagram' => 2, // Instagram
+                'twitter' => 3, // Twitter
+                'tiktok' => 4, // TikTok
+                'other' => 5, // Other
+            ];
+
+            foreach ($socialMediaData as $platform => $url) {
+                if (!empty($url)) {
+                    DB::table('model_social_media')->insert([
+                        'model_id' => $modelId,
+                        'social_media_platform_id' => $platformMapping[$platform],
+                        'url' => $url,
+                        'is_active' => true,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+
+            // 5. MANEJO DEL ACUDIENTE (Aplicando lógica de soft delete similar)
+            $existingGuardianPerson = DB::table('people')->where('identification_number', $data['acudiente_identificacion'])->first();
+            
+            if ($existingGuardianPerson) {
+                // La persona del acudiente ya existe, actualizar sus datos y usar su ID
+                $guardianPersonId = $existingGuardianPerson->id;
+                DB::table('people')->where('id', $guardianPersonId)->update([
+                    'first_name' => $data['acudiente_nombres'],
+                    'last_name' => $data['acudiente_apellidos'],
+                    'identification_type_id' => $data['acudiente_tipo_identificacion'],
+                    'identification_place' => $data['acudiente_lugar_expedicion'],
+                    'address' => $data['acudiente_direccion'],
+                    'phone' => $data['acudiente_telefono'],
+                    'email' => $data['acudiente_email'],
+                    'is_active' => true,
+                    'updated_at' => now(),
+                ]);
+                Log::info('Persona del acudiente existente actualizada', ['guardian_person_id' => $guardianPersonId]);
+            } else {
+                // Crear nueva persona para el acudiente
+                $guardianPersonId = DB::table('people')->insertGetId([
+                    'first_name' => $data['acudiente_nombres'],
+                    'last_name' => $data['acudiente_apellidos'],
+                    'identification_number' => $data['acudiente_identificacion'],
+                    'identification_type_id' => $data['acudiente_tipo_identificacion'],
+                    'identification_place' => $data['acudiente_lugar_expedicion'],
+                    'address' => $data['acudiente_direccion'],
+                    'phone' => $data['acudiente_telefono'],
+                    'email' => $data['acudiente_email'],
+                    'is_active' => true,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                Log::info('Nueva persona del acudiente creada', ['guardian_person_id' => $guardianPersonId]);
+            }
+
+            // Verificar si ya existe una relación de guardian para este modelo con esta persona
+            $existingGuardian = DB::table('guardians')
+                ->where('model_id', $modelId)
+                ->where('person_id', $guardianPersonId)
+                ->first();
+
+            if ($existingGuardian) {
+                // Actualizar la relación existente (activándola si estaba inactiva)
+                DB::table('guardians')->where('id', $existingGuardian->id)->update([
+                    'relationship_id' => $data['acudiente_parentesco'],
+                    'is_active' => true,
+                    'updated_at' => now(),
+                ]);
+                Log::info('Relación de guardian existente actualizada', ['guardian_id' => $existingGuardian->id]);
+            } else {
+                // Crear nueva relación de acudiente con el modelo
+                DB::table('guardians')->insert([
+                    'model_id' => $modelId,
+                    'person_id' => $guardianPersonId,
+                    'relationship_id' => $data['acudiente_parentesco'],
+                    'is_active' => true,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                Log::info('Nueva relación de guardian creada', ['model_id' => $modelId, 'guardian_person_id' => $guardianPersonId]);
+            }
+
+            // 6. Insertar suscripción
+            // Obtener branch_subscription_plan y duración del plan
+            $subscriptionPlan = DB::table('subscription_plans')
+                ->where('id', $data['subscription_plan_id'])
+                ->first();
+            if (!$subscriptionPlan) {
+                throw new \Exception('Plan de suscripción no encontrado');
+            }
+
+            $branchPlan = DB::table('branch_subscription_plans')
+                ->where('branch_id', $data['branch_id'])
+                ->where('subscription_plan_id', $data['subscription_plan_id'])
+                ->first();
+            if (!$branchPlan) {
+                throw new \Exception('Plan de suscripción de sucursal no encontrado');
+            }
+
+            $quantity = isset($data['subscription_quantity']) ? (int)$data['subscription_quantity'] : 1;
+            $durationMonths = $subscriptionPlan->duration_months * $quantity;
+            $startDate = \Carbon\Carbon::parse($data['fecha_vigencia']);
+            $endDate = (clone $startDate)->addMonths($durationMonths);
+
+            $subscriptionId = DB::table('subscriptions')->insertGetId([
+                'model_id' => $modelId,
+                'subscription_plan_id' => $subscriptionPlan->id,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $total = ($branchPlan->custom_price ?? $subscriptionPlan->price) * $quantity;
+            $pagado = 0;
+            $estado = null;
+            if ($data['abonar_parte']) {
+                $pagado = $data['valor_abonar'];
+            } else {
+                $pagado = $total;
+            }
+
+            if ($pagado >= $total) {
+                $estado = 2;
+            }
+
+            if ($estado === null && $pagado > 0) {
+                $estado = 3;
+            } else {
+                $estado = 1;
+            }
+
+            // Registrar la factura
+            $invoiceId = DB::table('invoices')->insertGetId([
+                'branch_id' => $data['branch_id'],
+                'person_id' => $personId,
+                'invoice_date' => now(),
+                'total_amount' => $total,
+                'paid_amount' => $pagado,
+                'remaining_amount' => max(0, $total - $pagado),
+                'status_id' => $estado,
+                'invoice_type_id' => 1,
+                'observations' => $data['observaciones'] ?? null,
+                'created_by' => auth()->id(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            // registrar invoice_items
+            DB::table('invoice_items')->insert([
+                'invoice_id' => $invoiceId,
+                'item_type_id' => 2,
+                'subscription_id' => $subscriptionPlan->id,
+                'quantity' => $quantity,
+                'unit_price' => $branchPlan->custom_price ?? $subscriptionPlan->price,
+                'total_price' => $total,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            // se registra el pago
+            if ($pagado > 0) {
+
+                $cashRegister = DB::table('cash_register')
+                        ->where('branch_id',$data['branch_id'])
+                        ->where('status', 'open')
+                        ->orderByDesc('opening_date')
+                        ->first();
+
+                if (!$cashRegister) {
+                    // Si no hay caja abierta, no se puede registrar el pago
+                    throw new \Exception('No hay caja abierta para registrar el pago');
+                }
+
+                $paymentId = DB::table('payments')->insertGetId([
+                    'branch_id' => $data['branch_id'],  
+                    'cash_register_id' => $cashRegister->id,
+                    'invoice_id' => $invoiceId,
+                    'payment_method_id' => $data['medio_pago'],
+                    'amount' => $pagado,
+                    'created_by' => auth()->id(),
+                    'payment_date' => now(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+            }
+
+            // Limpiar archivos temporales que no se usaron
+            $this->cleanUpUnusedTempFiles($imagesMeta, $pdfMeta ?? []);
+
+            DB::commit();
+
+            // Enviar correo con la factura y el PDF adjunto
+            try {
+                $invoicesController = new InvoicesController();
+                $invoiceData = $invoicesController->getInvoiceData($invoiceId);
+                $pdf = $invoicesController->downloadPdf($invoiceId, true);
+                $recipientEmail = $data['email'];
+
+                Mail::to($recipientEmail)->send(new WelcomeMail($invoiceData, $pdf));
+                
+                Log::info('Correo de factura enviado exitosamente.', ['invoice_id' => $invoiceId, 'recipient' => $recipientEmail]);
+
+            } catch (\Exception $e) {
+                Log::error('Error al enviar correo de factura: ' . $e->getMessage(), ['invoice_id' => $invoiceId]);
+                // No detener el flujo principal si el correo falla, solo registrar el error.
+            }
+            
+            return response()->json(['success' => true, 'message' => 'Modelo registrado correctamente']);
+        } catch (ValidationException $e) {
+            DB::rollBack();
+            // Re-lanzar la excepción de validación para que Laravel la maneje correctamente
+            throw $e;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error al registrar modelo: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json(['success' => false, 'message' => 'Error al registrar modelo {' . $e->getMessage() . '}'], 500);
+        }
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show($id)
+    {
+        try {
+            $resultado = $this->getModelData($id);
+            $idPersona = $resultado['modelo']['person_id'];
+            $finanzas = $this->getFinanzas($idPersona);
+
+            $resultado['finanzas'] = $finanzas;
+
+            if (isset($resultado['error'])) {
+                if (request()->ajax() || request()->wantsJson()) {
+                    return response()->json(['error' => $resultado['error']], $resultado['status']);
+                }
+                return redirect()->route('admin.modelos.index')->with('error', $resultado['error']);
+            }
+
+            // Si es petición AJAX, devolver JSON
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json($resultado);
+            }
+
+            // Si no, renderizar la vista de modelo completa (fuera del dashboard)
+            return Inertia::render('Modelos/Show', $resultado);
+
+        } catch (\Exception $e) {
+            Log::error('Error al obtener información del modelo: ' . $e->getMessage(), [
+                'model_id' => $id,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json(['error' => 'Error al cargar la información del modelo'], 500);
+            }
+            
+            return redirect()->route('admin.modelos.index')->with('error', 'Error al cargar la información del modelo');
+        }
+    }
+
+    /**
+     * Display the specified resource as JSON (for API/Postman testing).
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function showJson($id)
+    {
+        try {
+            $resultado = $this->getModelData($id);
+            
+            if (isset($resultado['error'])) {
+                return response()->json([
+                    'success' => false,
+                    'error' => $resultado['error']
+                ], $resultado['status']);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $resultado
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error al obtener información del modelo (JSON): ' . $e->getMessage(), [
+                'model_id' => $id,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'error' => 'Error al cargar la información del modelo',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtener todos los datos de un modelo (método privado reutilizable)
+     *
+     * @param  int  $id
+     * @return array
+     */
+    private function getModelData($id)
+    {
+        // Query principal para obtener información del modelo
+        $modelo = DB::table('models as m')
+            ->join('people as p', 'm.person_id', '=', 'p.id')
+            ->leftJoin('model_profiles as mp', 'm.id', '=', 'mp.model_id')
+            ->leftJoin('identification_types as it', 'p.identification_type_id', '=', 'it.id')
+            ->leftJoin('genders as g', 'p.gender_id', '=', 'g.id')
+            ->leftJoin('blood_types as bt', 'p.blood_type_id', '=', 'bt.id')
+            ->leftJoin('hair_colors as hc', 'mp.hair_color_id', '=', 'hc.id')
+            ->leftJoin('eye_colors as ec', 'mp.eye_color_id', '=', 'ec.id')
+            ->leftJoin('skin_colors as sc', 'mp.skin_color_id', '=', 'sc.id')
+            ->where('m.id', $id)
+            ->where('m.is_active', true)
+            ->select([
+                // Información básica del modelo
+                'm.id',
+                'm.person_id',
+                'm.created_at as fecha_registro',
+                
+                // Información personal
+                'p.first_name as nombres',
+                'p.last_name as apellidos',
+                DB::raw("CONCAT(p.first_name, ' ', p.last_name) as nombre_completo"),
+                'p.identification_number as numero_identificacion',
+                'it.name as tipo_identificacion',
+                'p.identification_place as lugar_expedicion',
+                'p.birth_date as fecha_nacimiento',
+                'p.address as direccion',
+                'p.phone as telefono',
+                'p.email',
+                'g.name as genero',
+                'bt.name as tipo_sangre',
+                
+                // Perfil físico
+                'mp.height as estatura',
+                'mp.bust as busto',
+                'mp.waist as cintura',
+                'mp.hips as cadera',
+                'hc.name as color_cabello',
+                'ec.name as color_ojos',
+                'sc.name as color_piel',
+                'mp.pants_size as talla_pantalon',
+                'mp.shirt_size as talla_camisa',
+                'mp.shoe_size as talla_calzado',
+            ])
+            ->first();
+
+        if (!$modelo) {
+            return ['error' => 'Modelo no encontrado', 'status' => 404];
+        }
+
+        // Obtener imágenes del modelo
+        $imagenes = DB::table('model_files')
+            ->where('model_id', $id)
+            ->where('file_type', 'imagen')
+            ->select('id', 'file_path', 'file_name', 'file_type', 'created_at')
+            ->orderBy('created_at', 'asc')
+            ->get();
+        // Obtener el portafolio
+        $portafolio = DB::table('model_files')
+            ->where('model_id', $id)
+            ->where('file_type', 'catalogo')
+            ->select('id', 'file_path', 'file_name', 'file_type', 'created_at')
+            ->orderBy('created_at', 'asc')
+            ->get();
+        // Obtener solo uno
+        $portafolio = $portafolio->first();
+
+        // Obtener redes sociales
+        $redesSociales = DB::table('model_social_media as msm')
+            ->join('social_media_platforms as smp', 'msm.social_media_platform_id', '=', 'smp.id')
+            ->where('msm.model_id', $id)
+            ->where('msm.is_active', true)
+            ->select('smp.name as plataforma', 'msm.url')
+            ->get();
+
+        // Obtener información del acudiente/tutor
+        $acudiente = DB::table('guardians as g')
+            ->join('people as p', 'g.person_id', '=', 'p.id')
+            ->join('relationships as r', 'g.relationship_id', '=', 'r.id')
+            ->leftJoin('identification_types as it_acudiente', 'p.identification_type_id', '=', 'it_acudiente.id')
+            ->where('g.model_id', $id)
+            ->where('g.is_active', true)
+            ->select([
+                DB::raw("CONCAT(p.first_name, ' ', p.last_name) as nombre_completo"),
+                'p.identification_number as numero_identificacion',
+                'it_acudiente.name as tipo_identificacion',
+                'p.identification_place as lugar_expedicion',
+                'p.phone as telefono',
+                'p.email',
+                'p.address as direccion',
+                'r.name as parentesco'
+            ])
+            ->first();
+
+        // Obtener suscripciones activas y historial
+        $suscripciones = DB::table('subscriptions as s')
+            ->join('branch_subscription_plans as bsp', 's.id', '=', 'bsp.subscription_plan_id')
+            ->join('subscription_plans as sp', 'bsp.subscription_plan_id', '=', 'sp.id')
+            ->join('branches as b', 'bsp.branch_id', '=', 'b.id')
+            ->where('s.model_id', $id)
+            ->select([
+                's.id',
+                'sp.name as plan_nombre',
+                'sp.description as plan_descripcion',
+                DB::raw('COALESCE(bsp.custom_price, sp.price) as precio'),
+                'sp.duration_months as duracion_meses',
+                's.start_date as fecha_inicio',
+                's.end_date as fecha_fin',
+                'b.name as sucursal',
+                DB::raw("
+                    CASE
+                        WHEN CURDATE() BETWEEN s.start_date AND s.end_date THEN 'vigente'
+                        WHEN s.start_date > CURDATE() THEN 'futura'
+                        WHEN s.end_date < CURDATE() THEN 'vencida'
+                        ELSE 'sin_estado'
+                    END as estado
+                ")
+            ])
+            ->orderBy('s.created_at', 'desc')
+            ->get();
+
+
+
+        // Organizar datos para el frontend de manera más estructurada
+        return [
+            'modelo' => [
+                // Información básica
+                'id' => $modelo->id,
+                'person_id' => $modelo->person_id,
+                'nombre_completo' => $modelo->nombre_completo,
+                'nombres' => $modelo->nombres,
+                'apellidos' => $modelo->apellidos,
+                'fecha_registro' => $modelo->fecha_registro,
+                
+                // Campos directos para compatibilidad con el frontend actual
+                'altura' => $modelo->estatura ? $modelo->estatura * 100 : null, // Convertir metros a centímetros para altura
+                'medida_busto' => $modelo->busto,
+                'medida_cintura' => $modelo->cintura,
+                'medida_cadera' => $modelo->cadera,
+                'color_cabello' => $modelo->color_cabello,
+                'color_ojos' => $modelo->color_ojos,
+                'color_piel' => $modelo->color_piel,
+                
+                // Datos personales
+                'datos_personales' => [
+                    'numero_identificacion' => $modelo->numero_identificacion,
+                    'tipo_identificacion' => $modelo->tipo_identificacion,
+                    'lugar_expedicion' => $modelo->lugar_expedicion,
+                    'fecha_nacimiento' => $modelo->fecha_nacimiento,
+                    'edad' => $modelo->fecha_nacimiento ? now()->diffInYears($modelo->fecha_nacimiento) : null,
+                    'genero' => $modelo->genero,
+                    'tipo_sangre' => $modelo->tipo_sangre,
+                ],
+                
+                // Información de contacto
+                'contacto' => [
+                    'telefono' => $modelo->telefono,
+                    'email' => $modelo->email,
+                    'direccion' => $modelo->direccion,
+                ],
+                
+                // Perfil físico/medidas (estructura completa)
+                'medidas_fisicas' => [
+                    'estatura' => $modelo->estatura,
+                    'busto' => $modelo->busto,
+                    'cintura' => $modelo->cintura,
+                    'cadera' => $modelo->cadera,
+                    'medidas_completas' => ($modelo->busto && $modelo->cintura && $modelo->cadera) ? $modelo->busto . '-' . $modelo->cintura . '-' . $modelo->cadera : 'No registradas',
+                    'color_cabello' => $modelo->color_cabello,
+                    'color_ojos' => $modelo->color_ojos,
+                    'color_piel' => $modelo->color_piel,
+                    'talla_pantalon' => $modelo->talla_pantalon,
+                    'talla_camisa' => $modelo->talla_camisa,
+                    'talla_calzado' => $modelo->talla_calzado,
+                ],
+                
+                // Características adicionales para compatibilidad
+                'caracteristicas' => [
+                    'color_cabello' => $modelo->color_cabello,
+                    'color_ojos' => $modelo->color_ojos,
+                    'color_piel' => $modelo->color_piel,
+                ],
+            ],
+            'portafolio' => $portafolio,
+            'imagenes' => $imagenes,
+            'redes_sociales' => $redesSociales->map(function($red) {
+                return [
+                    'plataforma' => $red->plataforma,
+                    'url' => $red->url,
+                    'nombre_usuario' => $this->extractUsernameFromUrl($red->url, $red->plataforma)
+                ];
+            }),
+            'acudiente' => $acudiente,
+            'suscripciones' => $suscripciones->map(function($suscripcion) {
+                $hoy = now();
+                $fechaFin = \Carbon\Carbon::parse($suscripcion->fecha_fin);
+                $diasRestantes = $hoy->diffInDays($fechaFin, false);
+                
+                return [
+                    'id' => $suscripcion->id,
+                    'plan_nombre' => $suscripcion->plan_nombre,
+                    'plan_descripcion' => $suscripcion->plan_descripcion,
+                    'precio' => $suscripcion->precio,
+                    'duracion_meses' => $suscripcion->duracion_meses,
+                    'fecha_inicio' => $suscripcion->fecha_inicio,
+                    'fecha_fin' => $suscripcion->fecha_fin,
+                    'estado' => $suscripcion->estado,
+                    'sucursal' => $suscripcion->sucursal,
+                    'dias_restantes' => $diasRestantes,
+                    'esta_activa' => $suscripcion->estado === 'active' && $diasRestantes > 0,
+                    'esta_por_vencer' => $suscripcion->estado === 'active' && $diasRestantes <= 30 && $diasRestantes > 0,
+                ];
+            })
+        ];
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function edit($id)
+    {
+        try {
+            Log::info("Accediendo a la edición del modelo", ['model_id' => $id]);
+            
+            // 1. Obtener datos principales del modelo
+            $modelo = DB::table('models as m')
+                ->join('people as p', 'm.person_id', '=', 'p.id')
+                ->leftJoin('model_profiles as mp', 'm.id', '=', 'mp.model_id')
+                ->where('m.id', $id)
+                ->where('m.is_active', true)
+                ->select([
+                    'm.id as model_id',
+                    'm.person_id',
+                    'm.is_active as model_active',
+                    // Datos personales
+                    'p.first_name as nombres',
+                    'p.last_name as apellidos',
+                    'p.identification_number as numero_identificacion',
+                    'p.identification_type_id',
+                    'p.identification_place as lugar_expedicion',
+                    'p.birth_date as fecha_nacimiento',
+                    'p.address as direccion',
+                    'p.phone as telefono',
+                    'p.email',
+                    'p.gender_id',
+                    'p.blood_type_id',
+                    // Datos del perfil físico
+                    'mp.height as estatura',
+                    'mp.bust as busto',
+                    'mp.waist as cintura',
+                    'mp.hips as cadera',
+                    'mp.hair_color_id as cabello',
+                    'mp.eye_color_id as ojos',
+                    'mp.skin_color_id as piel',
+                    'mp.pants_size as pantalon',
+                    'mp.shirt_size as camisa',
+                    'mp.shoe_size as calzado'
+                ])
+                ->first();
+
+            if (!$modelo) {
+                return response()->json(['success' => false, 'message' => 'Modelo no encontrado'], 404);
+            }
+
+            // 2. Obtener redes sociales
+            $redesSociales = DB::table('model_social_media as msm')
+                ->join('social_media_platforms as smp', 'msm.social_media_platform_id', '=', 'smp.id')
+                ->where('msm.model_id', $id)
+                ->where('msm.is_active', true)
+                ->select('smp.name as plataforma', 'msm.url')
+                ->get();
+
+            // 3. Obtener información del acudiente/tutor
+            $acudiente = DB::table('guardians as g')
+                ->join('people as p', 'g.person_id', '=', 'p.id')
+                ->where('g.model_id', $id)
+                ->where('g.is_active', true)
+                ->select([
+                    'p.first_name as acudiente_nombres',
+                    'p.last_name as acudiente_apellidos',
+                    'p.identification_number as acudiente_identificacion',
+                    'p.identification_type_id as acudiente_tipo_identificacion',
+                    'p.identification_place as acudiente_lugar_expedicion',
+                    'p.phone as acudiente_telefono',
+                    'p.email as acudiente_email',
+                    'p.address as acudiente_direccion',
+                    'g.relationship_id as acudiente_parentesco'
+                ])
+                ->first();
+
+
+            // 5. Obtener imágenes del modelo
+            $imagenes = DB::table('model_files')
+                ->where('model_id', $id)
+                ->where('file_type', 'imagen')
+                ->select('id', 'file_path', 'file_name', 'created_at')
+                ->orderBy('created_at', 'asc')
+                ->get();
+
+            $catalogos = DB::table('model_files')
+                ->where('model_id', $id)
+                ->where('file_type', 'catalogo')
+                ->select('id', 'file_path', 'file_name', 'created_at')
+                ->orderBy('created_at', 'asc')
+                ->get();
+
+            // 6. Preparar estructura para el frontend (similar a EmployeeForm)
+            $data = [
+                'model_id' => $modelo->model_id,
+                'person_id' => $modelo->person_id,
+                // Datos personales
+                'nombres' => $modelo->nombres,
+                'apellidos' => $modelo->apellidos,
+                'numero_identificacion' => $modelo->numero_identificacion,
+                'identification_type_id' => $modelo->identification_type_id,
+                'lugar_expedicion' => $modelo->lugar_expedicion,
+                'fecha_nacimiento' => $modelo->fecha_nacimiento,
+                'direccion' => $modelo->direccion,
+                'telefono' => $modelo->telefono,
+                'email' => $modelo->email,
+                'gender_id' => $modelo->gender_id,
+                'blood_type_id' => $modelo->blood_type_id,
+                // Datos físicos
+                'estatura' => $modelo->estatura,
+                'busto' => $modelo->busto,
+                'cintura' => $modelo->cintura,
+                'cadera' => $modelo->cadera,
+                'cabello' => $modelo->cabello,
+                'ojos' => $modelo->ojos,
+                'piel' => $modelo->piel,
+                'pantalon' => $modelo->pantalon,
+                'camisa' => $modelo->camisa,
+                'calzado' => $modelo->calzado,
+                // Redes sociales
+                'facebook' => '',
+                'instagram' => '',
+                'twitter' => '',
+                'tiktok' => '',
+                'otra_red_social' => ''
+            ];
+
+            // Mapear redes sociales
+            foreach ($redesSociales as $red) {
+                switch (strtolower($red->plataforma)) {
+                    case 'facebook':
+                        $data['facebook'] = $red->url;
+                        break;
+                    case 'instagram':
+                        $data['instagram'] = $red->url;
+                        break;
+                    case 'twitter':
+                        $data['twitter'] = $red->url;
+                        break;
+                    case 'tiktok':
+                        $data['tiktok'] = $red->url;
+                        break;
+                    case 'other':
+                        $data['otra_red_social'] = $red->url;
+                        break;
+                }
+            }
+
+            // Agregar datos del acudiente si existe
+            if ($acudiente) {
+                $data = array_merge($data, [
+                    'acudiente_nombres' => $acudiente->acudiente_nombres,
+                    'acudiente_apellidos' => $acudiente->acudiente_apellidos,
+                    'acudiente_identificacion' => $acudiente->acudiente_identificacion,
+                    'acudiente_tipo_identificacion' => $acudiente->acudiente_tipo_identificacion,
+                    'acudiente_lugar_expedicion' => $acudiente->acudiente_lugar_expedicion,
+                    'acudiente_telefono' => $acudiente->acudiente_telefono,
+                    'acudiente_email' => $acudiente->acudiente_email,
+                    'acudiente_direccion' => $acudiente->acudiente_direccion,
+                    'acudiente_parentesco' => $acudiente->acudiente_parentesco,
+                ]);
+            }
+
+            // Nota: No incluimos datos de suscripción en la edición ya que no es relevante para editar un modelo existente
+
+            // Preparar URLs de imágenes para el frontend
+            $imagenesFormatted = $imagenes->map(function($img) {
+                return [
+                    'id' => $img->id,
+                    'url' => asset($img->file_path),
+                    'name' => $img->file_name,
+                ];
+            });
+
+            $catalogosFormatted = $catalogos->map(function($img) {
+                return [
+                    'id' => $img->id,
+                    'url' => asset($img->file_path),
+                    'name' => $img->file_name,
+                ];
+            });
+
+            return response()->json([
+                'modelo' => $data,
+                'imagenes' => $imagenesFormatted,
+                'catalogos' => $catalogosFormatted
+            ]);
+
+        } catch (\Throwable $th) {
+            Log::error('Error en ModeloController@edit: ' . $th->getMessage(), [
+                'exception' => $th,
+                'model_id' => $id
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Ocurrió un error inesperado al consultar los datos para editar el modelo.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, $id)
+    {
+        try {
+            Log::info('Actualizando modelo', ['model_id' => $id]);
+            $data = $request->all();
+            Log::info('=== DATOS DEL FORMULARIO DE MODELO (UPDATE) ===');
+            Log::info('Objeto completo: ' . json_encode($data, JSON_PRETTY_PRINT));
+            Log::info('=== FIN DATOS FORMULARIO UPDATE ===');
+
+            // VALIDACIONES PARA UPDATE
+            Log::info('=== INICIANDO VALIDACIONES UPDATE ===');
+            
+            // PRIMERA VALIDACIÓN: Verificar si ya existe otro modelo (diferente al actual) con esa identificación
+            $existingModel = DB::table('models as m')
+                ->join('people as p', 'm.person_id', '=', 'p.id')
+                ->where('p.identification_number', $data['numero_identificacion'])
+                ->where('m.is_active', true)
+                ->where('m.id', '!=', $id) // Excluir el modelo actual
+                ->first();
+
+            if ($existingModel) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Ya existe otro modelo registrado con el número de identificación: {$data['numero_identificacion']}. Por favor verifique los datos."
+                ], 422);
+            }
+
+            // SEGUNDA VALIDACIÓN: Verificar si otra persona (diferente a la del modelo actual) tiene esa identificación
+            $currentModel = DB::table('models')->where('id', $id)->where('is_active', true)->first();
+            if (!$currentModel) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Modelo no encontrado.'
+                ], 404);
+            }
+
+            $anotherPersonWithSameId = DB::table('people')
+                ->where('identification_number', $data['numero_identificacion'])
+                ->where('id', '!=', $currentModel->person_id) // Excluir la persona actual del modelo
+                ->first();
+
+            $validationRules = [
+                'nombres' => 'required|string|max:255',
+                'apellidos' => 'required|string|max:255',
+                'identification_type_id' => 'required|exists:identification_types,id',
+                'lugar_expedicion' => 'nullable|string|max:255',
+                'fecha_nacimiento' => 'nullable|date|before:today',
+                'direccion' => 'nullable|string|max:500',
+                'telefono' => 'nullable|string|max:20',
+                'email' => 'nullable|email|max:255',
+                'gender_id' => 'nullable|exists:genders,id',
+                'blood_type_id' => 'nullable|exists:blood_types,id',
+                
+                // Validaciones de perfil físico
+                'estatura' => 'nullable|numeric|min:0.5|max:3.0',
+                'busto' => 'nullable|integer|min:50|max:200',
+                'cintura' => 'nullable|integer|min:40|max:150',
+                'cadera' => 'nullable|integer|min:60|max:200',
+                'cabello' => 'nullable|exists:hair_colors,id',
+                'ojos' => 'nullable|exists:eye_colors,id',
+                'piel' => 'nullable|exists:skin_colors,id',
+                'pantalon' => 'nullable|string|max:20',
+                'camisa' => 'nullable|string|max:20',
+                'calzado' => 'nullable|string|max:20',
+                
+                // Validaciones de acudiente
+                'acudiente_nombres' => 'required|string|max:255',
+                'acudiente_apellidos' => 'required|string|max:255',
+                'acudiente_identificacion' => 'required|string|max:20',
+                'acudiente_tipo_identificacion' => 'required|exists:identification_types,id',
+                'acudiente_lugar_expedicion' => 'required|string|max:255',
+                'acudiente_parentesco' => 'required|exists:relationships,id',
+                'acudiente_telefono' => 'required|string|max:20',
+                'acudiente_email' => 'nullable|email|max:255',
+                'acudiente_direccion' => 'required|string|max:500',
+            ];
+
+            // Solo agregar la validación unique si encontramos otra persona con la misma identificación
+            if ($anotherPersonWithSameId) {
+                // IMPORTANTE: Solo aplicar unique si estamos intentando usar la identificación de otra persona
+                // Pero permitir que una persona que ya es acudiente se convierta en modelo
+                $validationRules['numero_identificacion'] = [
+                    'required',
+                    'string',
+                    'max:20',
+                    Rule::unique('people', 'identification_number')->ignore($currentModel->person_id)
+                ];
+            } else {
+                // Si no hay conflicto con otra persona, permitir el cambio
+                $validationRules['numero_identificacion'] = 'required|string|max:20';
+            }
+
+            // Ejecutar validaciones
+            $request->validate($validationRules);
+
+            // VALIDACIÓN ESPECÍFICA: El modelo y el acudiente no pueden tener la misma identificación
+            if ($data['numero_identificacion'] === $data['acudiente_identificacion']) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'El modelo y el acudiente no pueden tener el mismo número de identificación. Por favor, verifique los datos ingresados.'
+                ], 422);
+            }
+
+            // VALIDACIÓN ADICIONAL: Solo verificar que un modelo no sea su propio acudiente (autoreferencia)
+            // NOTA: Removemos la validación que impedía que un acudiente fuera modelo,
+            // ya que una persona SÍ puede ser modelo y acudiente de otros modelos
+
+            Log::info('=== VALIDACIONES UPDATE PASADAS ===');
+
+            // Procesar imágenes meta si existe
+            $imagesMeta = json_decode($request->input('model_images_meta'), true) ?? [];
+            $pdfDocumentMeta = json_decode($request->input('pdf_document_meta'), true) ?? [];
+
+
+            DB::beginTransaction();
+
+            // 1. Usar el modelo que ya obtuvimos en las validaciones
+            $model = $currentModel;
+
+            // 2. Actualizar datos de la persona
+            $affectedPeople = DB::table('people')->where('id', $model->person_id)->update([
+                'first_name' => $data['nombres'],
+                'last_name' => $data['apellidos'],
+                'identification_number' => $data['numero_identificacion'],
+                'identification_type_id' => $data['identification_type_id'],
+                'identification_place' => $data['lugar_expedicion'],
+                'birth_date' => $data['fecha_nacimiento'],
+                'address' => $data['direccion'],
+                'phone' => $data['telefono'],
+                'email' => $data['email'],
+                'gender_id' => $data['gender_id'],
+                'blood_type_id' => $data['blood_type_id'],
+                'updated_at' => now(),
+            ]);
+
+            // 3. Actualizar perfil del modelo
+            DB::table('model_profiles')->updateOrInsert(
+                ['model_id' => $id],
+                [
+                    'height' => $data['estatura'],
+                    'bust' => $data['busto'],
+                    'waist' => $data['cintura'],
+                    'hips' => $data['cadera'],
+                    'hair_color_id' => $data['cabello'],
+                    'eye_color_id' => $data['ojos'],
+                    'skin_color_id' => $data['piel'],
+                    'pants_size' => $data['pantalon'],
+                    'shirt_size' => $data['camisa'],
+                    'shoe_size' => $data['calzado'],
+                    'updated_at' => now(),
+                ]
+            );
+
+            // 4. Actualizar imágenes si se enviaron
+            if (isset($data['model_images_meta'])) {
+                Log::info('Procesando imágenes en modo edición', ['images_meta' => $imagesMeta]);
+                
+                // Obtener todas las imágenes existentes del modelo
+                $existingImages = DB::table('model_files')->where('model_id', $id)->get();
+                $existingImageIds = $existingImages->pluck('id')->toArray();
+                
+                // Separar imágenes nuevas y existentes que se mantienen
+                $imagesToKeep = [];
+                $newImages = [];
+                
+                foreach ($imagesMeta as $img) {
+                    Log::info('Evaluando imagen individual', [
+                        'temp_id' => $img['temp_id'] ?? 'no_temp_id',
+                        'isNew' => $img['isNew'] ?? 'no_isNew',
+                        'isExisting' => $img['isExisting'] ?? 'no_isExisting',
+                        'id' => $img['id'] ?? 'no_id'
+                    ]);
+
+                    if (isset($img['isExisting']) && $img['isExisting'] && isset($img['id'])) {
+                        // Imagen existente que se mantiene
+                        $imagesToKeep[] = $img['id'];
+                        Log::info('Imagen marcada como existente para mantener', ['id' => $img['id']]);
+                    } elseif (isset($img['temp_id']) && !empty($img['temp_id'])) {
+                        // Cualquier imagen con temp_id válido se considera nueva
+                        $newImages[] = $img;
+                        Log::info('Imagen identificada como nueva por temp_id', [
+                            'temp_id' => $img['temp_id'],
+                            'name' => $img['name']
+                        ]);
+                    } else {
+                        Log::info('Imagen no procesada', [
+                            'img' => $img,
+                            'razon' => 'No tiene temp_id válido ni es imagen existente'
+                        ]);
+                    }
+                }
+                
+                // Eliminar imágenes que ya no están en la lista (fueron removidas por el usuario)
+                $imagesToDelete = array_diff($existingImageIds, $imagesToKeep);
+                if (!empty($imagesToDelete)) {
+                    Log::info('Eliminando imágenes no utilizadas', ['images_to_delete' => $imagesToDelete]);
+                    
+                    // Obtener rutas de archivos a eliminar del disco
+                    $filesToDelete = DB::table('model_files')
+                        ->whereIn('id', $imagesToDelete)
+                        ->pluck('file_path')
+                        ->toArray();
+                    
+                    // Eliminar archivos del disco
+                    foreach ($filesToDelete as $filePath) {
+                        $fullPath = public_path($filePath);
+                        if (file_exists($fullPath)) {
+                            unlink($fullPath);
+                        }
+                    }
+                    
+                    // Eliminar registros de la base de datos
+                    DB::table('model_files')->whereIn('id', $imagesToDelete)->delete();
+                }
+                
+                // Procesar imágenes nuevas
+                if (!empty($newImages)) {
+                    Log::info('Procesando imágenes nuevas', [
+                        'cantidad' => count($newImages),
+                        'new_images' => $newImages
+                    ]);
+                    
+                    // Crear directorio definitivo para las imágenes del modelo
+                    $definitiveImagePath = 'storage/modelos/' . $id;
+                    $fullDefinitivePath = public_path($definitiveImagePath);
+                    
+                    if (!file_exists($fullDefinitivePath)) {
+                        mkdir($fullDefinitivePath, 0755, true);
+                        Log::info('Directorio creado', ['path' => $fullDefinitivePath]);
+                    }
+
+                    foreach ($newImages as $img) {
+                        if (isset($img['temp_id']) && !empty($img['temp_id'])) {
+                            $tempFilePath = public_path('storage/temp/modelos/' . $img['temp_id']);
+                            $definitiveFileName = $img['temp_id'];
+                            $definitiveFilePath = $fullDefinitivePath . '/' . $definitiveFileName;
+                            $relativeDefinitivePath = $definitiveImagePath . '/' . $definitiveFileName;
+
+                            Log::info('Procesando imagen individual', [
+                                'temp_file_path' => $tempFilePath,
+                                'definitive_file_path' => $definitiveFilePath,
+                                'temp_exists' => file_exists($tempFilePath)
+                            ]);
+
+                            // Mover archivo de temporal a definitivo
+                            if (file_exists($tempFilePath)) {
+                                if (rename($tempFilePath, $definitiveFilePath)) {
+                                    // Registrar en base de datos
+                                    $insertedId = DB::table('model_files')->insertGetId([
+                                        'model_id' => $id,
+                                        'file_path' => $relativeDefinitivePath,
+                                        'file_name' => $definitiveFileName,
+                                        'file_type' => 'imagen',
+                                        'created_at' => now(),
+                                        'updated_at' => now(),
+                                    ]);
+                                    Log::info('Imagen nueva guardada exitosamente', [
+                                        'file_path' => $relativeDefinitivePath,
+                                        'db_id' => $insertedId
+                                    ]);
+                                } else {
+                                    Log::error('Error moviendo archivo', [
+                                        'from' => $tempFilePath,
+                                        'to' => $definitiveFilePath
+                                    ]);
+                                }
+                            } else {
+                                Log::error('Archivo temporal no existe', [
+                                    'temp_path' => $tempFilePath,
+                                    'temp_id' => $img['temp_id']
+                                ]);
+                            }
+                        } else {
+                            Log::warning('Imagen sin temp_id válido', ['img' => $img]);
+                        }
+                    }
+                } else {
+                    Log::info('No hay imágenes nuevas para procesar');
+                }
+            }
+
+            if (!empty($pdfDocumentMeta)) {
+                Log::info('Procesando PDF en modo edición', ['pdf_meta' => $pdfDocumentMeta]);
+                
+                // Obtener todos los PDFs existentes del modelo (tipo 'catalogo')
+                $existingPdfs = DB::table('model_files')
+                    ->where('model_id', $id)
+                    ->where('file_type', 'catalogo')
+                    ->get();
+                
+                $existingPdfIds = $existingPdfs->pluck('id')->toArray();
+                
+                // Separar PDFs nuevos y existentes que se mantienen
+                $pdfsToKeep = [];
+                $newPdfs = [];
+                
+                foreach ($pdfDocumentMeta as $pdf) {
+                    Log::info('Evaluando PDF individual', [
+                        'temp_id' => $pdf['temp_id'] ?? 'no_temp_id',
+                        'isNew' => $pdf['isNew'] ?? 'no_isNew',
+                        'isExisting' => $pdf['isExisting'] ?? 'no_isExisting',
+                        'id' => $pdf['id'] ?? 'no_id'
+                    ]);
+
+                    if (isset($pdf['isExisting']) && $pdf['isExisting'] && isset($pdf['id'])) {
+                        // PDF existente que se mantiene
+                        $pdfsToKeep[] = $pdf['id'];
+                        Log::info('PDF marcado como existente para mantener', ['id' => $pdf['id']]);
+                    } elseif (isset($pdf['temp_id']) && !empty($pdf['temp_id'])) {
+                        // Cualquier PDF con temp_id válido se considera nuevo
+                        $newPdfs[] = $pdf;
+                        Log::info('PDF identificado como nuevo por temp_id', [
+                            'temp_id' => $pdf['temp_id'],
+                            'name' => $pdf['name']
+                        ]);
+                    } else {
+                        Log::info('PDF no procesado', [
+                            'pdf' => $pdf,
+                            'razon' => 'No tiene temp_id válido ni es PDF existente'
+                        ]);
+                    }
+                }
+                
+                // Eliminar PDFs que ya no están en la lista (fueron removidos por el usuario)
+                $pdfsToDelete = array_diff($existingPdfIds, $pdfsToKeep);
+                if (!empty($pdfsToDelete)) {
+                    Log::info('Eliminando PDFs no utilizados', ['pdfs_to_delete' => $pdfsToDelete]);
+                    
+                    // Obtener rutas de archivos a eliminar del disco
+                    $filesToDelete = DB::table('model_files')
+                        ->whereIn('id', $pdfsToDelete)
+                        ->pluck('file_path')
+                        ->toArray();
+                    
+                    // Eliminar archivos del disco
+                    foreach ($filesToDelete as $filePath) {
+                        $fullPath = public_path($filePath);
+                        if (file_exists($fullPath)) {
+                            unlink($fullPath);
+                        }
+                    }
+                    
+                    // Eliminar registros de la base de datos
+                    DB::table('model_files')->whereIn('id', $pdfsToDelete)->delete();
+                }
+                
+                // Procesar PDFs nuevos
+                if (!empty($newPdfs)) {
+                    Log::info('Procesando PDFs nuevos', [
+                        'cantidad' => count($newPdfs),
+                        'new_pdfs' => $newPdfs
+                    ]);
+                    
+                    // Crear directorio definitivo para los PDFs del modelo
+                    $definitivePdfPath = 'storage/modelos/' . $id . '/catalogos';
+                    $fullDefinitivePath = public_path($definitivePdfPath);
+                    
+                    if (!file_exists($fullDefinitivePath)) {
+                        mkdir($fullDefinitivePath, 0755, true);
+                        Log::info('Directorio de PDFs creado', ['path' => $fullDefinitivePath]);
+                    }
+
+                    foreach ($newPdfs as $pdf) {
+                        if (isset($pdf['temp_id']) && !empty($pdf['temp_id'])) {
+                            $tempFilePath = public_path('storage/temp/pdfs/' . $pdf['temp_id']);
+                            $definitiveFileName = $pdf['temp_id'];
+                            $definitiveFilePath = $fullDefinitivePath . '/' . $definitiveFileName;
+                            $relativeDefinitivePath = $definitivePdfPath . '/' . $definitiveFileName;
+
+                            Log::info('Procesando PDF individual', [
+                                'temp_file_path' => $tempFilePath,
+                                'definitive_file_path' => $definitiveFilePath,
+                                'temp_exists' => file_exists($tempFilePath)
+                            ]);
+
+                            // Mover archivo de temporal a definitivo
+                            if (file_exists($tempFilePath)) {
+                                if (rename($tempFilePath, $definitiveFilePath)) {
+                                    // Registrar en base de datos con file_type = 'catalogo'
+                                    $insertedId = DB::table('model_files')->insertGetId([
+                                        'model_id' => $id,
+                                        'file_path' => $relativeDefinitivePath,
+                                        'file_name' => $definitiveFileName,
+                                        'file_type' => 'catalogo', // Tipo específico para PDF/catálogo
+                                        'created_at' => now(),
+                                        'updated_at' => now(),
+                                    ]);
+                                    Log::info('PDF nuevo guardado exitosamente', [
+                                        'file_path' => $relativeDefinitivePath,
+                                        'db_id' => $insertedId
+                                    ]);
+                                } else {
+                                    Log::error('Error moviendo archivo PDF', [
+                                        'from' => $tempFilePath,
+                                        'to' => $definitiveFilePath
+                                    ]);
+                                }
+                            } else {
+                                Log::error('Archivo PDF temporal no existe', [
+                                    'temp_path' => $tempFilePath,
+                                    'temp_id' => $pdf['temp_id']
+                                ]);
+                            }
+                        } else {
+                            Log::warning('PDF sin temp_id válido', ['pdf' => $pdf]);
+                        }
+                    }
+                } else {
+                    Log::info('No hay PDFs nuevos para procesar');
+                }
+            }
+
+            // 5. Actualizar redes sociales
+            // Eliminar redes sociales existentes
+            DB::table('model_social_media')->where('model_id', $id)->delete();
+
+            $socialMediaData = [
+                'facebook' => $data['facebook'] ?? null,
+                'instagram' => $data['instagram'] ?? null,
+                'twitter' => $data['twitter'] ?? null,
+                'tiktok' => $data['tiktok'] ?? null,
+                'other' => $data['otra_red_social'] ?? null,
+            ];
+
+            $platformMapping = [
+                'facebook' => 1,
+                'instagram' => 2,
+                'twitter' => 3,
+                'tiktok' => 4,
+                'other' => 5,
+            ];
+
+            foreach ($socialMediaData as $platform => $url) {
+                if (!empty($url)) {
+                    DB::table('model_social_media')->insert([
+                        'model_id' => $id,
+                        'social_media_platform_id' => $platformMapping[$platform],
+                        'url' => $url,
+                        'is_active' => true,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+
+            // 6. Actualizar acudiente si existe
+            if (!empty($data['acudiente_nombres'])) {
+                // Obtener acudiente actual para comparar si cambió la identificación
+                $currentGuardian = DB::table('guardians')
+                    ->where('model_id', $id)
+                    ->where('is_active', true)
+                    ->first();
+
+                $guardianPersonId = null;
+
+                if ($currentGuardian) {
+                    // Obtener datos de la persona actual del acudiente
+                    $currentGuardianPerson = DB::table('people')->where('id', $currentGuardian->person_id)->first();
+                    
+                    // Verificar si cambió la identificación del acudiente
+                    if ($currentGuardianPerson && $currentGuardianPerson->identification_number === $data['acudiente_identificacion']) {
+                        // La identificación NO cambió, actualizar la misma persona
+                        DB::table('people')->where('id', $currentGuardian->person_id)->update([
+                            'first_name' => $data['acudiente_nombres'],
+                            'last_name' => $data['acudiente_apellidos'],
+                            'identification_type_id' => $data['acudiente_tipo_identificacion'],
+                            'identification_place' => $data['acudiente_lugar_expedicion'],
+                            'address' => $data['acudiente_direccion'],
+                            'phone' => $data['acudiente_telefono'],
+                            'email' => $data['acudiente_email'],
+                            'updated_at' => now(),
+                        ]);
+
+                        $guardianPersonId = $currentGuardian->person_id;
+                        Log::info('Acudiente actualizado (misma identificación)', ['guardian_person_id' => $guardianPersonId]);
+                    } else {
+                        // La identificación SÍ cambió, buscar si existe la nueva persona
+                        $existingPersonWithNewId = DB::table('people')
+                            ->where('identification_number', $data['acudiente_identificacion'])
+                            ->first();
+
+                        if ($existingPersonWithNewId) {
+                            // Ya existe una persona con la nueva identificación, usar esa persona y actualizar sus datos
+                            DB::table('people')->where('id', $existingPersonWithNewId->id)->update([
+                                'first_name' => $data['acudiente_nombres'],
+                                'last_name' => $data['acudiente_apellidos'],
+                                'identification_type_id' => $data['acudiente_tipo_identificacion'],
+                                'identification_place' => $data['acudiente_lugar_expedicion'],
+                                'address' => $data['acudiente_direccion'],
+                                'phone' => $data['acudiente_telefono'],
+                                'email' => $data['acudiente_email'],
+                                'updated_at' => now(),
+                            ]);
+
+                            $guardianPersonId = $existingPersonWithNewId->id;
+                            Log::info('Acudiente cambiado a persona existente', ['new_guardian_person_id' => $guardianPersonId]);
+                        } else {
+                            // No existe persona con la nueva identificación, crear nueva persona
+                            $guardianPersonId = DB::table('people')->insertGetId([
+                                'first_name' => $data['acudiente_nombres'],
+                                'last_name' => $data['acudiente_apellidos'],
+                                'identification_number' => $data['acudiente_identificacion'],
+                                'identification_type_id' => $data['acudiente_tipo_identificacion'],
+                                'identification_place' => $data['acudiente_lugar_expedicion'],
+                                'address' => $data['acudiente_direccion'],
+                                'phone' => $data['acudiente_telefono'],
+                                'email' => $data['acudiente_email'],
+                                'is_active' => true,
+                                'created_at' => now(),
+                                'updated_at' => now(),
+                            ]);
+                            Log::info('Nueva persona creada para acudiente', ['new_guardian_person_id' => $guardianPersonId]);
+                        }
+
+                        // Actualizar la relación de guardian para apuntar a la nueva persona
+                        DB::table('guardians')->where('id', $currentGuardian->id)->update([
+                            'person_id' => $guardianPersonId,
+                            'relationship_id' => $data['acudiente_parentesco'],
+                            'updated_at' => now(),
+                        ]);
+                        Log::info('Relación de guardian actualizada con nueva persona', ['guardian_id' => $currentGuardian->id, 'new_person_id' => $guardianPersonId]);
+                    }
+
+                    // Solo actualizar el parentesco si no se actualizó arriba
+                    if ($currentGuardianPerson && $currentGuardianPerson->identification_number === $data['acudiente_identificacion']) {
+                        DB::table('guardians')->where('id', $currentGuardian->id)->update([
+                            'relationship_id' => $data['acudiente_parentesco'],
+                            'updated_at' => now(),
+                        ]);
+                    }
+                } else {
+                    // No hay acudiente actual, crear nuevo
+                    $existingPersonWithNewId = DB::table('people')
+                        ->where('identification_number', $data['acudiente_identificacion'])
+                        ->first();
+
+                    if ($existingPersonWithNewId) {
+                        // Usar persona existente
+                        DB::table('people')->where('id', $existingPersonWithNewId->id)->update([
+                            'first_name' => $data['acudiente_nombres'],
+                            'last_name' => $data['acudiente_apellidos'],
+                            'identification_type_id' => $data['acudiente_tipo_identificacion'],
+                            'identification_place' => $data['acudiente_lugar_expedicion'],
+                            'address' => $data['acudiente_direccion'],
+                            'phone' => $data['acudiente_telefono'],
+                            'email' => $data['acudiente_email'],
+                            'updated_at' => now(),
+                        ]);
+                        $guardianPersonId = $existingPersonWithNewId->id;
+                        Log::info('Acudiente asignado desde persona existente', ['guardian_person_id' => $guardianPersonId]);
+                    } else {
+                        // Crear nueva persona
+                        $guardianPersonId = DB::table('people')->insertGetId([
+                            'first_name' => $data['acudiente_nombres'],
+                            'last_name' => $data['acudiente_apellidos'],
+                            'identification_number' => $data['acudiente_identificacion'],
+                            'identification_type_id' => $data['acudiente_tipo_identificacion'],
+                            'identification_place' => $data['acudiente_lugar_expedicion'],
+                            'address' => $data['acudiente_direccion'],
+                            'phone' => $data['acudiente_telefono'],
+                            'email' => $data['acudiente_email'],
+                            'is_active' => true,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                        Log::info('Nueva persona creada para acudiente', ['guardian_person_id' => $guardianPersonId]);
+                    }
+
+                    // Crear nueva relación de guardian
+                    DB::table('guardians')->insert([
+                        'model_id' => $id,
+                        'person_id' => $guardianPersonId,
+                        'relationship_id' => $data['acudiente_parentesco'],
+                        'is_active' => true,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                    Log::info('Nueva relación de guardian creada', ['model_id' => $id, 'guardian_person_id' => $guardianPersonId]);
+                }
+            }
+
+            // Nota: En la edición de modelos no manejamos suscripciones ya que eso se gestiona por separado
+            // Las suscripciones se crean/editan desde otros módulos específicos para facturación
+
+            // Limpiar archivos temporales que no se usaron
+            $this->cleanUpUnusedTempFiles($imagesMeta, $pdfDocumentMeta);
+
+            DB::commit();
+            return response()->json(['success' => true, 'message' => 'Modelo actualizado correctamente']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error al actualizar modelo: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json(['success' => false, 'message' => 'Error al actualizar modelo: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($id)
+    {
+        try{
+
+        
+            // Si se envía un array de IDs en el body, hacer eliminación masiva
+            if (request()->has('ids') && is_array(request()->input('ids'))) {
+                $ids = request()->input('ids');
+                
+                // Validar que todos los IDs sean números
+                foreach ($ids as $id) {
+                    if (!is_numeric($id)) {
+                        return response()->json(['success' => false, 'message' => 'ID inválido: ' . $id], 400);
+                    }
+                }
+                
+                // Verificar que existan los modelos
+                $existingModels = DB::table('models')->whereIn('id', $ids)->count();
+                if ($existingModels !== count($ids)) {
+                    return response()->json(['success' => false, 'message' => 'Algunos modelos no fueron encontrados'], 404);
+                }
+                
+                // Desactivar todos los modelos
+                DB::table('models')->whereIn('id', $ids)->update(['is_active' => false, 'updated_at' => now()]);
+                
+                // Desactivar todas las suscripciones de estos modelos
+                // DB::table('subscriptions')->whereIn('model_id', $ids)->update(['status' => 'inactive', 'updated_at' => now()]);
+                
+                return response()->json([
+                    'success' => true, 
+                    'message' => count($ids) . ' modelo(s) y sus suscripciones desactivado(s) correctamente'
+                ]);
+            }
+            
+            // Eliminación individual (comportamiento original)
+            $modelo = DB::table('models')->where('id', $id)->first();
+            if (!$modelo) {
+                return response()->json(['success' => false, 'message' => 'Modelo no encontrado'], 404);
+            }
+            
+            // Desactivar el modelo
+            DB::table('models')->where('id', $id)->update(['is_active' => false, 'updated_at' => now()]);
+            
+            // Desactivar todas las suscripciones del modelo
+            // DB::table('subscriptions')->where('model_id', $id)->update(['status' => 'inactive', 'updated_at' => now()]);
+            
+            return response()->json(['success' => true, 'message' => 'Modelo y sus suscripciones desactivados correctamente']);
+         } catch (\Exception $e) {
+            Log::error('Error al eliminar modelo: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json(['success' => false, 'message' => 'Error al eliminar modelo: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Guardar imágenes de un modelo
+     *
+     * @param  int  $modelId
+     * @param  array  $images
+     * @return void
+     */
+    private function saveModelImages($modelId, $images)
+    {
+        if (empty($images) || !is_array($images)) {
+            return;
+        }
+
+        $uploadPath = 'storage/modelos/' . $modelId;
+        $fullPath = public_path($uploadPath);
+        
+        // Crear directorio si no existe
+        if (!file_exists($fullPath)) {
+            mkdir($fullPath, 0755, true);
+        }
+
+        $sortOrder = 0;
+        foreach ($images as $image) {
+            if (!$image || !isset($image['originFileObj'])) {
+                continue;
+            }
+
+            $file = $image['originFileObj'];
+            $originalName = $file->getClientOriginalName();
+            $extension = $file->getClientOriginalExtension();
+            $fileName = uniqid() . '_' . time() . '.' . $extension;
+            $filePath = $uploadPath . '/' . $fileName;
+            $fullFilePath = $fullPath . '/' . $fileName;
+
+            // Guardar archivo
+            if ($file->move($fullPath, $fileName)) {
+                // Insertar en base de datos
+                DB::table('model_files')->insert([
+                    'model_id' => $modelId,
+                    'file_path' => $filePath,
+                    'file_name' => $fileName,
+                    'original_name' => $originalName,
+                    'file_size' => $file->getSize(),
+                    'mime_type' => $file->getMimeType(),
+                    'file_type' => $image['file_type'] ?? 'portfolio',
+                    'is_primary' => $image['is_primary'] ?? false,
+                    'sort_order' => $sortOrder++,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Obtener imágenes de un modelo
+     *
+     * @param  int  $modelId
+     * @return \Illuminate\Http\Response
+     */
+    public function getModelImages($modelId)
+    {
+        $images = DB::table('model_files')
+            ->where('model_id', $modelId)
+            ->orderBy('sort_order')
+            ->orderBy('created_at')
+            ->get();
+
+        return response()->json($images);
+    }
+
+    /**
+     * Eliminar imagen de un modelo
+     *
+     * @param  int  $modelId
+     * @param  int  $imageId
+     * @return \Illuminate\Http\Response
+     */
+    public function deleteModelImage($modelId, $imageId)
+    {
+        $image = DB::table('model_files')
+            ->where('id', $imageId)
+            ->where('model_id', $modelId)
+            ->first();
+
+        if (!$image) {
+            return response()->json(['success' => false, 'message' => 'Imagen no encontrada'], 404);
+        }
+
+        // Eliminar archivo físico
+        $fullPath = public_path($image->file_path);
+        if (file_exists($fullPath)) {
+            unlink($fullPath);
+        }
+
+        // Eliminar registro de base de datos
+        DB::table('model_files')->where('id', $imageId)->delete();
+
+        return response()->json(['success' => true, 'message' => 'Imagen eliminada correctamente']);
+    }
+
+    /**
+     * Upload de imagen temporal
+     */
+    public function uploadImage(Request $request)
+    {
+        try {
+            // Validar que se envió una imagen
+            $request->validate([
+                'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240'
+            ]);
+
+            // Crear directorio temporal si no existe
+            $tempPath = public_path('storage/temp/modelos');
+            if (!file_exists($tempPath)) {
+                mkdir($tempPath, 0755, true);
+            }
+
+            // Generar nombre único para la imagen
+            $fileName = uniqid() . '_' . time() . '.' . $request->file('image')->getClientOriginalExtension();
+            $filePath = $tempPath . '/' . $fileName;
+
+            // Mover imagen al directorio temporal
+            $request->file('image')->move($tempPath, $fileName);
+
+            // Retornar información de la imagen temporal
+            return response()->json([
+                'success' => true,
+                'temp_id' => $fileName,
+                'original_name' => $request->file('image')->getClientOriginalName(),
+                'size' => filesize($filePath),
+                'url' => asset('storage/temp/modelos/' . $fileName)
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error en upload de imagen temporal: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al subir la imagen: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function uploadPdf(Request $request)
+    {
+        try {
+            $request->validate([
+                'pdf' => 'required|file|mimes:pdf|max:5120' // 5MB máximo
+            ]);
+
+            // Crear directorio temporal si no existe
+            $tempPath = public_path('storage/temp/pdfs');
+            if (!file_exists($tempPath)) {
+                mkdir($tempPath, 0755, true);
+            }
+
+            // Generar nombre único para el PDF
+            $fileName = uniqid() . '_' . time() . '.pdf';
+            $filePath = $tempPath . '/' . $fileName;
+
+            // Mover PDF al directorio temporal
+            $request->file('pdf')->move($tempPath, $fileName);
+
+            return response()->json([
+                'success' => true,
+                'temp_id' => $fileName,
+                'original_name' => $request->file('pdf')->getClientOriginalName(),
+                'size' => filesize($filePath),
+                'url' => asset('storage/temp/pdfs/' . $fileName)
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error en upload de PDF temporal: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al subir el PDF: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Limpiar archivos temporales no utilizados
+     */
+    private function cleanUpUnusedTempFiles($processedImages, $processedPdfs = [])
+    {
+        try {
+            // CORREGIDO: usar la ruta correcta donde están las imágenes temporales
+            $tempDir = public_path('storage/temp/modelos');
+            
+            if (!is_dir($tempDir)) {
+                return;
+            }
+
+            // CORREGIDO: usar 'temp_id' solo para imágenes que lo tengan
+            $processedFiles = array_map(function($img) {
+                return $img['temp_id'] ?? null;
+            }, $processedImages);
+            
+            // Filtrar nulls para evitar errores
+            $processedFiles = array_filter($processedFiles);
+
+            $files = glob($tempDir . '/*');
+            $cutoffTime = now()->subHour(); // Eliminar archivos de más de 1 hora
+
+            foreach ($files as $file) {
+                if (is_file($file)) {
+                    $fileName = basename($file);
+                    $fileTime = filemtime($file);
+                    
+                    // Si no está en los procesados Y es viejo, eliminarlo
+                    if (!in_array($fileName, $processedFiles) && $fileTime < $cutoffTime->timestamp) {
+                        unlink($file);
+                        Log::info("Archivo temporal eliminado: $fileName");
+                    }
+                }
+            }
+
+            $tempPdfDir = public_path('storage/temp/pdfs');   
+            if (is_dir($tempPdfDir)) {
+                $processedPdfFiles = array_map(function($pdf) {
+                    return $pdf['temp_id'] ?? null;
+                }, $processedPdfs);
+                
+                $processedPdfFiles = array_filter($processedPdfFiles);
+
+                $pdfFiles = glob($tempPdfDir . '/*');
+                $cutoffTime = now()->subHour();
+
+                foreach ($pdfFiles as $file) {
+                    if (is_file($file)) {
+                        $fileName = basename($file);
+                        $fileTime = filemtime($file);
+                        
+                        if (!in_array($fileName, $processedPdfFiles) && $fileTime < $cutoffTime->timestamp) {
+                            unlink($file);
+                            Log::info("Archivo PDF temporal eliminado: $fileName");
+                        }
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error('Error limpiando archivos temporales: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Extraer nombre de usuario de URL de red social
+     *
+     * @param  string  $url
+     * @param  string  $platform
+     * @return string
+     */
+    private function extractUsernameFromUrl($url, $platform)
+    {
+        if (empty($url)) return '';
+        
+        // Remover protocolo y www
+        $cleanUrl = preg_replace('#^https?://(www\.)?#', '', $url);
+        
+        switch (strtolower($platform)) {
+            case 'instagram':
+                if (preg_match('#instagram\.com/([^/?]+)#', $cleanUrl, $matches)) {
+                    return '@' . $matches[1];
+                }
+                break;
+            case 'facebook':
+                if (preg_match('#facebook\.com/([^/?]+)#', $cleanUrl, $matches)) {
+                    return $matches[1];
+                }
+                break;
+            case 'twitter':
+                if (preg_match('#twitter\.com/([^/?]+)#', $cleanUrl, $matches)) {
+                    return '@' . $matches[1];
+                }
+                break;
+            case 'tiktok':
+                if (preg_match('#tiktok\.com/@?([^/?]+)#', $cleanUrl, $matches)) {
+                    return '@' . $matches[1];
+                }
+                break;
+        }
+        
+        return $url; // Si no se puede extraer, devolver la URL completa
+    }
+
+    private function getFinanzas($personId){
+        try {
+           $QueriePagos = <<<SQL
+           SELECT
+                p.id,
+                p.amount,
+                pm.name,
+                p.payment_date,
+                i.id as idFactura
+                from payments p 
+                inner join invoices i on p.invoice_id = i.id
+                INNER join payment_methods pm on p.payment_method_id = pm.id
+                WHERE i.person_id = ?
+                order by p.payment_date desc
+           SQL;
+
+           $QuerieFacuras = <<<SQL
+                SELECT  
+                    i.id,
+                    b.name,
+                    i.total_amount,
+                    i.paid_amount,
+                    i.remaining_amount 
+                    from invoices i 
+                    inner join branches b on i.branch_id = b.id
+                    WHERE i.person_id = ?
+                    ORDER BY i.invoice_date desc;
+           SQL;
+
+           $QuerieTotales = <<<SQL
+               SELECT
+                    SUM(i.total_amount)  AS total,
+                    SUM(i.paid_amount)   AS pagado,
+                    SUM(i.remaining_amount) AS pendiente
+                FROM invoices i
+                WHERE i.person_id = ?;
+           SQL;
+
+           $QuerieDeudas = <<<SQL
+               SELECT  
+                i.id,
+                b.name,
+                i.total_amount,
+                i.paid_amount,
+                i.remaining_amount 
+                from invoices i 
+                inner join branches b on i.branch_id = b.id
+                WHERE i.person_id = ?
+                and i.remaining_amount > 0
+                ORDER BY i.invoice_date desc;
+           SQL;
+
+           $finanzas = DB::select($QueriePagos, [$personId]);
+           $facturas = DB::select($QuerieFacuras, [$personId]);
+           $totales = DB::select($QuerieTotales, [$personId]);
+           $deudas = DB::select($QuerieDeudas, [$personId]);
+
+           return [
+               'pagos' => $finanzas,
+               'facturas' => $facturas,
+               'totales' => $totales,
+               'deudas' => $deudas
+           ];
+        } catch (\Throwable $th) {
+           Log::error('Error obteniendo finanzas: ' . $th->getMessage());
+           return [];
+        }
+    }
+}

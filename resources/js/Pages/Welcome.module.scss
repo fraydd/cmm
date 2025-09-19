@@ -1,0 +1,106 @@
+.welcomeBg {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #021526 0%, #010B16 100%);
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  width: 100%;
+  background: #021526 !important;
+  box-shadow: 0 2px 8px rgba(2, 21, 38, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  min-height: 64px;
+}
+
+.welcomeContainer {
+  text-align: center;
+  color: #fff;
+  max-width: 900px;
+  padding: 48px 24px 32px 24px;
+  margin: 0 auto;
+  background: rgba(2, 21, 38, 0.92);
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(1,11,22,0.18);
+}
+
+.welcomeTitle {
+  font-size: 2.8rem !important;
+  font-weight: bold;
+  margin-bottom: 18px !important;
+  color: #fff !important;
+  text-shadow: 2px 2px 8px rgba(1,11,22,0.22);
+}
+
+.welcomeSubtitle {
+  font-size: 1.2rem;
+  margin-bottom: 24px;
+  color: #E2E2E2;
+  opacity: 0.98;
+}
+
+.adminButton {
+  background: #03346E !important;
+  color: #fff !important;
+  border: none !important;
+  font-weight: 600;
+  border-radius: 5px !important;
+  box-shadow: none !important;
+  padding: 8px 22px !important;
+  margin-left: 12px;
+  margin-bottom: 0;
+  transition: background 0.18s cubic-bezier(0.4,0,0.2,1), color 0.18s cubic-bezier(0.4,0,0.2,1);
+}
+.adminButton:hover {
+  background: #021526 !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+.features {
+  margin-top: 40px;
+}
+
+.featureCard {
+  background: #021526 !important;
+  color: #fff !important;
+  border-radius: 14px !important;
+  min-height: 180px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 16px rgba(3,52,110,0.10);
+  border: 1px solid #03346E !important;
+}
+
+.featureCard h4 {
+  color: #6EACDA !important;
+}
+
+.featureCard p,
+.featureCard .ant-typography {
+  color: #E2E2E2 !important;
+  opacity: 0.98;
+  text-shadow: 0 1px 4px rgba(1,11,22,0.18);
+}
+
+.featureCard :global(.ant-typography) {
+  color: #E2E2E2 !important;
+  text-shadow: 0 1px 4px rgba(1,11,22,0.18);
+}
+
+.ant-typography {
+  color: #fff !important;
+}
+
+.footer {
+  width: 100%;
+  background: #010B16 !important;
+  color: #fff !important;
+  text-align: center;
+  padding: 32px 0;
+  letter-spacing: 1px;
+  font-size: 1rem;
+  box-shadow: 0 -2px 12px rgba(1,11,22,0.18);
+} 

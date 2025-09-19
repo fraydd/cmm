@@ -1,0 +1,62 @@
+// Botón personalizado para colapsar sidebar
+.sidebarToggleButton {
+  position: absolute;
+  transform: translate(50%, -50%);
+  z-index: 1000;
+  top: 100%;
+  right: 0;
+  
+  // Estilos específicos del botón
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+  min-height: 24px !important;
+  
+  // Colores usando la paleta CMM
+  background-color: var(--cmm-primary-500) !important;
+  border-color: var(--cmm-primary-500) !important;
+  color: var(--cmm-text-light) !important;
+  
+  // Efectos hover
+  &:hover {
+    background-color: var(--cmm-primary-600) !important;
+    border-color: var(--cmm-primary-600) !important;
+    transform: translate(50%, -50%) scale(1.05) !important;
+    transition: all var(--cmm-transition-normal) ease !important;
+  }
+  
+  // Efectos active
+  &:active {
+    background-color: var(--cmm-primary-700) !important;
+    border-color: var(--cmm-primary-700) !important;
+    transform: translate(50%, -50%) scale(0.95) !important;
+  }
+  
+  // Efectos focus
+  &:focus {
+    background-color: var(--cmm-primary-500) !important;
+    border-color: var(--cmm-primary-500) !important;
+    box-shadow: 0 0 0 2px rgba(84, 119, 146, 0.2) !important;
+  }
+  
+  // Icono
+  .anticon {
+    font-size: 10px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  
+  // Contenedor del botón
+  .ant-btn {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+  }
+  
+  // Ocultar en pantallas pequeñas donde el sidebar es overlay
+  @media (max-width: 768px) {
+    display: none !important;
+  }
+} 

@@ -1,0 +1,142 @@
+// Estilos para el componente ResponsiveNavMenu
+
+.navContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
+  padding: 0 0.5rem;
+  gap: 0.3rem;
+  overflow: hidden;
+}
+
+.visibleItems {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex: 1;
+  overflow: hidden;
+}
+
+.navItem {
+  position: relative;
+  background: transparent !important;
+  border: none;
+  box-shadow: none;
+  color: var(--cmm-text-primary);
+  transition: filter 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-size: 0.9rem;
+  height: 34px;
+  
+  &:hover {
+    color: var(--cmm-text-hover) !important;
+    background-color: var(--cmm-primary-600) !important;
+  }
+
+  &:focus {
+    box-shadow: none;
+  }
+}
+
+.navItemActive {
+  &:hover {
+    color: var(--cmm-text-primary) !important;
+    background-color: transparent !important;
+  }
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: var(--cmm-primary-500);
+    transition: all 0.2s ease;
+  }
+}
+
+.moreButton {
+  background: transparent !important;
+  border: none;
+  box-shadow: none;
+  color: var(--cmm-text-primary);
+  transition: filter 0.2s ease, color 0.2s ease;
+  flex-shrink: 0;
+  height: 28px;
+  min-width: 50px;
+  
+  &:hover {
+    color: var(--cmm-text-hover) !important;
+    background-color: var(--cmm-primary-600) !important;
+  }
+
+  &:focus {
+    box-shadow: none;
+  }
+}
+
+.moreButtonActive {
+  color: var(--cmm-primary-500) !important;
+  background-color: color-mix(in srgb, var(--cmm-primary-500) 8%, transparent) !important;
+  
+  &:hover {
+    color: var(--cmm-text-hover) !important;
+    background-color: var(--cmm-primary-600) !important;
+  }
+}
+
+// Estilos para el dropdown
+:global(.ant-dropdown-menu) {
+  .dropdownItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    
+    .checkIcon {
+    color: var(--cmm-primary-500);
+      font-size: 12px;
+      margin-left: 8px;
+    }
+  }
+}
+
+.dropdownItemContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.dropdownCheckIcon {
+  color: var(--cmm-primary-500);
+  font-size: 12px;
+  margin-left: 8px;
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .navContainer {
+    padding: 0 0.3rem;
+    gap: 0.2rem;
+  }
+  
+  .visibleItems {
+    gap: 0.2rem;
+  }
+  
+  .navItem {
+    font-size: 0.8rem;
+    height: 26px;
+    padding: 0 0.5rem;
+  }
+  
+  .moreButton {
+    height: 26px;
+    min-width: 45px;
+    font-size: 0.8rem;
+  }
+}

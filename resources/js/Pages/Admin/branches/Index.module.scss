@@ -1,0 +1,114 @@
+// Header de la vista de sedes
+.branchesHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 18px;
+  // Responsive y mismo estilo que headerSection de facturas
+  h2, .ant-typography {
+    font-size: clamp(1.25rem, 3vw, 2rem);
+    line-height: 1.2;
+    margin: 0 !important;
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+  }
+  .anticon {
+    font-size: 24px;
+    margin-right: clamp(8px, 1vw, 16px);
+  }
+  .headerIcon {
+    font-size: 24px;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+}
+// Sobrescribe el fondo del Tag de estado de la sede (Ant Design)
+.branchStatus :global(.ant-tag) {
+  background: transparent !important;
+  // Mantén el color del texto según el color del tag
+  border-color: currentColor;
+}
+// Card especial para agregar nueva sede
+.addBranchCard {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 50px;
+  background: rgba(22, 163, 74, 0.08); // verde éxito con transparencia
+  border: 2px dashed var(--cmm-success, #16a34a);
+  border-radius: var(--cmm-radius-lg);
+  color: var(--cmm-success, #16a34a);
+  cursor: pointer;
+  margin-bottom: var(--cmm-spacing-md);
+  transition: box-shadow var(--cmm-transition-normal) var(--cmm-ease-in-out), border-color var(--cmm-transition-normal) var(--cmm-ease-in-out);
+  font-size: 1.2rem;
+
+  &:hover, &:focus {
+    box-shadow: 0 4px 12px 0 var(--cmm-shadow-color);
+    border-color: var(--cmm-success-500, #16a34a);
+    background: rgba(22, 163, 74, 0.16);
+    outline: none;
+  }
+}
+// Contenedor de la lista de sedes, responsivo y con separación
+.branchesList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  padding-bottom: 2px;
+}
+
+.branchCard {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: var(--cmm-spacing-md) var(--cmm-spacing-lg);
+  background: var(--cmm-bg-secondary);
+  border: 1px solid var(--cmm-border-color);
+  border-radius: var(--cmm-radius-lg);
+  transition: box-shadow var(--cmm-transition-normal) var(--cmm-ease-in-out);
+  box-shadow: 0 1px 2px 0 var(--cmm-shadow-color);
+
+  &:hover {
+    box-shadow: 0 4px 12px 0 var(--cmm-shadow-color);
+    border-color: var(--cmm-primary-400);
+  }
+}
+
+.branchInfo {
+  flex: 1;
+  min-width: 200px;
+  margin-right: var(--cmm-spacing-md);
+}
+
+
+.branchName {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--cmm-text-primary);
+}
+
+
+.branchDetails {
+  color: var(--cmm-text-placeholder);
+  font-size: 14px;
+}
+
+
+.branchStatus {
+  flex-shrink: 0;
+  min-width: 100px;
+  text-align: center;
+  margin: var(--cmm-spacing-sm) var(--cmm-spacing-md);
+}
+
+
+.branchActions {
+  flex-shrink: 0;
+  margin: var(--cmm-spacing-sm) 0;
+}
+
