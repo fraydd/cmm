@@ -13,6 +13,49 @@ use Illuminate\Http\Request;
 
 class StoreController extends Controller
 {
+    /**
+     * Cancela una suscripción (endpoint inicial solo log y try-catch)
+     */
+    public function cancelarSuscripcion(Request $request)
+    {
+        try {
+            Log::info('Intentando cancelar suscripción', $request->all());
+            $personId = $request->input('person_id');
+            $branchId = $request->input('branch_id');
+            $subscriptionPlanId = $request->input('subscription_plan_id');
+
+            // Buscar el modelo asociado a la persona
+            $modelo = DB::table('models')
+                ->where('person_id', $personId)
+                ->where('is_active', true)
+                ->first();
+            if (!$modelo) {
+                return response()->json(['error' => 'No se encontró el modelo asociado'], 404);
+            }
+
+            // Buscar la suscripción activa de ese modelo y plan
+            $suscripcion = DB::table('subscriptions')
+                ->where('model_id', $modelo->id)
+                ->where('subscription_plan_id', $subscriptionPlanId)
+                ->where('is_active', 1)
+                ->first();
+            if (!$suscripcion) {
+                return response()->json(['error' => 'No se encontró la suscripción activa'], 404);
+            }
+
+            // Soft delete usando el controlador
+            $afectadas = \App\Http\Controllers\Admin\SubscriptionController::softDelete($suscripcion->id);
+            if ($afectadas > 0) {
+                Log::info('Suscripción cancelada correctamente', ['suscripcion_id' => $suscripcion->id]);
+                return response()->json(['message' => 'Suscripción cancelada correctamente'], 200);
+            } else {
+                return response()->json(['error' => 'No se pudo cancelar la suscripción'], 500);
+            }
+        } catch (\Exception $e) {
+            Log::error('Error al cancelar suscripción: ' . $e->getMessage());
+            return response()->json(['error' => 'Error al cancelar suscripción'], 500);
+        }
+    }
     public function index(Request $request)
     {
         $identificacion = $request->input('identificacion');
@@ -156,7 +199,6 @@ class StoreController extends Controller
     {
 
         try {
-
             $persona = DB::select(<<<SQL
                 SELECT p.id,
                 CONCAT(p.first_name,' ', p.last_name) AS name,
@@ -176,6 +218,22 @@ class StoreController extends Controller
                 'identification' => $persona[0]->identification,
                 'cart_count' => $cantidad
             ];
+
+            // Validar si es modelo
+            $modelo = DB::table('models')
+                ->where('person_id', $persona[0]->id)
+                ->where('is_active', true)
+                ->first();
+
+            if ($modelo) {
+                // Consultar suscripciones usando el controlador de suscripciones
+                $suscripciones = \App\Http\Controllers\Admin\SubscriptionController::index($modelo->id);
+                $personaArr['suscripciones'] = $suscripciones;
+                $personaArr['is_model'] = true;
+            } else {
+                $personaArr['is_model'] = false;
+            }
+
             return response()->json($personaArr);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error al buscar persona'], 500);
@@ -705,6 +763,7 @@ class StoreController extends Controller
             Log::info('Procesando pago...', $request->all());
             $personId = $request->input('person_id');
             $branchId = $request->input('branch_id');
+            $paymentMethodId = $request->input('paymentMethod');
             if (!$personId || !$branchId) {
                 return response()->json(['error' => 'Faltan datos de persona o sede'], 400);
             }
@@ -716,6 +775,12 @@ class StoreController extends Controller
             if (empty($cartItems)) {
                 return response()->json(['error' => 'El carrito está vacío'], 400);
             }
+
+            // Filtrar solo los items de suscripción
+            $suscripcionesPagadas = array_filter($cartItems, function($item) {
+                return isset($item->item_type_id) && $item->item_type_id == 2;
+            });
+            // Llamar al método después de crear la factura
 
             // 2. Crear invoice (usando los campos correctos)
             $total = array_sum(array_map(fn($item) => $item->total_price, $cartItems));
@@ -761,11 +826,13 @@ class StoreController extends Controller
                 ]);
             }
 
-            // 4. Registrar el pago en la tabla payments
-            $paymentMethodId = $request->input('paymentMethod');
+            // Llamar al método para registrar el pago de suscripciones
+            if (!empty($suscripcionesPagadas)) {
+                $this->onSuscripcionPagada(array_values($suscripcionesPagadas));
+            }
 
-            // 5. Registrar movimiento de caja
-            // Determinar tipo de movimiento (ingreso por venta)
+
+
             $cashRegister = DB::table('cash_register')
                 ->where('branch_id', $branchId)
                 ->where('status', 'open')
@@ -814,6 +881,81 @@ class StoreController extends Controller
         } catch (\Exception $e) {
             Log::error('Error al procesar el pago: ' . $e->getMessage());
             return response()->json(['error' => 'Error al procesar el pago'], 500);
+        }
+    }
+    /**
+     * Método que se ejecuta cuando se procesa el pago de una suscripción.
+     * Por ahora solo hace log y try-catch.
+     * @param array $suscripcionesPagadas
+     */
+    public function onSuscripcionPagada($suscripcionesPagadas)
+    {
+        // solo puede llegar un item, así que leerlo como uno solo
+        $item = is_array($suscripcionesPagadas) ? $suscripcionesPagadas[0] : $suscripcionesPagadas;
+        if (!$item || !isset($item->subscription_id) || !isset($item->branch_id) || !isset($item->person_id)) {
+            throw new \Exception('Información de suscripción incompleta');
+        }
+
+
+        // Consultar modelo_id de la persona
+        $modelo = DB::table('models')
+            ->where('person_id', $item->person_id)
+            ->where('is_active', true)
+            ->first();
+        if (!$modelo) {
+            // No es modelo, no hacer nada
+            return;
+        }
+        $modelId = $modelo->id;
+
+        // Validar si ya tiene alguna suscripción activa (de cualquier plan)
+        $suscripcionActivaCualquierPlan = DB::table('subscriptions')
+            ->where('model_id', $modelId)
+            ->where('is_active', 1)
+            ->first();
+
+        // Si existe una suscripción activa y es de otro plan, lanzar excepción
+        if ($suscripcionActivaCualquierPlan && $suscripcionActivaCualquierPlan->subscription_plan_id != $item->subscription_id) {
+            throw new \Exception('Ya existe una suscripción activa a otro plan. Debe cancelar la suscripción actual para poder suscribirse a uno nuevo.');
+        }
+
+        // Validar si ya tiene una suscripción activa de ese plan
+        $suscripcionActiva = DB::table('subscriptions')
+            ->where('model_id', $modelId)
+            ->where('subscription_plan_id', $item->subscription_id)
+            ->where('is_active', 1)
+            ->first();
+
+        try {
+            if (!$suscripcionActiva) {
+                // Es una suscripción nueva, no se va a facturar, usar valores por defecto
+                \App\Http\Controllers\Admin\SubscriptionController::registrarSuscripcion(
+                    $modelId,
+                    $item->subscription_id,
+                    $item->quantity ?? 1,
+                    $item->branch_id ?? null,
+                    $item->total_price ?? null,
+                    $item->payment_method_id ?? null,
+                    false // facturar = false
+                );
+                Log::info('Suscripción registrada', [
+                    'model_id' => $modelId,
+                    'plan_id' => $item->subscription_id
+                ]);
+            } else {
+                // Es una renovación
+                \App\Http\Controllers\Admin\SubscriptionController::renovar(
+                    $suscripcionActiva->id,
+                    $item->quantity ?? 1
+                );
+                Log::info('Suscripción renovada', [
+                    'model_id' => $modelId,
+                    'plan_id' => $item->subscription_id
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Error en onSuscripcionPagada: ' . $e->getMessage());
+            throw $e;
         }
     }
 }

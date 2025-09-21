@@ -114,8 +114,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     Route::middleware(['permission:ver_modelos'])->group(function () {
         Route::get('modelos', [ModeloController::class, 'index'])->name('modelos.index');
         Route::get('modelos/{id}', [ModeloController::class, 'show'])->name('modelos.show');
-        Route::get('modelos/catalogs', [ModeloController::class, 'catalogs'])->name('modelos.catalogs');
     });
+    Route::post('modelos/catalogs', [ModeloController::class, 'catalogs'])->name('modelos.catalogs');
 
     // Rutas para crear/editar/eliminar modelos
     Route::middleware(['permission:editar_modelos'])->group(function () {
@@ -227,6 +227,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
         Route::post('/tienda/removeCartItem', [StoreController::class, 'removeCartItem'])->name('admin.store.removeCartItem');
         Route::post('/tienda/updateCartItem', [StoreController::class, 'updateCartItem'])->name('admin.store.updateCartItem');
         Route::post('/tienda/processPayment', [StoreController::class, 'processPayment'])->name('admin.store.processPayment');
+    Route::post('/tienda/cancelarSuscripcion', [StoreController::class, 'cancelarSuscripcion'])->name('admin.store.cancelarSuscripcion');
     });
 
     // ------------------------------------------------------------------------

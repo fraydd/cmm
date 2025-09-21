@@ -251,12 +251,6 @@ const Sidebar = forwardRef(({ collapsed, auth, onToggle, isMobile = false, isVis
             label: 'Configuración',
             requiredPermissions: [], // Sin permisos = siempre visible
             children: [
-                { 
-                    key: 'settings.users', 
-                    label: 'Usuarios',
-                    onClick: () => router.visit('/admin/settings/users'),
-                    requiredPermissions: [] // Siempre visible
-                },
                 {
                     key: 'settings.sedes',
                     label: 'Sedes',
