@@ -213,3 +213,9 @@ INSERT INTO `relationships` (`name`, `is_active`, `created_at`, `updated_at`) VA
 ('Tutor legal', true, NOW(), NOW()),
 ('Pareja', true, NOW(), NOW()),
 ('Otro', true, NOW(), NOW());
+
+-- ===== POBLADO INICIAL DE ESTADOS DE SUSCRIPCIÓN =====
+INSERT INTO subscription_statuses (name, created_at, updated_at) VALUES
+  ('active', NOW(), NOW()),
+  ('cancelled', NOW(), NOW()),
+  ('expired', NOW(), NOW());

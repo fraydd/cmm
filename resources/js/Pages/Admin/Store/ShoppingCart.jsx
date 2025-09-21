@@ -38,7 +38,8 @@ export default function ShoppingCart({
   clienteInfo,
   onUpdateCart,
   branch_id,
-  mediosPago
+  mediosPago,
+  onReloadCliente // nueva prop para recargar la vista principal
 }) {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -107,6 +108,10 @@ export default function ShoppingCart({
       const data = await response.json();
       if (response.ok) {
         showSuccess(data.message);
+        // Recargar la vista principal con la identificación del cliente
+        if (onReloadCliente && clienteInfo && clienteInfo.identification) {
+          onReloadCliente(clienteInfo.identification);
+        }
       } else {
         showError(data.error || 'Error al procesar el pago');
       }

@@ -397,14 +397,31 @@ CREATE TABLE `subscriptions` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `model_id` bigint unsigned NOT NULL,
   `subscription_plan_id` bigint unsigned NOT NULL,
-  `start_date` date NOT NULL,
-  `end_date` date NOT NULL,
+  `start_date` date NULL,
+  `end_date` date NULL,
+  `status_id` bigint unsigned NULL,
   `is_active` boolean NOT NULL DEFAULT true,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `subscriptions_model_id_status_index` (`model_id`,`is_active`),
   KEY `subscriptions_start_date_end_date_index` (`start_date`,`end_date`)
+);
+
+CREATE TABLE subscription_statuses (
+    `id` bigint unsigned AUTO_INCREMENT PRIMARY KEY,
+    `name` VARCHAR(50) NOT NULL UNIQUE,
+    `created_at` TIMESTAMP NULL DEFAULT NULL,
+    `updated_at` TIMESTAMP NULL DEFAULT NULL
+);
+
+CREATE TABLE subscription_history (
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `subscription_id` BIGINT UNSIGNED NOT NULL,
+  `start_date` DATE NULL,
+  `end_date` DATE NULL,
+  `event_type` varchar(100) NOT NULL,
+  `price` decimal(12,2)  NULL
 );
 
 -- ===== TABLAS DE EVENTOS =====
@@ -490,14 +507,6 @@ CREATE TABLE `branches` (
   KEY `branches_manager_id_index` (`manager_id`)
 );
 
-CREATE TABLE `subscription_branch_access` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `subscription_id` bigint unsigned NOT NULL,
-  `branch_id` bigint unsigned NOT NULL,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`)
-);
 
 CREATE TABLE `product_branch_access` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
@@ -670,7 +679,6 @@ ALTER TABLE `cash_register` ADD CONSTRAINT `cash_register_responsible_user_id_fo
 
 -- Relaciones de Sedes
 ALTER TABLE `employee_branch_access` ADD CONSTRAINT `employee_branch_access_branch_id_foreign` FOREIGN KEY (`branch_id`) REFERENCES `branches` (`id`);
-ALTER TABLE `subscription_branch_access` ADD CONSTRAINT `subscription_branch_access_branch_id_foreign` FOREIGN KEY (`branch_id`) REFERENCES `branches` (`id`);
 ALTER TABLE `product_branch_access` ADD CONSTRAINT `product_branch_access_branch_id_foreign` FOREIGN KEY (`branch_id`) REFERENCES `branches` (`id`);
 ALTER TABLE `event_branch_access` ADD CONSTRAINT `event_branch_access_branch_id_foreign` FOREIGN KEY (`branch_id`) REFERENCES `branches` (`id`);
 ALTER TABLE `branches` ADD CONSTRAINT `branches_manager_id_foreign` FOREIGN KEY (`manager_id`) REFERENCES `users` (`id`);
@@ -689,8 +697,10 @@ ALTER TABLE `cart` ADD CONSTRAINT `cart_product_id_foreign` FOREIGN KEY (`produc
 ALTER TABLE `invoice_items` ADD CONSTRAINT `invoice_items_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`);
 
 -- Relaciones de Suscripciones
+ALTER TABLE `subscriptions` ADD CONSTRAINT `subscriptions_status_id_foreign` FOREIGN KEY (`status_id`) REFERENCES `subscription_statuses` (`id`);
 ALTER TABLE `subscriptions` ADD CONSTRAINT `subscriptions_model_id_foreign` FOREIGN KEY (`model_id`) REFERENCES `models` (`id`);
 ALTER TABLE `subscriptions` ADD CONSTRAINT `subscriptions_subscription_plan_id_foreign` FOREIGN KEY (`subscription_plan_id`) REFERENCES `subscription_plans` (`id`);
+ALTER TABLE `subscription_history` ADD CONSTRAINT `subscription_history_subscription_id_foreign` FOREIGN KEY (`subscription_id`) REFERENCES `subscriptions` (`id`);
 ALTER TABLE `cart` ADD CONSTRAINT `cart_subscription_id_foreign` FOREIGN KEY (`subscription_id`) REFERENCES `subscription_plans` (`id`);
 ALTER TABLE `invoice_items` ADD CONSTRAINT `invoice_items_subscription_id_foreign` FOREIGN KEY (`subscription_id`) REFERENCES `subscription_plans` (`id`);
 
@@ -726,7 +736,6 @@ ALTER TABLE `attendance_records` ADD CONSTRAINT `attendance_records_model_id_for
 ALTER TABLE `attendance_records` ADD CONSTRAINT `attendance_records_branch_id_foreign` FOREIGN KEY (`branch_id`) REFERENCES `branches` (`id`);
 
 -- Relaciones de Acceso por Sede
-ALTER TABLE `subscription_branch_access` ADD CONSTRAINT `subscription_branch_access_subscription_id_foreign` FOREIGN KEY (`subscription_id`) REFERENCES `subscriptions` (`id`);
 ALTER TABLE `event_branch_access` ADD CONSTRAINT `event_branch_access_event_id_foreign` FOREIGN KEY (`event_id`) REFERENCES `events` (`id`);
 
 -- ===== NUEVOS CATÁLOGOS PARA MODELOS =====

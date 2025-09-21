@@ -37,8 +37,10 @@ export default function BranchesIndex({ branches = [] }) {
     };
 
     const handleModalSuccess = () => {
-        // Recarga la página para traer los datos actualizados
-        router.reload({ only: ['branches'] });
+    // Recarga la página para traer los datos actualizados
+    router.reload({ only: ['branches'] });
+    // Dispara el evento global para actualizar el selector de sedes en el navbar
+    window.dispatchEvent(new Event('branchesUpdated'));
     };
 
     return (

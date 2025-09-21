@@ -16,7 +16,8 @@ import {
     ScissorOutlined,
     CaretUpOutlined,
     ArrowUpOutlined,
-    TeamOutlined
+    TeamOutlined,
+    ArrowLeftOutlined
 } from '@ant-design/icons';
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -1156,7 +1157,17 @@ export default function Show({
                 );
         }
     };
+    // Hook para navegación
+    const navigate = typeof window !== 'undefined' ? (window.history ? () => window.history.back() : () => {}) : () => {};
+
     return (
+        <>
+        {/* Botón de regresar en la esquina superior izquierda */}
+        <div style={{ position: 'fixed', top: 24, left: 24, zIndex: 1000 }}>
+            <Button type="default" icon={<ArrowLeftOutlined />} onClick={navigate}>
+                Regresar
+            </Button>
+        </div>
         <div className={styles.main}>
             <div className={styles.mainContainer}>
                 <div className={styles.mainheader}>
@@ -1275,5 +1286,6 @@ export default function Show({
                 </div>
             )}
         </div>
+        </>
     );
 }

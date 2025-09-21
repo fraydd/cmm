@@ -8,9 +8,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\WelcomeMail;
-use App\Http\Controllers\Admin\InvoicesController;
 
 class ModeloController extends \App\Http\Controllers\Controller
 {
@@ -92,10 +89,12 @@ class ModeloController extends \App\Http\Controllers\Controller
             JOIN people p ON m.person_id = p.id
             LEFT JOIN model_profiles mp ON m.id = mp.model_id
             LEFT JOIN subscriptions s ON m.id = s.model_id 
+                AND s.is_active = TRUE
                 AND s.id = (
                     SELECT s1.id
                     FROM subscriptions s1
                     WHERE s1.model_id = m.id
+                    AND s1.is_active = TRUE
                     AND EXISTS (
                         SELECT 1 
                         FROM branch_subscription_plans bsp 
@@ -160,41 +159,45 @@ class ModeloController extends \App\Http\Controllers\Controller
 
     public function catalogs(Request $request)
     {
-        $branchId = $request->query('branch_id');
-        $plans = [];
-        if ($branchId) {
-            $plansRaw = DB::table('branch_subscription_plans as bsp')
-                ->join('subscription_plans as sp', 'bsp.subscription_plan_id', '=', 'sp.id')
-                ->where('bsp.branch_id', $branchId)
-                ->where('bsp.is_active', true)
-                ->where('sp.is_active', true)
-                ->orderBy('sp.name')
-                ->select('sp.id', 'sp.name', 'sp.description', DB::raw('COALESCE(bsp.custom_price, sp.price) as price'), 'sp.duration_months')
-                ->get();
-            
-            // Formatear los planes con precio en pesos colombianos
-            $plans = $plansRaw->map(function($plan) {
-                $precioFormateado = '$' . number_format($plan->price, 0, ',', '.') . ' COP';
-                return [
-                    'id' => $plan->id,
-                    'name' => $plan->name . ' - ' . $precioFormateado,
-                    'description' => $plan->description,
-                    'price' => $plan->price,
-                    'duration_months' => $plan->duration_months
-                ];
-            });
+        try {
+            $branchId = $request->input('branch_id');
+            $plans = [];
+            if ($branchId) {
+                $plansRaw = DB::table('branch_subscription_plans as bsp')
+                    ->join('subscription_plans as sp', 'bsp.subscription_plan_id', '=', 'sp.id')
+                    ->where('bsp.branch_id', $branchId)
+                    ->where('bsp.is_active', true)
+                    ->where('sp.is_active', true)
+                    ->orderBy('sp.name')
+                    ->select('sp.id', 'sp.name', 'sp.description', DB::raw('COALESCE(bsp.custom_price, sp.price) as price'), 'sp.duration_months')
+                    ->get();
+                // Formatear los planes con precio en pesos colombianos
+                $plans = $plansRaw->map(function($plan) {
+                    $precioFormateado = '$' . number_format($plan->price, 0, ',', '.') . ' COP';
+                    return [
+                        'id' => $plan->id,
+                        'name' => $plan->name . ' - ' . $precioFormateado,
+                        'description' => $plan->description,
+                        'price' => $plan->price,
+                        'duration_months' => $plan->duration_months
+                    ];
+                });
+            }
+            return response()->json([
+                'identification_types' => DB::table('identification_types')->select('id', 'name')->where('is_active', true)->orderBy('name')->get(),
+                'genders' => DB::table('genders')->select('id', 'name')->where('is_active', true)->orderBy('name')->get(),
+                'blood_types' => DB::table('blood_types')->select('id', 'name')->where('is_active', true)->orderBy('name')->get(),
+                'payment_methods' => DB::table('payment_methods')->select('id', 'name')->where('is_active', true)->orderBy('name')->get(),
+                'hair_colors' => DB::table('hair_colors')->select('id', 'name')->where('is_active', true)->orderBy('name')->get(),
+                'eye_colors' => DB::table('eye_colors')->select('id', 'name')->where('is_active', true)->orderBy('name')->get(),
+                'skin_colors' => DB::table('skin_colors')->select('id', 'name')->where('is_active', true)->orderBy('name')->get(),
+                'relationships' => DB::table('relationships')->select('id', 'name')->where('is_active', true)->orderBy('name')->get(),
+                'subscription_plans' => $plans,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error catalogo: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json(['error' => 'Error al obtener los catálogos'], 500);
         }
-        return response()->json([
-            'identification_types' => DB::table('identification_types')->select('id', 'name')->where('is_active', true)->orderBy('name')->get(),
-            'genders' => DB::table('genders')->select('id', 'name')->where('is_active', true)->orderBy('name')->get(),
-            'blood_types' => DB::table('blood_types')->select('id', 'name')->where('is_active', true)->orderBy('name')->get(),
-            'payment_methods' => DB::table('payment_methods')->select('id', 'name')->where('is_active', true)->orderBy('name')->get(),
-            'hair_colors' => DB::table('hair_colors')->select('id', 'name')->where('is_active', true)->orderBy('name')->get(),
-            'eye_colors' => DB::table('eye_colors')->select('id', 'name')->where('is_active', true)->orderBy('name')->get(),
-            'skin_colors' => DB::table('skin_colors')->select('id', 'name')->where('is_active', true)->orderBy('name')->get(),
-            'relationships' => DB::table('relationships')->select('id', 'name')->where('is_active', true)->orderBy('name')->get(),
-            'subscription_plans' => $plans,
-        ]);
     }
 
     /**
@@ -599,133 +602,28 @@ class ModeloController extends \App\Http\Controllers\Controller
                 Log::info('Nueva relación de guardian creada', ['model_id' => $modelId, 'guardian_person_id' => $guardianPersonId]);
             }
 
-            // 6. Insertar suscripción
-            // Obtener branch_subscription_plan y duración del plan
-            $subscriptionPlan = DB::table('subscription_plans')
-                ->where('id', $data['subscription_plan_id'])
-                ->first();
-            if (!$subscriptionPlan) {
-                throw new \Exception('Plan de suscripción no encontrado');
-            }
-
-            $branchPlan = DB::table('branch_subscription_plans')
-                ->where('branch_id', $data['branch_id'])
-                ->where('subscription_plan_id', $data['subscription_plan_id'])
-                ->first();
-            if (!$branchPlan) {
-                throw new \Exception('Plan de suscripción de sucursal no encontrado');
-            }
-
-            $quantity = isset($data['subscription_quantity']) ? (int)$data['subscription_quantity'] : 1;
-            $durationMonths = $subscriptionPlan->duration_months * $quantity;
-            $startDate = \Carbon\Carbon::parse($data['fecha_vigencia']);
-            $endDate = (clone $startDate)->addMonths($durationMonths);
-
-            $subscriptionId = DB::table('subscriptions')->insertGetId([
-                'model_id' => $modelId,
-                'subscription_plan_id' => $subscriptionPlan->id,
-                'start_date' => $startDate,
-                'end_date' => $endDate,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            $total = ($branchPlan->custom_price ?? $subscriptionPlan->price) * $quantity;
-            $pagado = 0;
-            $estado = null;
-            if ($data['abonar_parte']) {
-                $pagado = $data['valor_abonar'];
-            } else {
-                $pagado = $total;
-            }
-
-            if ($pagado >= $total) {
-                $estado = 2;
-            }
-
-            if ($estado === null && $pagado > 0) {
-                $estado = 3;
-            } else {
-                $estado = 1;
-            }
-
-            // Registrar la factura
-            $invoiceId = DB::table('invoices')->insertGetId([
-                'branch_id' => $data['branch_id'],
-                'person_id' => $personId,
-                'invoice_date' => now(),
-                'total_amount' => $total,
-                'paid_amount' => $pagado,
-                'remaining_amount' => max(0, $total - $pagado),
-                'status_id' => $estado,
-                'invoice_type_id' => 1,
-                'observations' => $data['observaciones'] ?? null,
-                'created_by' => auth()->id(),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            // registrar invoice_items
-            DB::table('invoice_items')->insert([
-                'invoice_id' => $invoiceId,
-                'item_type_id' => 2,
-                'subscription_id' => $subscriptionPlan->id,
-                'quantity' => $quantity,
-                'unit_price' => $branchPlan->custom_price ?? $subscriptionPlan->price,
-                'total_price' => $total,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            // se registra el pago
-            if ($pagado > 0) {
-
-                $cashRegister = DB::table('cash_register')
-                        ->where('branch_id',$data['branch_id'])
-                        ->where('status', 'open')
-                        ->orderByDesc('opening_date')
-                        ->first();
-
-                if (!$cashRegister) {
-                    // Si no hay caja abierta, no se puede registrar el pago
-                    throw new \Exception('No hay caja abierta para registrar el pago');
-                }
-
-                $paymentId = DB::table('payments')->insertGetId([
-                    'branch_id' => $data['branch_id'],  
-                    'cash_register_id' => $cashRegister->id,
-                    'invoice_id' => $invoiceId,
-                    'payment_method_id' => $data['medio_pago'],
-                    'amount' => $pagado,
-                    'created_by' => auth()->id(),
-                    'payment_date' => now(),
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-
+            // Registrar suscripción, factura, item y pago usando SubscriptionController
+            try {
+                \App\Http\Controllers\Admin\SubscriptionController::registrarSuscripcion(
+                    $modelId,
+                    $data['subscription_plan_id'],
+                    isset($data['subscription_quantity']) ? (int)$data['subscription_quantity'] : 1,
+                    $data['branch_id'],
+                    $data['abonar_parte'] ? $data['valor_abonar'] : null,
+                    $data['medio_pago'],
+                    true,
+                    isset($data['fecha_vigencia']) ? date('Y-m-d', strtotime($data['fecha_vigencia'])) : null
+                );
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error('Error al registrar suscripción: ' . $e->getMessage());
+                return response()->json(['success' => false, 'message' => 'Error al registrar suscripción: ' . $e->getMessage()], 500);
             }
 
             // Limpiar archivos temporales que no se usaron
             $this->cleanUpUnusedTempFiles($imagesMeta, $pdfMeta ?? []);
 
             DB::commit();
-
-            // Enviar correo con la factura y el PDF adjunto
-            try {
-                $invoicesController = new InvoicesController();
-                $invoiceData = $invoicesController->getInvoiceData($invoiceId);
-                $pdf = $invoicesController->downloadPdf($invoiceId, true);
-                $recipientEmail = $data['email'];
-
-                Mail::to($recipientEmail)->send(new WelcomeMail($invoiceData, $pdf));
-                
-                Log::info('Correo de factura enviado exitosamente.', ['invoice_id' => $invoiceId, 'recipient' => $recipientEmail]);
-
-            } catch (\Exception $e) {
-                Log::error('Error al enviar correo de factura: ' . $e->getMessage(), ['invoice_id' => $invoiceId]);
-                // No detener el flujo principal si el correo falla, solo registrar el error.
-            }
-            
             return response()->json(['success' => true, 'message' => 'Modelo registrado correctamente']);
         } catch (ValidationException $e) {
             DB::rollBack();

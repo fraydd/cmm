@@ -139,13 +139,32 @@ const ModeloForm = forwardRef(({
     useEffect(() => {
         if (!selectedBranch) return;
         setLoadingCatalogs(true);
-        fetch(`/admin/modelos/catalogs?branch_id=${selectedBranch.id}`)
-            .then(res => res.json())
-            .then(data => {
+        const fetchCatalogs = async () => {
+            try {
+                const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                const response = await fetch('/admin/modelos/catalogs', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': token,
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ branch_id: selectedBranch.id })
+                });
+                if (!response.ok) {
+                    throw new Error('Error al cargar catálogos');
+                }
+                const data = await response.json();
                 setCatalogs(data);
+            } catch (error) {
+                console.error('Error al cargar catálogos:', error);
+                message.error('Error al cargar los catálogos. Inténtalo de nuevo.');
+            } finally {
                 setLoadingCatalogs(false);
-            })
-            .catch(() => setLoadingCatalogs(false));
+            }
+        };
+        fetchCatalogs();
     }, [selectedBranch]);
 
     useEffect(() => {

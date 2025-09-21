@@ -14,6 +14,7 @@ import {
     Space,
     Avatar,
     Modal,
+    Popconfirm,
 } from 'antd';
 import {
     ShoppingCartOutlined,
@@ -48,6 +49,7 @@ export default function Index(props) {
     const [mediosPago, setMediosPago] = useState([]);
     const { showSuccess, showError } = useNotifications();
     const [activeCategory, setActiveCategory] = useState('productos');
+    const [membresiasTabDisabled, setMembresiasTabDisabled] = useState(false);
     const [favorites, setFavorites] = useState(new Set());
     // El carrito ahora es solo un número entero (cantidad de items)
     const [cart, setCart] = useState(0);
@@ -172,6 +174,7 @@ export default function Index(props) {
         setCart(0);
     }, [selectedBranch?.id]);
     // Callback para cuando la identificación está finalizada
+
     const handleClienteIdentificacionFinalizada = async (identificacionParam) => {
         let identificacion = identificacionParam;
 
@@ -209,11 +212,14 @@ export default function Index(props) {
                 setClienteInfo(data);
                 setCart(data.cart_count || 0); // Actualizar el carrito con la cantidad del cliente
                 setClienteIdentificacion(''); // Limpiar input si encuentra cliente
+                // Habilitar/deshabilitar pestaña de membresías según is_model
+                setMembresiasTabDisabled(data.is_model === false);
             } else {
                 const error = await response.json();
                 showError(error.message);
                 setClienteInfo(null);
                 setClienteIdentificacion(''); // Limpiar input si no encuentra cliente
+                setMembresiasTabDisabled(true);
             }
         } catch (err) {
             console.error('Error al buscar cliente:', err);
@@ -264,6 +270,34 @@ export default function Index(props) {
             console.error('Error al agregar al carrito:', err);
         }
     };
+
+        // Cancela la suscripción activa del cliente (con confirmación)
+        const handleCancelarSuscripcion = async () => {
+            if (!clienteInfo?.id || !selectedBranch?.id || !clienteInfo?.suscripciones?.subscription_plan_id) return;
+            try {
+                const response = await fetch('/admin/tienda/cancelarSuscripcion', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({
+                        person_id: clienteInfo.id,
+                        branch_id: selectedBranch.id,
+                        subscription_plan_id: clienteInfo.suscripciones.subscription_plan_id
+                    })
+                });
+                if (response.ok) {
+                    showSuccess('Suscripción cancelada correctamente');
+                    // Recargar la info del cliente para reflejar el cambio
+                    handleClienteIdentificacionFinalizada(clienteInfo.identification);
+                } else {
+                    showError('No se pudo cancelar la suscripción');
+                }
+            } catch (e) {
+                showError('Error al cancelar la suscripción');
+            }
+        };
 
 
     // Generar categorías únicas dinámicamente a partir de los productos
@@ -345,58 +379,92 @@ export default function Index(props) {
 
     const renderMemberships = () => (
         <div className={styles.membershipsGrid}>
-            {suscripciones.map(membresia => (
-                <div className={styles.membershipCardWrapper} key={membresia.id}>
-                    {/* Identificador visual para la más popular */}
-                    {membresia.es_popular && (
-                        <div className={styles.popularBadge}>
-                            Más Popular
-                        </div>
-                    )}
-                    <div className={styles.membershipBadge}>
-                        <Card hoverable className={styles.membershipCard}>
-                            <div className={styles.membershipHeader}>
-                                <Avatar size={64} icon={<CrownOutlined />} className={styles.membershipAvatar} />
-                                <Title level={2} className={styles.membershipTitle}>
-                                    {membresia.name}
-                                </Title>
-                                <Paragraph className={styles.membershipDescription}>
-                                    {membresia.description}
-                                </Paragraph>
+            {suscripciones.map(membresia => {
+                // Si hay info de cliente y una suscripción activa como objeto
+                let suscripcionActivaId = null;
+                if (clienteInfo?.suscripciones && typeof clienteInfo.suscripciones === 'object' && clienteInfo.suscripciones.status_id === 1) {
+                    suscripcionActivaId = clienteInfo.suscripciones.subscription_plan_id;
+                }
+                const disabledCard = suscripcionActivaId !== null && membresia.id !== suscripcionActivaId;
+                const mostrarCancelar = clienteInfo && clienteInfo.id && suscripcionActivaId !== null && membresia.id === suscripcionActivaId;
+                return (
+                    <div className={styles.membershipCardWrapper} key={membresia.id}>
+                        {/* Identificador visual para la más popular */}
+                        {membresia.es_popular && (
+                            <div className={styles.popularBadge}>
+                                Más Popular
                             </div>
-                            <div className={styles.membershipPriceRow}>
-                                <Title level={1} className={styles.membershipPrice}>
-                                    {membresia.price}<span> / {membresia.duration_months} Mes</span>
-                                </Title>
-                            </div>
-                            {/* Lista de accesos a sedes */}
-                            {membresia.branches_access && (
-                                <div className={styles.membershipBranchesAccess}>
-                                    <Text strong>Accesos a:</Text>
-                                    <ul className={styles.membershipBranchesList}>
-                                        {membresia.branches_access.split(',').map((sede, idx) => (
-                                            <li key={idx} className={styles.membershipBranchItem}>{sede.trim()}</li>
-                                        ))}
-                                    </ul>
+                        )}
+                        <div className={styles.membershipBadge}>
+                            <Card hoverable className={styles.membershipCard}>
+                                <div className={styles.membershipHeader}>
+                                    <Avatar size={64} icon={<CrownOutlined />} className={styles.membershipAvatar} />
+                                    <Title level={2} className={styles.membershipTitle}>
+                                        {membresia.name}
+                                    </Title>
+                                    <Paragraph className={styles.membershipDescription}>
+                                        {membresia.description}
+                                    </Paragraph>
                                 </div>
+                                <div className={styles.membershipPriceRow}>
+                                    <Title level={1} className={styles.membershipPrice}>
+                                        {membresia.price}<span> / {membresia.duration_months} Mes</span>
+                                    </Title>
+                                </div>
+                                {/* Lista de accesos a sedes */}
+                                {membresia.branches_access && (
+                                    <div className={styles.membershipBranchesAccess}>
+                                        <Text strong>Accesos a:</Text>
+                                        <ul className={styles.membershipBranchesList}>
+                                            {membresia.branches_access.split(',').map((sede, idx) => (
+                                                <li key={idx} className={styles.membershipBranchItem}>{sede.trim()}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </Card>
+                        </div>
+                        <div
+                            style={{
+                                display: 'flex',
+                                gap: 8,
+                                marginTop: 8,
+                                justifyContent: 'center'
+                            }}
+                        >
+                            <Button
+                                type="primary"
+                                size="large"
+                                onClick={() => addToCart({
+                                    id: membresia.id,
+                                    type: 'Suscripción'
+                                })}
+                                className={styles.membershipButton}
+                                disabled={disabledCard || !can('editar_tienda')}
+                                title={disabledCard ? 'Solo puedes renovar tu suscripción actual' : (!can('editar_tienda') ? 'No tienes permiso para agregar al carrito' : 'Agregar al carrito')}
+                            >
+                                {disabledCard ? 'No disponible' : 'Agregar al carrito'}
+                            </Button>
+                            {mostrarCancelar && (
+                                <Popconfirm
+                                    title="¿Está seguro de eliminar la suscripción?"
+                                    okText="Sí, eliminar"
+                                    cancelText="No"
+                                    onConfirm={handleCancelarSuscripcion}
+                                >
+                                    <Button
+                                        type="default"
+                                        size="large"
+                                        danger
+                                    >
+                                        Cancelar
+                                    </Button>
+                                </Popconfirm>
                             )}
-                        </Card>
+                        </div>
                     </div>
-                    <Button
-                        type="primary"
-                        size="large"
-                        onClick={() => addToCart({
-                            id: membresia.id,
-                            type: 'Suscripción'
-                        })}
-                        className={styles.membershipButton}
-                        disabled={!can('editar_tienda')}
-                        title={!can('editar_tienda') ? 'No tienes permiso para agregar al carrito' : 'Agregar al carrito'}
-                    >
-                        Agregar al carrito
-                    </Button>
-                </div>
-            ))}
+                );
+            })}
         </div>
     );
     const renderEvents = () => (
@@ -595,6 +663,7 @@ export default function Index(props) {
                             </span>
                         }
                         key="membresias"
+                        disabled={membresiasTabDisabled}
                     />
                     <TabPane
                         tab={
@@ -620,6 +689,10 @@ export default function Index(props) {
                 onUpdateCart={setCart}
                 branch_id={selectedBranch?.id}
                 mediosPago={mediosPago}
+                onReloadCliente={async (identificacion) => {
+                    setClienteIdentificacion(identificacion);
+                    await handleClienteIdentificacionFinalizada(identificacion);
+                }}
             />
         </AdminLayout>
 

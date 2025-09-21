@@ -55,24 +55,29 @@ export default function AdminLayout({ children, title = "Panel de Administració
     };
 
     useEffect(() => {
-        fetch('/admin/branches')
-            .then(res => res.json())
-            .then(data => {
-                setBranches(data);
-                // Seleccionar la sede guardada o la primera por defecto
-                const saved = localStorage.getItem('selectedBranchId');
-                let branch = null;
-                if (saved) {
-                    branch = data.find(b => b.id === Number(saved));
-                }
-                if (!branch && data.length > 0) {
-                    branch = data[0];
-                }
-                if (branch) {
-                    setSelectedBranch(branch);
-                }
-                setLoadingBranches(false);
-            });
+        const fetchBranches = () => {
+            fetch('/admin/branches')
+                .then(res => res.json())
+                .then(data => {
+                    setBranches(data);
+                    // Seleccionar la sede guardada o la primera por defecto
+                    const saved = localStorage.getItem('selectedBranchId');
+                    let branch = null;
+                    if (saved) {
+                        branch = data.find(b => b.id === Number(saved));
+                    }
+                    if (!branch && data.length > 0) {
+                        branch = data[0];
+                    }
+                    if (branch) {
+                        setSelectedBranch(branch);
+                    }
+                    setLoadingBranches(false);
+                });
+        };
+        fetchBranches();
+        window.addEventListener('branchesUpdated', fetchBranches);
+        return () => window.removeEventListener('branchesUpdated', fetchBranches);
     }, []);
 
     // Guardar en localStorage cada vez que cambia la sede
@@ -90,15 +95,6 @@ export default function AdminLayout({ children, title = "Panel de Administració
     // Menú de usuario
     const userMenu = {
         items: [
-            {
-                key: 'profile',
-                icon: <UserOutlined />,
-                label: 'Mi Perfil',
-                onClick: () => router.visit('/admin/profile')
-            },
-            {
-                type: 'divider'
-            },
             {
                 key: 'logout',
                 icon: <LogoutOutlined />, 
