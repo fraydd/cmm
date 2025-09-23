@@ -18,7 +18,7 @@ use \App\Http\Controllers\Admin\PermissionController;
 use \App\Http\Controllers\Admin\StoreController;
 use \App\Http\Controllers\Admin\AttendanceController;
 use \App\Http\Controllers\Admin\CheckinController;
-
+use \App\Http\Controllers\Admin\ReportsController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -74,6 +74,17 @@ Route::post('/auth/register', [RegisterController::class, 'register'])->name('au
 // ============================================================================
 
 Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () {
+    // ------------------------------------------------------------------------
+    // INFORMES
+    // ------------------------------------------------------------------------
+    Route::middleware(['permission:ver_reportes'])->group(function () {
+
+        Route::get('/informes', [ReportsController::class, 'index'])->name('informes.index');
+        Route::post('/informes/modelos/excel', [ReportsController::class, 'exportModelsExcel'])->name('informes.modelos.excel');
+        Route::post('/informes/empleados/excel', [ReportsController::class, 'exportEmployeesExcel'])->name('informes.empleados.excel');
+        Route::post('/informes/cierres-caja/excel', [ReportsController::class, 'exportCashRegisterExcel'])->name('informes.cierres-caja.excel');
+        Route::post('/informes/facturas/excel', [ReportsController::class, 'exportInvoicesExcel'])->name('informes.facturas.excel');
+    });
 
     // ------------------------------------------------------------------------
     // DASHBOARD

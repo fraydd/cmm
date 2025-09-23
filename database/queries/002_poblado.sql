@@ -134,8 +134,9 @@ INSERT INTO `permissions` (`name`, `guard_name`, `description`, `created_at`, `u
 
 -- Sedes
 ('ver_sedes', 'web', 'Ver información de sedes', NOW(), NOW()),
-('editar_sedes', 'web', 'Crear y gestionar sedes', NOW(), NOW());
+('editar_sedes', 'web', 'Crear y gestionar sedes', NOW(), NOW()),
 
+('ver_reportes', 'web', 'Ver y descargar reportes', NOW(), NOW());
 
 -- ===== ASIGNACIÓN DE PERMISOS A ROLES =====
 

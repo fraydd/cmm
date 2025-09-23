@@ -21,6 +21,17 @@ const { Header, Content } = Layout;
 const { Title } = Typography;
 
 export default function AdminLayout({ children, title = "Panel de Administración" }) {
+    const contentRef = useRef();
+    // Función para pantalla completa
+    const handleFullscreen = () => {
+        if (contentRef.current) {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                contentRef.current.requestFullscreen();
+            }
+        }
+    };
     const { auth } = usePage().props;
     const { collapsed, toggle: handleToggleSidebar } = useSidebarState();
     const sidebarRef = useRef();
