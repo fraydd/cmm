@@ -20,7 +20,7 @@ import {
     UserDeleteOutlined
 } from '@ant-design/icons';
 import { useNotifications } from '../../../hooks/useNotifications.jsx';
-import EmployeeModal from '../../../Components/EmployeeModal.jsx';
+import EmployeeModal from './EmployeeModal.jsx';
 import AdminLayout from '../../../Layouts/AdminLayout';
 import styles from './Index.module.scss';
 

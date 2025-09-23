@@ -11,7 +11,8 @@ import {
     BankOutlined,
     SafetyCertificateOutlined
 } from '@ant-design/icons';
-import { useBranch } from '../hooks/useBranch';
+import { useBranch } from '../../../hooks/useBranch.jsx';
+
 import styles from './EmployeeForm.module.scss';
 
 const { TextArea } = Input;
@@ -279,7 +280,7 @@ const EmployeeForm = ({
                     label="Nombres"
                     rules={[{ required: true, message: 'Por favor ingresa los nombres' }]}
                 >
-                    <Input prefix={<UserOutlined />} placeholder="Nombres del empleado" autoComplete="new-password" />
+                        <Input prefix={<UserOutlined />} placeholder="Nombres del empleado" autoComplete="off" />
                 </Form.Item>
             </Col>
             <Col xs={24} sm={12} md={12} lg={12}>
@@ -288,7 +289,7 @@ const EmployeeForm = ({
                     label="Apellidos"
                     rules={[{ required: true, message: 'Por favor ingresa los apellidos' }]}
                 >
-                    <Input placeholder="Apellidos del empleado" autoComplete="new-password" />
+                        <Input placeholder="Apellidos del empleado" autoComplete="off" />
                 </Form.Item>
             </Col>
             <Col xs={24} sm={12} md={12} lg={12}>
@@ -313,7 +314,15 @@ const EmployeeForm = ({
                         { validator: validateEmployeeIdentification }
                     ]}
                 >
-                    <Input placeholder="123456789" autoComplete="new-password" />
+                            <Input
+                                placeholder="123456789"
+                                autoComplete="off"
+                                onKeyPress={e => {
+                                    if (!/[0-9]/.test(e.key)) {
+                                        e.preventDefault();
+                                    }
+                                }}
+                            />
                 </Form.Item>
             </Col>
             <Col xs={24} sm={12} md={12} lg={12}>
@@ -348,7 +357,15 @@ const EmployeeForm = ({
                     label="Teléfono"
                     rules={[{ required: true, message: 'Ingresa el teléfono' }]}
                 >
-                    <Input placeholder="300 123 4567" autoComplete="new-password" />
+                            <Input
+                                placeholder="300 123 4567"
+                                autoComplete="off"
+                                onKeyPress={e => {
+                                    if (!/[0-9]/.test(e.key)) {
+                                        e.preventDefault();
+                                    }
+                                }}
+                            />
                 </Form.Item>
             </Col>
             <Col xs={24} sm={12} md={12} lg={12}>
@@ -360,7 +377,7 @@ const EmployeeForm = ({
                         { required: true, message: 'Ingresa el email' }
                     ]}
                 >
-                    <Input placeholder="empleado@empresa.com" autoComplete="new-password" />
+                        <Input placeholder="empleado@empresa.com" autoComplete="off" />
                 </Form.Item>
             </Col>
             <Col xs={24} sm={24} md={24} lg={24}>
@@ -369,7 +386,7 @@ const EmployeeForm = ({
                     label="Dirección"
                     rules={[{ required: true, message: 'Ingresa la dirección' }]}
                 >
-                    <TextArea rows={2} placeholder="Dirección completa de residencia" autoComplete="new-password" />
+                        <TextArea rows={2} placeholder="Dirección completa de residencia" autoComplete="off" />
                 </Form.Item>
             </Col>
         </Row>
@@ -560,11 +577,16 @@ const EmployeeForm = ({
                         { validator: validateEmergencyContactIdentification }
                     ] : []}
                 >
-                    <Input 
-                        placeholder="123456789"
-                        disabled={!hasEmergencyContact}
-                        autoComplete="new-password"
-                    />
+                        <Input 
+                            placeholder="123456789"
+                            disabled={!hasEmergencyContact}
+                            autoComplete="off"
+                            onKeyPress={e => {
+                                if (!/[0-9]/.test(e.key)) {
+                                    e.preventDefault();
+                                }
+                            }}
+                        />
                 </Form.Item>
             </Col>
             
@@ -591,11 +613,16 @@ const EmployeeForm = ({
                     label="Teléfono de Emergencia"
                     rules={hasEmergencyContact ? [{ required: true, message: 'Ingresa el teléfono' }] : []}
                 >
-                    <Input 
-                        placeholder="300 123 4567"
-                        disabled={!hasEmergencyContact}
-                        autoComplete="new-password"
-                    />
+                        <Input 
+                            placeholder="300 123 4567"
+                            disabled={!hasEmergencyContact}
+                            autoComplete="off"
+                            onKeyPress={e => {
+                                if (!/[0-9]/.test(e.key)) {
+                                    e.preventDefault();
+                                }
+                            }}
+                        />
                 </Form.Item>
             </Col>
             

@@ -12,7 +12,8 @@ import {
     CheckCircleOutlined,
     IdcardOutlined,
     ShopOutlined,
-    ToolOutlined
+    ToolOutlined,
+    BarChartOutlined
 } from '@ant-design/icons';
 import { router, usePage } from '@inertiajs/react';
 import { usePermissions } from '../hooks/usePermissions';
@@ -242,6 +243,14 @@ const Sidebar = forwardRef(({ collapsed, auth, onToggle, isMobile = false, isVis
                     requiredPermissions: ['ver_facturas']
                 }
             ]
+        },
+        // Reportes
+        {
+            key: 'informes',
+            icon: <BarChartOutlined />,
+            label: 'Reportes',
+            onClick: () => router.visit('/admin/informes'),
+            requiredPermissions: ['ver_reportes']
         },
         
         // Configuración - Sin permisos requeridos (siempre visible)

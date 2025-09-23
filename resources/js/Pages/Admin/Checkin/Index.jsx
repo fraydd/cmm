@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 // Instanciar el audio de error una sola vez fuera del componente
 const errorAudio = typeof window !== 'undefined' ? new Audio('/sounds/access.mp3') : null;
 import { Input, Button, Spin, Avatar } from 'antd';
+import { FullscreenOutlined } from '@ant-design/icons';
 import { UserOutlined, IdcardOutlined } from '@ant-design/icons';
 import AdminLayout from '../../../Layouts/AdminLayout';
 import { useBranch } from '../../../hooks/useBranch';
@@ -9,6 +10,17 @@ import styles from './CheckinIndex.module.scss';
 
 
 export default function CheckinIndex() {
+    const contentRef = React.useRef();
+    // Función para pantalla completa
+    const handleFullscreen = () => {
+        if (contentRef.current) {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                contentRef.current.requestFullscreen();
+            }
+        }
+    };
     const [message, setMessage] = useState(null);
     const [error, setError] = useState(null);
     const [imageUrl, setImageUrl] = useState(null);
@@ -80,7 +92,16 @@ export default function CheckinIndex() {
 
     return (
         <AdminLayout>
-            <div className={styles.invitationsPage}>
+            <div ref={contentRef} className={styles.invitationsPage} style={{ position: 'relative' }}>
+                <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 100 }}>
+                    <Button
+                        type="primary"
+                        shape="circle"
+                        icon={<FullscreenOutlined />}
+                        onClick={handleFullscreen}
+                        style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0)' }}
+                    />
+                </div>
                 <div className={styles.headerSection}>
                     <h2>Check-in</h2>
                 </div>

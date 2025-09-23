@@ -58,6 +58,18 @@ class CheckinController extends Controller
     // Check-in para empleados: lógica de in/out
     private function checkinEmpleado($empleado, $person, $branchId)
     {
+        // Validar acceso del empleado a la sede
+        $acceso = DB::table('employee_branch_access')
+            ->where('employee_id', $empleado->id)
+            ->where('branch_id', $branchId)
+            ->exists();
+        if (!$acceso) {
+            return response()->json([
+                'success' => false,
+                'error' => 'No tienes acceso a esta sede. Contacta con administración.'
+            ], 403);
+        }
+
         $today = date('Y-m-d');
         $ultimo = DB::table('attendance_records')
             ->where('employee_id', $empleado->id)
