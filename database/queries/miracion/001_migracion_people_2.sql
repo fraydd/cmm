@@ -1,4 +1,4 @@
-INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
+INSERT INTO people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
 	 (8,'DANNA YULIANA ANGARITA CONDIA',NULL,'1002760675',2,'PEREIRA','2003-08-08','CARRERA 1 CASA 29-121 CENTRO','3235124510','DANNAANGARITA190@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (48,'KATERINE VILLADA RIOS',NULL,'1091272444',3,'SANTA ROSA','2004-10-29','CALLE 32 A NUMERO 12 37','3148747007','KATHEVILLADA204@GMAIL.COM',2,1,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (76,'MANUELA NIETO CARVAJAL',NULL,'1004700773',2,'PEREIRA','2002-09-19','CONJUNTO RESIDENCIAL AGUA AZUL MZ 10 CASA 19A','3028569524','NIETOMANU1909@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
@@ -9,7 +9,7 @@ INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identif
 	 (161,'ISABELLA CERQUERA HERRERA',NULL,'1107852707',3,'PEREIRA','2008-06-25','AV SUR N 42 - 10 CONDOMINIO CEDRITOS CASA 3','3167657541','HCSERVICELTDA@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (164,'MARITZA RESTREPO ALVAREZ',NULL,'1087493774',2,'BELEN DE UNBRIA','1998-01-13','BELEN DE UNBRIA','3193639605','MARIIRESTRE123@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (198,'TOMÁS ALEJANDRO ESGUERRA RUBIO',NULL,'1013037985',3,'PEREIRA','2007-10-10','AV 30 DE AGOSTO CAÑAVERAL 2 CASA 70','3104717032','TOMASGUERRA1010@GMAIL.COM',1,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47');
-INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
+INSERT INTO people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
 	 (210,'MARIA ANTONIA RUIZ CARDONA',NULL,'1128909095',3,'DOSQUEBRADAS','2016-03-25','MZ 5 CASA 14 LAS ACACIAS DOSQUEBRADAS','3102882424','JEFLAK2@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (222,'CARLOS ANDRES VIDAL ARAGON',NULL,'1089097552',2,'pereira','2005-04-18','alta vista bloque apto 501','3206927284','carlosvidal@gmail.com',1,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (243,'SOFIA VILLEGAS',NULL,'1089383854',3,'PEREIRA','2008-01-12','VEREDA CANCELES FINCA LA CABAÑA SECTOR LA CECILIA','3160489474','SOFIAVILLEGAS@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
@@ -20,7 +20,7 @@ INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identif
 	 (294,'VALERIA STEPHANIA ANGEL MARIÑO',NULL,'1093611886',3,'PEREIRA','2021-02-25','BERLIN CARRERA 9 NUMERO 4-57','3116145574','VALERIAMARINO@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (296,'LUISA BARROS JARAMILLO',NULL,'1025677870',3,'PEREIRA','2013-09-24','LONERA 4 LOTE 15 APT 1A','3122515554','LUISABARROS@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (298,'VIOLETA SALAZAR RESTREPO',NULL,'1085721641',3,'PEREIRA','2012-07-29','COLINAS DEL BOSQUE MZ 13 CASA 3','3113553577','VIOLETASALAZAR@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47');
-INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
+INSERT INTO people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
 	 (323,'HELLEN DAHIANA CASTAÑEDA CARDONA',NULL,'1085721040',3,'PEREIRA','2011-07-20','MARSELLA RISARALDA','3147529211','HELLENDAHIANA@GMAIL.COM',2,3,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (326,'LAURA SOFIA MUÑOZ MANZANO',NULL,'1128904907',3,'PERIRA','2006-07-23','MZ 3 CASA 4 MIRADOR DE SANTA MONICA','3116621890','LAURASOFIAMUNOZ@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (327,'ISABELLA NIETO ARBOLEDA',NULL,'1089936226',3,'PEREIRA','2008-10-19','BOSQUES DE CONDINA CASA 29','3009789906','ISABELLANIETO@GMAIL.COM',2,1,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
@@ -31,7 +31,7 @@ INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identif
 	 (370,'SALOME CANO JIMENEZ',NULL,'1088020004',3,'MEDELLIN','2012-10-02','TERRAZAS DE MILAN CASA 8 DOSQUEBRADAS','3176579292','SALOMECANOJIMENEZ@GMAIL.COM',2,2,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (371,'Sara Sofia Mendoza Bermudez',NULL,'1089388582',3,'Pereira','2014-10-01','CARRERA 10 #52-149 TACUARA DOSQUEBRADAS','3234484543','TATANCARDONAERAZO@GMAIL.COM',2,3,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (373,'SALOME MUÑOZ MARULANDA',NULL,'1089938793',3,'PEREIRA','2012-11-16','CONJUNTO CERRITOS CAMPESTRE CASA 706','3106140012','SALOMEMUNOZMARULANDA@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47');
-INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
+INSERT INTO people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
 	 (378,'SHARICK BUITRAGO DE LEON',NULL,'1137061539',3,'PEREIRA','2009-02-17','CARRERA 37 NUMERO 31 - 03 VILLA VERDE','3154935966','SHARICKBUITRAGO@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (382,'HANNA VALENTINA VELASQUEZ GIRALDO',NULL,'1087489161',3,'BELEN','2008-01-08','CRRA 10 #7-41 BELEN','3102368282','TATANCARDONAERAZO@GMAIL.COM',2,1,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (383,'VALERIA ANGEL GIRALDO',NULL,'1088831231',3,'PEREIRA','2008-09-17','CONJUNTO RESIDENCIAL MIRADOR DE COLIBRI MZ 5 CASA 17','3135101321','TATANCARDONAERAZO@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
@@ -42,7 +42,7 @@ INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identif
 	 (402,'VALERY MORENO HERRERA',NULL,'1089938554',3,'PEREIRA','2012-05-16','CAÑABERAL 1 CASA 87','3112187487','VALERYMORENO@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (404,'YERLI MICHEL RAMIREZ VALENCIA',NULL,'1087987128',2,'DOSQUEBRADAS','2004-10-07','CARRERA 12 NUMERO 51 - 56','3001397307','YERLIMICHEL@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (405,'NORKYS YURIMA TERAN LIRA',NULL,'6443758',2,'PEREIRA','2006-05-21','BARRIO ALTOS DEL OTUN CASA 5 MZ 6','3022754713','NORKYSLIRA@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47');
-INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
+INSERT INTO people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
 	 (406,'JUAN PABLO CARDONA GIRALDO',NULL,'1007232662',2,'PEREIRA','2000-05-03','TRV 4 DG 24 A CONJUNTO RS CAMANBU','3162710762','PABLOCMM@GMAIL.COM',1,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (412,'HEYDI ALEXANDRA MORA',NULL,'1089940212',3,'PEREIRA','2015-05-23','CARRERA 9 BIS NUMERO 38 B  28','3226285522','HEYDIALEXANDRA@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (414,'ISABELLA PEREZ LONDOÑO',NULL,'1089605272',3,'PEREIRA RISARALDA','2009-03-30','CARRERA 30 #93-50 MANZANA 5 CASA 13 BULEVAR DEL BOSQUE','3136979661','PISABELLA519@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
@@ -53,7 +53,7 @@ INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identif
 	 (426,'SALOME CHICA',NULL,'1089608688',3,'PEREIRA','2025-01-23','CONJUNTO PAMA SERA','3127156591','SALOMECHICA2@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (427,'LUSIANA MUÑOZ',NULL,'1089608905',3,'PEREIRA','2025-01-25','CALLE 101 NUMERO 17B-60 BOLIVAR DE LOS VIENTOS 2ETAPA CASA 43 PEREIRA','3042678870','LUSIANA@GIMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (429,'JULIANA LONDOÑO ZULETA',NULL,'1089606050',3,'PEREIRA','2009-05-10','AURORA ALTA DOSQUEBRADAS CR 21 C LA AURORA','3138658344','JULIANALONDONO101@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47');
-INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
+INSERT INTO people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
 	 (430,'MARIA JOSE RESTREPO',NULL,'1014992949',3,'BOGOTA','2025-01-31','CONDOMIO CERRITOS ENTRADA 8CAFELIA CASA 2','3126956110','RESTREPOO@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (431,'SARA CORREA EUSSE',NULL,'1042152972',3,'PEREIRA','2009-12-05','URBANIZACION ALTA MZ 3 # 33','3116178309','SARAEUSSE@GMAIL.COM',2,2,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (432,'AMY GALVIZ ARENAS',NULL,'1140064384',3,'DOSQUEBRADAS RISARALDA','2008-04-21','DOSQUEBRADAS','3246683529','AMYGA@GIMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
@@ -64,7 +64,7 @@ INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identif
 	 (438,'ESTEFANIA OCOMPO',NULL,'1115422605',3,'PEREIRA','2012-12-09','MANZANA 17 CASA Z LA VIRGINIA RISARALDA','3106756279','ESTEFANIA@GIMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (439,'ISABELLA ARISTIZABAL',NULL,'1043990781',3,'DOSQUEBRADAS RISARALDA','2012-01-26','CALLE 22 NUMERO 20-115 PRADERA DOSQUEBRADAS','3146224164','ISAARITI72@GIMAIL.COM',2,5,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (440,'ALEXANDRA GALINDO BERMUDEZ',NULL,'1112793403',2,'CARTAGO','1999-04-20','CONJUNTO PALO VERDE PEREIRA','3022139266','ALEXANDRA.GALINDO@UTP.EDU.CO',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47');
-INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
+INSERT INTO people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
 	 (441,'SARAY SUAZA HERRERA',NULL,'1088007971',2,'DOSQUEBRADAS RISARALDA','2009-08-29','GUADUALES DE MILAN','30024537913','SARAYSUAZAHERRERA1@GMAIL.COM',2,1,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (442,'ISABELLA VELASQUEZ',NULL,'1089936845',3,'PEREIRA','2009-09-24','KILOMETRO 5VIA MARCELLA','3138572824','ISA@GIMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (443,'SALOME MARTINEZ',NULL,'1089387000',3,'PEREIRA','2012-05-13','GUADALUPE DOSQUEBRADAS','3234995545','SALOMARTI23@ICLOUD.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
@@ -75,7 +75,7 @@ INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identif
 	 (448,'SALOME GUTIERRES',NULL,'1128907896',3,'LA CELIA RISARALDA','2013-10-25','CARRERA 26 NUMERO 78-80','3232016326','SERNAYEIMY51@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (449,'CAMILA CHICA',NULL,'1137059312',2,'PEREIRA','2005-10-24','CANCELES','3018080530','KMI.CHICA01@GMAIL.COM',2,8,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (450,'CAMILA CARREÑO',NULL,'1115577272',3,'VITERBO CALDAS','2011-03-01','VITERBO CALDAS','3206290375','CAMILA@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47');
-INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
+INSERT INTO people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
 	 (451,'MICHELLE  LOAIZA',NULL,'1137059706',2,'PEREIRA','2006-09-21','GUADAL CANAL 2 CUBA','3006265201','LOAIZAM@GMAIL.COM',2,3,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (454,'MARIA ALEJANDRA PEREZ ECHEVERRY',NULL,'1011325576',3,'PEREIRA','2009-04-21','TEJARES DE LA LOMA MZ 26 CASA 12','3003753845','MARIAALEJANDRAPEREZ@GMAIL.COM',2,1,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (455,'VALERY NIKOLL VALENCIA AGUDELO',NULL,'1089745637',3,'PEREIRA','2007-08-06','CR 19 11 - 73 B TORRE 9 -503','3206936916','NIKOLLVALERY@GMAIL.COM',2,1,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
@@ -86,7 +86,7 @@ INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identif
 	 (461,'HELLEN STACY',NULL,'1142517057',3,'PEREIRA','2009-02-14','SANTA JUANA DE LAS VILLAS','3143590196','HELLENVELASQUEZC@GMAIL.COM',2,1,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (462,'MARIANA OSORIO',NULL,'1085796110',2,'PEREIRA','2006-08-20','PORTAL DE ARBOLA','3126184771','CHABARRIAMARIANA664@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (463,'MARIA JOSE MUÑOZ',NULL,'1089383790',3,'PEREIRA','2007-12-25','CORALES MANZANA 12 CASA 19','3226716424','mariajosemunoz480@gmail.com',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47');
-INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
+INSERT INTO people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
 	 (464,'VALENTINA GIL',NULL,'1085816680',3,'SUPIA CALDAS','2007-09-21','SUPIA CALDAS','3217778797','VALENTINAGIL018@GMAIL.COM',2,1,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (466,'ISABELLA RAMIREZ',NULL,'1089100057',3,'PEREIRA','2008-03-31','CARRERA 17 NUMERO 22-42 LORENA','3104956950','BELLARAMIREZARIAS@GMAIL.COM',2,8,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (467,'VAIOLET VARGAS',NULL,'1128912717',3,'DOSQUEBRADAS','2021-12-03','MANZANA 1 CASA3 LA ROMELIA','3224004627','DANIELAZAPATA0312@GMAIL.COM',2,1,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
@@ -97,7 +97,7 @@ INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identif
 	 (472,'SARA RYBOVIC',NULL,'5948834',4,'PEREIRA','2016-03-25','CONDOMINIO QUINTAS DE PINDAMA','3104920468','SARA2016@GIMAIL.COM',2,1,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (473,'SUSANNA RIBOVIC',NULL,'5948636',4,'PEREIRA','2014-07-24','QUINTA DE PINDAMA','3104920468','SUSUNNA@GMAIL.COM',2,1,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (474,'LAURA SOFIA DUQUE',NULL,'1091273960',3,'SANTA ROSA','2026-11-14','SANTA ROSA','3145313396','SOFIADUQUE1357@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47');
-INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
+INSERT INTO people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
 	 (475,'SOFIA ARBELAEZ',NULL,'1091275638',3,'SANTAROSA DE CABAL','2011-08-29','CALLE 17 NUMERO 21-31 CASA 138 SANTA MONICA','3126861319','MONI-KDEL@HOTMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (476,'MARIA JOSE DIEZ',NULL,'1087491172',3,'BELEN DE UMBRIA','2011-05-09','ALTAVISTA MANZANA 11 CASA 6','3105310651','LUISAFERNANDALOPEZVILLEGAS977@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (477,'SOFIA CASTAÑO',NULL,'1054866064',3,'CHINCHINA CALDAS','2007-12-19','CALLE 63ANUMERO22-34','3203684167','SOFIMURICASTA13@GMAIL.COM',2,1,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
@@ -108,7 +108,7 @@ INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identif
 	 (483,'SALOME HURTADO ARIAS',NULL,'1089391808',3,'DOSQUEBRADAS','2013-05-30','DOSQUEBRADAS','3127542620','SALOMEHURTADOARIAS@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (484,'VALENTINA CIFUENTES VELEZ',NULL,'1120842027',3,'PEREIRA','2009-07-09','PEREIRA RISARALDA','3123051646','VALENTINACIFUENTES@GMAIL.COM',2,1,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (485,'LUISA MARIA GARCIA CADAVID',NULL,'1089607461',3,'PEREIRA','2009-12-04','MZ 41 CASA 7 SAMARIA','3234887437','LUISAMARIAGARCIA@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47');
-INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
+INSERT INTO people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
 	 (486,'JOHAN CASTILLO OSORIO',NULL,'1089381193',2,'PEREIRA','2005-11-22','MANZANA 27 CASA 4 SAMARIA','3154252442','OSORIOCASTILLO2005@GMAIL.COM',1,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (487,'MARIA JOSE PEÑUELA CASTRO',NULL,'1088361981',3,'PEREIRA','2021-01-08','CALLE 8 NUMERO 31-177 JAPOM DOSQUEBRADAS','3126890637','MARIAJOSEPENUELA@GMAIL.COM',2,1,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (488,'VALERIA CANTILLO',NULL,'1088829923',3,'PEREIRA','2007-10-25','MARAYA','3045933910','VCANTILLO698@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
@@ -119,7 +119,7 @@ INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identif
 	 (493,'CAROLINA VALLEJO',NULL,'1016102084',2,'BOGOTA','1998-05-07','SANTA RROSA DE CABAL TORRE SAN RAFAEL','3215474923','CAROLINAVH07@HOTMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (494,'VALENTINA MUÑOZ',NULL,'1089099482',2,'SANTA ROSA DE CABAL','2007-03-30','SANTA ROSA DE CABAL','3215622007','VALENTINA20@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (495,'SHARIA SELENA SOTO',NULL,'1113040003',3,'BUGA VALLE','2011-04-02','CARRERA 26 NUMERO2702 BARRIO LINARES SANTA ROSA','3126018630','SHAIRASOTO10@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47');
-INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
+INSERT INTO people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
 	 (496,'ESTEBAN GARCIA',NULL,'1089097704',2,'PEREIRA','2005-05-11','SENTENARIO PEREIRA','3134028733','ESTEBANVELEZ@GIMAIL.COM',1,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (497,'VALERIA CASTAÑO SOTO',NULL,'1137059130',2,'PEREIRA','2005-08-11','CALLE 20 31- B 03','3015073117','VALERIACATANOSOTO@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (498,'NIKOL LOPEZ',NULL,'1088831335',3,'PEREIRA','2008-10-22','CAÑAVERAL DOS CASA 7','3125300546','NIKOLLOPEZVERA@GMAIL.COM',2,1,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
@@ -130,7 +130,7 @@ INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identif
 	 (503,'MARIANA ALVARADO VELASCO',NULL,'1034578002',3,'PEREIRA','2008-06-29','CALLE 89 NUMERO 29-86 SANTA CLARA DE LAS VILLAS','3505060501','MARIANAVARADO@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (504,'ESTEFANY GONZALEZ',NULL,'1093227159',2,'SANTA ROSA','0996-10-10','CALLE 25 7-96','3116944730','TATANCARDONAERAZO@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (505,'SOFIA NIETO CARDONA',NULL,'1088830397',3,'PEREIRA','2008-02-13','MZ 11 CASA 10 LA GRACIELA','3043929084','SOFIANIETOGARCIA@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47');
-INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
+INSERT INTO people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
 	 (506,'VALERIA BAÑOL',NULL,'1142515310',3,'PEREIRA','2007-11-30','CERRITOS SENDEROS DEL CAMPO CASA 20','3153277830','CASABANOL@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (507,'EVELYN GIL',NULL,'1085722166',3,'DOSQUEBRADAS','2013-07-26','CONJUNTO AGUA GIL DOSQUEBRADAS','3001283297','GILFLOREVELYN@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
 	 (508,'ISABELLA PIÑEROS',NULL,'1089605952',3,'PEREIRA','2009-06-11','MANZANA 10 CASA 12 BULEVAR DE LAS VILLAS','3046653865','ISABELLA.PINEROS.R@GMAIL.COM',2,7,NULL,1,'2025-10-11 17:34:47','2025-10-11 17:34:47'),
@@ -141,7 +141,7 @@ INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identif
 	 (513,'OLGA LUCIA CARVAJAL',NULL,'42152801',2,'PEREIRA',NULL,'CONJUNTO RESIDENCIAL AGUA AZUL MZ 10 CASA 19A','3122881353',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (514,'YOLANDA GRANADA',NULL,'24552027',2,'PEREIRA',NULL,'BELEN DE UNBRIA','3207702795',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (515,'GISSELLE YSTURIZ',NULL,'16525888',2,'VENEZUELA',NULL,'PARQUE INDUSTRIAL SECTOR A MZ 9 CASA 16 2 PISO','3148123427',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34');
-INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
+INSERT INTO people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
 	 (516,'GLORIAPATRICIA ALVEREZ',NULL,'30327280',2,'MANIZALEZ',NULL,'RIO  SUCIO CALDAS','3212573055',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (517,'DANIEL SALAZAR',NULL,'1225093318',2,'PEREIRA',NULL,'MZ 6 CASA 13 HACIENDA CUBA','3122544428',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (518,'JIMENA HERRERA',NULL,'55178690',2,'NEIVA',NULL,'AV SUR N 42 - 10 CONDOMINIO CEDRITOS CASA 3','3174453234',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
@@ -152,7 +152,7 @@ INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identif
 	 (523,'CLAUDIA VILLEGAS',NULL,'42119673',2,'PEREIRA',NULL,'VEREDA CANCELES FINCA LA CABAÑA SECTOR LA CECILIA','3164407037',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (524,'ELAINE VELEZ SALAZAR',NULL,'31416073',2,'CARTAGO',NULL,'CARRERA 5 NUMERO 17-16','3168984141',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (525,'CATALINA LA ROTTA',NULL,'42143105',2,'PEREIRA',NULL,'CARRERA 28 NUMERO 92- 10','3188478839',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34');
-INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
+INSERT INTO people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
 	 (526,'VERONICA ZAPATA',NULL,'1130612056',2,'CALI',NULL,'CONDOMINIO QUINTAS DE ALEJANDRIA CASA 2 VR EL TIGRE','3226145536',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (527,'ESTAFANY MARIÑO',NULL,'3973973',2,'BOGOTA',NULL,'BERLIN CARRERA 9 NUMERO 4-57','3116145574',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (528,'DIANA BEATRIZ JARAMILLO ALZATE',NULL,'42123871',2,'PEREIRA',NULL,'LONERA 4 LOTE 15 APT 1A','3122515554',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
@@ -163,7 +163,7 @@ INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identif
 	 (533,'MABEL ECHEVERRY BERRIO',NULL,'1087998226',2,'DOSQUEBRADAS',NULL,'VIA CERRITOS CONDOMIO EL TIGRE CASA 65','3163999158',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (534,'SANDRA MILENA GIRALDO NIETO',NULL,'42160659',2,'PEREIRA',NULL,'MZ 1 CASA 8 SAN FERNANDAO CUBA','3225573326',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (535,'YINA ALEXANDRA CHAPARRO LOPEZ',NULL,'43152029',2,'PEREIRA',NULL,'MZ 21 CASA 38 POBLADO 2','3104219269',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34');
-INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
+INSERT INTO people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
 	 (536,'PAOLA ANDREA MUÑOZ',NULL,'42147115',2,'PEREIRA',NULL,'KR 40 BIS 92B 10 JARDIN DE VILLANOA','3164284955',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (537,'BLANCA INES JIMENEZ GARCIA',NULL,'42011245',2,'DOSQUEBRADAS',NULL,'TERRAZAS DE MILAN CASA 8 DOSQUEBRADAS','3176579292',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (538,'NUBIA BERMUDEZ',NULL,'35891933',2,'CHOCO',NULL,'CARRERA 10 #52-149 TACUARA DOSQUEBRADAS','3144781173',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
@@ -174,7 +174,7 @@ INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identif
 	 (543,'ALBA LUCERO RIVERA',NULL,'41944357',2,'ARMENIA',NULL,'SAMARIA 2','3137363630',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (544,'MARIA CECILIA LOPEZ LOZANO',NULL,'42051513',2,'PEREIRA',NULL,'MANZANA 28 CASA 6 VILLA DEL CAMPO DOSQUEBRADAS','3126321933',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (545,'CAROL DANIELA GUTIERREZ RODRIGUEZ',NULL,'1005827971',2,'PEREIRA',NULL,'MZ 1 CASA 2 SAUCES 3','3106420182',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34');
-INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
+INSERT INTO people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
 	 (546,'CLAUDIA LUCIA HERRERA MORALES',NULL,'51897068',2,'PEREIRA',NULL,'CAÑABERAL 1 CASA 87','3166227504',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (547,'POLIANA RIVERA',NULL,'1088329983',2,'PEREIRA',NULL,'CARRERA 12 NUMERO 51 - 56','3106037169',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (548,'HEYDI TABORDA',NULL,'111111',2,'PEREIRA',NULL,'BARRIO ALTOS DEL OTUN CASA 5 MZ 6','3011643706',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
@@ -185,7 +185,7 @@ INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identif
 	 (553,'ALEJANDRA CASTAÑO',NULL,'42125488',2,'PEREIRA',NULL,'CALLE 18 NUMERO 7 -25','3207636199',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (554,'ALEXANDER GIRALDO',NULL,'10004254',2,'PEREIRA',NULL,'CARRERA 3 NUMERO 16-37','3122106667',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (555,'YANET LOPEZ',NULL,'24766307',2,'MAESELLA',NULL,'CONJUNTO PALMA SERA','3016128810',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34');
-INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
+INSERT INTO people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
 	 (556,'LINA MARCELA BEDOYA',NULL,'24695859',2,'DOSQUEBRADAS',NULL,'CALLE101NUMERO 17B-60BOLIVAR DELOS VIENTOS','3103948003',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (557,'LUZ MARINA ZULETA',NULL,'25248316',2,'VITERBO',NULL,'AURORA ALTA DOSQUEBRADAS CR 21 C LA AURORA','3113437505',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (558,'CLAUDIA OROZCO',NULL,'64587556',2,'CINSELEJO SUCRE',NULL,'CONDOMINIO CERRITOS CAFELIA ENTRADA 8 CASA 2','3138932059',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
@@ -196,7 +196,7 @@ INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identif
 	 (563,'DEISY MARICELA SALAZAR',NULL,'21493269',2,'MARINILLA ANTIOQUIA',NULL,'CALLE 13 B 16B09 VALER','3128137540',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (564,'RAUL NARANJO',NULL,'70904318',2,'MEDELLIN ANTIOQUIA',NULL,'VALER DOSQUEBRADAS','3234800653',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (565,'JHOANA LONDOÑO',NULL,'1115420154',2,'VIRGINIA RISALDA',NULL,'MANZANA 17 CASA ZLA VIRGINIA','3106756279',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34');
-INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
+INSERT INTO people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
 	 (566,'ERNYS ORTIZ',NULL,'1007254719',2,'CARTAGENA',NULL,'CALLE 22 NUMERO20-115 PRADERA DOSQUEBRADAS','3167593898',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (567,'NORMA CONSTANZA BERMUDEZ',NULL,'65552430',2,'IBAGUE',NULL,'CARTAGO','3022126222',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (568,'NATALY HERRERA',NULL,'1006185887',2,'DOSQUEBRADAS',NULL,'GUADUALES DE MILAN','3117135968',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
@@ -207,7 +207,7 @@ INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identif
 	 (573,'DIANA PINO',NULL,'24688352',2,'GUATICA',NULL,'CARRERA 26 NUMERO 78-80','3228273143',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (574,'PAULA ANDREA RIOS',NULL,'43405410',2,'GERICOT  ANTIOQUIA',NULL,'MANZANA 10CASA22B BOSQUES DE LA ACUARELA','3117894717',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (575,'MARIO CHICA PALACIO',NULL,'18508493',2,'PEREIRA',NULL,'CANCELES','3117355169',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34');
-INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
+INSERT INTO people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
 	 (576,'LUCERO  CARREÑO',NULL,'25247251',2,'VITERBO CALDAS',NULL,'VITERBO CALDAS','3104879042',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (577,'ALBA NURY GONZALES',NULL,'1088240969',2,'PEREIRA',NULL,'CUBA','3148428474',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (578,'YULI ANDRA ECHEVERRY',NULL,'24347882',2,'PEREIRA',NULL,'ALTOS DE LA LOMA','3213455005',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
@@ -218,7 +218,7 @@ INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identif
 	 (583,'NANCY KIRAMA',NULL,'43949581',2,'MEDELLIN',NULL,'DOSQUEBRADAS','3113885003',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (584,'ANGELA CORRALES',NULL,'1088298346',2,'PEREIRA',NULL,'SANTA JUANA DE LAS VILLAS','32155779006',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (585,'CLAUDIA OSORIO',NULL,'1088237278',2,'PEREIRA',NULL,'PORTAL DE ARBOLIA','3137946268',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34');
-INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
+INSERT INTO people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
 	 (586,'SANDRA QUINTERO',NULL,'1087992154',2,'PEREIRA',NULL,'CORALES  MANZANA12 CASA 19','3233632688',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (587,'MARIA GRANADOS',NULL,'24152057',2,'SUPIA CALDAS',NULL,'SUPIA CALDAS','3137741002',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (588,'CLAUDIA ARIAS',NULL,'25165960',2,'PEREIRA',NULL,'LORENA','1',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
@@ -229,7 +229,7 @@ INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identif
 	 (593,'FRANCY RIBOVIC',NULL,'5948482',2,'PEREIRA',NULL,'CERRITOS','3104920468',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (594,'LEIDY ARBOLEDA',NULL,'33967222',2,'SANTA ROSA',NULL,'SANTA ROSA','3208984942',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (595,'MONICA DELGADO',NULL,'25180344',2,'DOSQUEBRADAS',NULL,'SANTA MONICA DOSQUEBRADAS','3128404270',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34');
-INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
+INSERT INTO people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
 	 (596,'LUISA FERNANDA LOPEZ',NULL,'1087490076',2,'BELEN DE UMBRIA',NULL,'ALTAVISTA','3207317354',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (597,'ADRIANA MURILLO',NULL,'30356522',2,'CHINCHINA',NULL,'CALLE63A NUMERO 22-34','3103289566',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (598,'SANDRA LOPERA',NULL,'1088237828',2,'PEREIRA',NULL,'CARRERA1 NUMERO 39B38','3144167451',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
@@ -240,7 +240,7 @@ INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identif
 	 (603,'DIEGO FERNANDO CIFUENTES',NULL,'86062619',2,'PEREIRA',NULL,'PEREIRA RISARALDA','3103132369',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (604,'LEIDY JOHANA CADAVID MONTOYA',NULL,'42155751',2,'PEREIRA',NULL,'MZ 41 CASA 7 SAMARIA','3122586122',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (605,'ALBA OSORIO',NULL,'42157009',2,'PPEREIRA',NULL,'SAMARIA 2','3103765578',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34');
-INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
+INSERT INTO people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
 	 (606,'NORMA CASTRO',NULL,'1069924487',2,'PEREIRA',NULL,'PEREIRA','3126890637',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (607,'FRANCY ELENA ABAD',NULL,'25000871',2,'PUEBLO RICO RISARALDA',NULL,'MARAYA','3137446448',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (608,'DIANA OSORIO',NULL,'42157372',2,'PEREIRA',NULL,'CONJUNTO TEKA','3117060479',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
@@ -251,7 +251,7 @@ INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identif
 	 (613,'ARGENIS OSORIO',NULL,'42142053',2,'PEREIRA',NULL,'SANTA ROSA','3148596078',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (614,'BLANCA DUQUE',NULL,'29307760',2,'UNIO  VALLE',NULL,'SANTA ROSA','3235251490',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (615,'LEIDY VELEZ',NULL,'42111222',2,'CALI',NULL,'SENTENARIO','3118308307',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34');
-INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
+INSERT INTO people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
 	 (616,'VALENTINA CASTAÑO',NULL,'1234567',2,'PEREIRA',NULL,'CALLE 20 31- B 03','3202013151',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (617,'GLADYS VERA',NULL,'42086879',2,'PEREIRA',NULL,'CAÑAVERAL','3203496272',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (618,'DANIELA MEJIA',NULL,'123456',2,'PEREIRA',NULL,'PEREIRA','3148285558',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
@@ -262,7 +262,7 @@ INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identif
 	 (623,'CENEIDA CARDONA TAMAYO',NULL,'24660120',2,'PEREIRA',NULL,'MZ 11 CASA 10 LA GRACIELA','3214215668',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (624,'LUZ ESPERANZA BAÑOL',NULL,'1032421717',2,'BOGOTA',NULL,'CERRITOS','3206171950',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (625,'JENNY FLOR',NULL,'42151078',2,'PEREIRA',NULL,'DOSQUEBRADAS','3128950167',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34');
-INSERT INTO cmm_db.people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
+INSERT INTO people (id,first_name,last_name,identification_number,identification_type_id,identification_place,birth_date,address,phone,email,gender_id,blood_type_id,photo,is_active,created_at,updated_at) VALUES
 	 (626,'SEGIO PIÑEROS',NULL,'10032503',2,'PEREIRA',NULL,'BULEVAR DE LAS VILLAS','3014622260',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (627,'TATIANA CANO',NULL,'108825464',2,'PEREIRA',NULL,'BOMBAY','3229660560',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34'),
 	 (628,'TATIANA CANO',NULL,'1088254640',2,'DOSQUEBRADAS',NULL,'BOMBAY','3229660560',NULL,NULL,NULL,NULL,1,'2025-10-11 18:58:34','2025-10-11 18:58:34');

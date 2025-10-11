@@ -1,4 +1,4 @@
-INSERT INTO cmm_db.subscriptions (id,model_id,subscription_plan_id,start_date,end_date,status_id,is_active,created_at,updated_at) VALUES
+INSERT INTO subscriptions (id,model_id,subscription_plan_id,start_date,end_date,status_id,is_active,created_at,updated_at) VALUES
 	 (1,8,1,'2025-10-11','2025-04-01',NULL,1,NULL,NULL),
 	 (2,48,1,'2025-10-11','2026-01-01',NULL,1,NULL,NULL),
 	 (3,76,1,'2025-10-11','2025-04-15',NULL,1,NULL,NULL),
@@ -9,7 +9,7 @@ INSERT INTO cmm_db.subscriptions (id,model_id,subscription_plan_id,start_date,en
 	 (8,161,1,'2025-10-11','2025-07-05',NULL,1,NULL,NULL),
 	 (9,164,1,'2025-10-11','2025-07-05',NULL,1,NULL,NULL),
 	 (10,198,1,'2025-10-11','2024-12-30',NULL,1,NULL,NULL);
-INSERT INTO cmm_db.subscriptions (id,model_id,subscription_plan_id,start_date,end_date,status_id,is_active,created_at,updated_at) VALUES
+INSERT INTO subscriptions (id,model_id,subscription_plan_id,start_date,end_date,status_id,is_active,created_at,updated_at) VALUES
 	 (11,210,1,'2025-10-11','2025-08-05',NULL,1,NULL,NULL),
 	 (12,222,1,'2025-10-11','2025-06-01',NULL,1,NULL,NULL),
 	 (13,243,1,'2025-10-11','2025-09-10',NULL,1,NULL,NULL),
@@ -20,7 +20,7 @@ INSERT INTO cmm_db.subscriptions (id,model_id,subscription_plan_id,start_date,en
 	 (18,294,1,'2025-10-11','2025-08-19',NULL,1,NULL,NULL),
 	 (19,296,1,'2025-10-11','2025-08-01',NULL,1,NULL,NULL),
 	 (20,298,1,'2025-10-11','2025-04-07',NULL,1,NULL,NULL);
-INSERT INTO cmm_db.subscriptions (id,model_id,subscription_plan_id,start_date,end_date,status_id,is_active,created_at,updated_at) VALUES
+INSERT INTO subscriptions (id,model_id,subscription_plan_id,start_date,end_date,status_id,is_active,created_at,updated_at) VALUES
 	 (21,323,1,'2025-10-11','2025-08-08',NULL,1,NULL,NULL),
 	 (22,326,1,'2025-10-11','2025-09-30',NULL,1,NULL,NULL),
 	 (23,327,1,'2025-10-11','2025-09-03',NULL,1,NULL,NULL),
@@ -31,7 +31,7 @@ INSERT INTO cmm_db.subscriptions (id,model_id,subscription_plan_id,start_date,en
 	 (28,370,1,'2025-10-11','2025-06-01',NULL,1,NULL,NULL),
 	 (29,371,1,'2025-10-11','2025-08-28',NULL,1,NULL,NULL),
 	 (30,373,1,'2025-10-11','2025-09-11',NULL,1,NULL,NULL);
-INSERT INTO cmm_db.subscriptions (id,model_id,subscription_plan_id,start_date,end_date,status_id,is_active,created_at,updated_at) VALUES
+INSERT INTO subscriptions (id,model_id,subscription_plan_id,start_date,end_date,status_id,is_active,created_at,updated_at) VALUES
 	 (31,378,1,'2025-10-11','2025-07-07',NULL,1,NULL,NULL),
 	 (32,382,1,'2025-10-11','2025-05-01',NULL,1,NULL,NULL),
 	 (33,383,1,'2025-10-11','2025-09-11',NULL,1,NULL,NULL),
@@ -42,7 +42,7 @@ INSERT INTO cmm_db.subscriptions (id,model_id,subscription_plan_id,start_date,en
 	 (38,402,1,'2025-10-11','2025-08-01',NULL,1,NULL,NULL),
 	 (39,404,1,'2025-10-11','2025-09-16',NULL,1,NULL,NULL),
 	 (40,405,1,'2025-10-11','2025-06-11',NULL,1,NULL,NULL);
-INSERT INTO cmm_db.subscriptions (id,model_id,subscription_plan_id,start_date,end_date,status_id,is_active,created_at,updated_at) VALUES
+INSERT INTO subscriptions (id,model_id,subscription_plan_id,start_date,end_date,status_id,is_active,created_at,updated_at) VALUES
 	 (41,406,1,'2025-10-11','2025-02-11',NULL,1,NULL,NULL),
 	 (42,412,1,'2025-10-11','2025-09-02',NULL,1,NULL,NULL),
 	 (43,414,1,'2025-10-11','2025-10-02',NULL,1,NULL,NULL),
@@ -53,7 +53,7 @@ INSERT INTO cmm_db.subscriptions (id,model_id,subscription_plan_id,start_date,en
 	 (48,426,1,'2025-10-11','2025-09-01',NULL,1,NULL,NULL),
 	 (49,427,1,'2025-10-11','2025-07-01',NULL,1,NULL,NULL),
 	 (50,429,1,'2025-10-11','2025-07-03',NULL,1,NULL,NULL);
-INSERT INTO cmm_db.subscriptions (id,model_id,subscription_plan_id,start_date,end_date,status_id,is_active,created_at,updated_at) VALUES
+INSERT INTO subscriptions (id,model_id,subscription_plan_id,start_date,end_date,status_id,is_active,created_at,updated_at) VALUES
 	 (51,430,1,'2025-10-11','2025-07-03',NULL,1,NULL,NULL),
 	 (52,431,1,'2025-10-11','2025-06-30',NULL,1,NULL,NULL),
 	 (53,432,1,'2025-10-11','2025-09-06',NULL,1,NULL,NULL),
@@ -64,7 +64,7 @@ INSERT INTO cmm_db.subscriptions (id,model_id,subscription_plan_id,start_date,en
 	 (58,438,1,'2025-10-11','2025-09-08',NULL,1,NULL,NULL),
 	 (59,439,1,'2025-10-11','2025-10-03',NULL,1,NULL,NULL),
 	 (60,440,1,'2025-10-11','2025-07-01',NULL,1,NULL,NULL);
-INSERT INTO cmm_db.subscriptions (id,model_id,subscription_plan_id,start_date,end_date,status_id,is_active,created_at,updated_at) VALUES
+INSERT INTO subscriptions (id,model_id,subscription_plan_id,start_date,end_date,status_id,is_active,created_at,updated_at) VALUES
 	 (61,441,1,'2025-10-11','2025-09-27',NULL,1,NULL,NULL),
 	 (62,442,1,'2025-10-11','2025-09-09',NULL,1,NULL,NULL),
 	 (63,443,1,'2025-10-11','2025-04-04',NULL,1,NULL,NULL),
@@ -75,7 +75,7 @@ INSERT INTO cmm_db.subscriptions (id,model_id,subscription_plan_id,start_date,en
 	 (68,448,1,'2025-10-11','2025-07-01',NULL,1,NULL,NULL),
 	 (69,449,1,'2025-10-11','2025-08-31',NULL,1,NULL,NULL),
 	 (70,450,1,'2025-10-11','2025-09-06',NULL,1,NULL,NULL);
-INSERT INTO cmm_db.subscriptions (id,model_id,subscription_plan_id,start_date,end_date,status_id,is_active,created_at,updated_at) VALUES
+INSERT INTO subscriptions (id,model_id,subscription_plan_id,start_date,end_date,status_id,is_active,created_at,updated_at) VALUES
 	 (71,451,1,'2025-10-11','2025-09-06',NULL,1,NULL,NULL),
 	 (72,454,1,'2025-10-11','2025-06-01',NULL,1,NULL,NULL),
 	 (73,455,1,'2025-10-11','2025-09-22',NULL,1,NULL,NULL),
@@ -86,7 +86,7 @@ INSERT INTO cmm_db.subscriptions (id,model_id,subscription_plan_id,start_date,en
 	 (78,461,1,'2025-10-11','2025-07-24',NULL,1,NULL,NULL),
 	 (79,462,1,'2025-10-11','2025-07-20',NULL,1,NULL,NULL),
 	 (80,463,1,'2025-10-11','2025-05-25',NULL,1,NULL,NULL);
-INSERT INTO cmm_db.subscriptions (id,model_id,subscription_plan_id,start_date,end_date,status_id,is_active,created_at,updated_at) VALUES
+INSERT INTO subscriptions (id,model_id,subscription_plan_id,start_date,end_date,status_id,is_active,created_at,updated_at) VALUES
 	 (81,464,1,'2025-10-11','2025-08-26',NULL,1,NULL,NULL),
 	 (82,466,1,'2025-10-11','2025-07-01',NULL,1,NULL,NULL),
 	 (83,467,1,'2025-10-11','2025-08-03',NULL,1,NULL,NULL),
@@ -97,7 +97,7 @@ INSERT INTO cmm_db.subscriptions (id,model_id,subscription_plan_id,start_date,en
 	 (88,472,1,'2025-10-11','2025-07-16',NULL,1,NULL,NULL),
 	 (89,473,1,'2025-10-11','2025-07-16',NULL,1,NULL,NULL),
 	 (90,474,1,'2025-10-11','2025-08-17',NULL,1,NULL,NULL);
-INSERT INTO cmm_db.subscriptions (id,model_id,subscription_plan_id,start_date,end_date,status_id,is_active,created_at,updated_at) VALUES
+INSERT INTO subscriptions (id,model_id,subscription_plan_id,start_date,end_date,status_id,is_active,created_at,updated_at) VALUES
 	 (91,475,1,'2025-10-11','2025-10-01',NULL,1,NULL,NULL),
 	 (92,476,1,'2025-10-11','2025-09-01',NULL,1,NULL,NULL),
 	 (93,477,1,'2025-10-11','2025-09-05',NULL,1,NULL,NULL),
@@ -108,7 +108,7 @@ INSERT INTO cmm_db.subscriptions (id,model_id,subscription_plan_id,start_date,en
 	 (98,483,1,'2025-10-11','2025-08-27',NULL,1,NULL,NULL),
 	 (99,484,1,'2025-10-11','2025-08-21',NULL,1,NULL,NULL),
 	 (100,485,1,'2025-10-11','2025-10-03',NULL,1,NULL,NULL);
-INSERT INTO cmm_db.subscriptions (id,model_id,subscription_plan_id,start_date,end_date,status_id,is_active,created_at,updated_at) VALUES
+INSERT INTO subscriptions (id,model_id,subscription_plan_id,start_date,end_date,status_id,is_active,created_at,updated_at) VALUES
 	 (101,486,1,'2025-10-11','2025-09-03',NULL,1,NULL,NULL),
 	 (102,487,1,'2025-10-11','2025-09-05',NULL,1,NULL,NULL),
 	 (103,488,1,'2025-10-11','2025-09-10',NULL,1,NULL,NULL),
@@ -119,7 +119,7 @@ INSERT INTO cmm_db.subscriptions (id,model_id,subscription_plan_id,start_date,en
 	 (108,493,1,'2025-10-11','2025-08-18',NULL,1,NULL,NULL),
 	 (109,494,1,'2025-10-11','2025-09-19',NULL,1,NULL,NULL),
 	 (110,495,1,'2025-10-11','2025-09-19',NULL,1,NULL,NULL);
-INSERT INTO cmm_db.subscriptions (id,model_id,subscription_plan_id,start_date,end_date,status_id,is_active,created_at,updated_at) VALUES
+INSERT INTO subscriptions (id,model_id,subscription_plan_id,start_date,end_date,status_id,is_active,created_at,updated_at) VALUES
 	 (111,496,1,'2025-10-11','2025-09-19',NULL,1,NULL,NULL),
 	 (112,497,1,'2025-10-11','2025-08-26',NULL,1,NULL,NULL),
 	 (113,498,1,'2025-10-11','2025-08-31',NULL,1,NULL,NULL),
@@ -130,7 +130,7 @@ INSERT INTO cmm_db.subscriptions (id,model_id,subscription_plan_id,start_date,en
 	 (118,503,1,'2025-10-11','2025-09-09',NULL,1,NULL,NULL),
 	 (119,504,1,'2025-10-11','2025-09-09',NULL,1,NULL,NULL),
 	 (120,505,1,'2025-10-11','2025-09-14',NULL,1,NULL,NULL);
-INSERT INTO cmm_db.subscriptions (id,model_id,subscription_plan_id,start_date,end_date,status_id,is_active,created_at,updated_at) VALUES
+INSERT INTO subscriptions (id,model_id,subscription_plan_id,start_date,end_date,status_id,is_active,created_at,updated_at) VALUES
 	 (121,506,1,'2025-10-11','2025-09-28',NULL,1,NULL,NULL),
 	 (122,507,1,'2025-10-11','2025-09-30',NULL,1,NULL,NULL),
 	 (123,508,1,'2025-10-11','2025-09-30',NULL,1,NULL,NULL),
