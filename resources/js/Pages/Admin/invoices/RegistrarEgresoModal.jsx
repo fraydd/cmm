@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Form, InputNumber, Input, Select, Button, Typography, Space, Checkbox } from 'antd';
-import { UserOutlined, DollarOutlined, EditOutlined, TeamOutlined, FileTextOutlined } from '@ant-design/icons';
+import { Modal, Form, InputNumber, Input, Select, Button, Typography, Space, Checkbox, Tooltip } from 'antd';
+import { UserOutlined, DollarOutlined, EditOutlined, TeamOutlined, FileTextOutlined, PlusOutlined, UserAddOutlined } from '@ant-design/icons';
 import { useNotifications } from '../../../hooks/useNotifications.jsx';
 import { useBranch } from '../../../hooks/useBranch.jsx';
 import { CreditCardOutlined } from '@ant-design/icons';
+import RegistrarPersonaModal from './RegistrarPersonaModal.jsx';
 
 const { Text } = Typography;
 
@@ -17,6 +18,7 @@ export default function RegistrarEgresoModal({ open, onClose, initialData = null
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(false);
   const [payAll, setPayAll] = useState(true);
+  const [showPersonModal, setShowPersonModal] = useState(false);
   // Cargar métodos de pago al abrir el modal
   // Sincronizar el valor del check con el formulario
   useEffect(() => {
@@ -85,6 +87,27 @@ export default function RegistrarEgresoModal({ open, onClose, initialData = null
     }
   };
 
+  // Manejar el botón de agregar nueva persona
+  const handleAddNewPerson = () => {
+    setShowPersonModal(true);
+  };
+
+  // Manejar cuando se cierra el modal de persona
+  const handlePersonModalClose = (success) => {
+    setShowPersonModal(false);
+    if (success) {
+      // Limpiar el campo de persona para que el usuario pueda buscar la nueva persona
+      form.setFieldsValue({ person_id: undefined });
+      setPeopleOptions([]);
+    }
+  };
+
+  // Callback cuando se crea una persona exitosamente
+  const handlePersonCreated = () => {
+    // Podrías aquí hacer un refresh de la lista o alguna acción adicional
+    console.log('Persona creada exitosamente');
+  };
+
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
@@ -150,15 +173,33 @@ export default function RegistrarEgresoModal({ open, onClose, initialData = null
           label={<span><UserOutlined /> Persona</span>}
           rules={[{ required: true, message: 'Seleccione la persona a la que se le paga' }]}
         >
-          <Select
-            showSearch
-            placeholder="Buscar persona por nombre, apellido o identificación"
-            filterOption={false}
-            onSearch={handleSearchPeople}
-            notFoundContent={searching ? 'Buscando...' : 'No hay resultados'}
-            options={peopleOptions}
-            allowClear
-          />
+          <Input.Group compact style={{ display: 'flex' }}>
+            <Form.Item name="person_id" noStyle>
+              <Select
+                showSearch
+                placeholder="Buscar persona por nombre, apellido o identificación"
+                filterOption={false}
+                onSearch={handleSearchPeople}
+                notFoundContent={searching ? 'Buscando...' : 'No hay resultados'}
+                options={peopleOptions}
+                allowClear
+                style={{ width: '90%' }}
+              />
+            </Form.Item>
+            <Tooltip title="Agregar nueva persona">
+              <Button 
+                type="default"
+                icon={<UserAddOutlined />}
+                onClick={handleAddNewPerson}
+                style={{ 
+                  borderLeft: 'none',
+                  borderColor: '#d9d9d9',
+                  width: '10%',
+                  marginLeft: '-1px'
+                }}
+              />
+            </Tooltip>
+          </Input.Group>
         </Form.Item>
         <Form.Item
           name="amount"
@@ -241,6 +282,13 @@ export default function RegistrarEgresoModal({ open, onClose, initialData = null
           </Button>
         </Form.Item>
       </Form>
+
+      {/* Modal para registrar nueva persona */}
+      <RegistrarPersonaModal
+        open={showPersonModal}
+        onClose={handlePersonModalClose}
+        onPersonCreated={handlePersonCreated}
+      />
     </Modal>
   );
 }

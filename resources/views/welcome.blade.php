@@ -3,7 +3,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>CMM - Carlos Mario Miranda Models</title>
+    <title>CMM - C Models management</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     <style>
@@ -80,7 +80,7 @@
             </div>
         @endif
         <h1 class="welcome-title">CMM</h1>
-        <p class="welcome-subtitle">Carlos Mario Miranda Models</p>
+        <p class="welcome-subtitle">C Models management</p>
         <p class="welcome-subtitle">Sistema de Gestión Integral para Modelos</p>
         
         <a href="/admin" class="admin-button">

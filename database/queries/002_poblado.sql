@@ -34,14 +34,16 @@ INSERT INTO `identification_types` (`name`, `description`, `is_active`, `created
 -- ===== MÉTODOS DE PAGO =====
 INSERT INTO `payment_methods` (`name`, `description`, `is_active`, `created_at`, `updated_at`) VALUES
 ('Efectivo', 'Pago en efectivo', true, NOW(), NOW()),
-('Tarjeta de Crédito', 'Pago con tarjeta de crédito', true, NOW(), NOW()),
-('Tarjeta de Débito', 'Pago con tarjeta de débito', true, NOW(), NOW()),
-('Transferencia Bancaria', 'Transferencia electrónica entre cuentas', true, NOW(), NOW()),
+('Bancolombia', 'Transferencia electrónica a cuenta Bancolombia', true, NOW(), NOW()),
+('Davivienda', 'Transferencia electrónica a cuenta Davivienda', true, NOW(), NOW()),
+('Banco de Bogotá', 'Transferencia electrónica a cuenta Banco de Bogotá', true, NOW(), NOW()),
+('Banco Popular', 'Transferencia electrónica a cuenta Banco Popular', true, NOW(), NOW()),
+('BBVA', 'Transferencia electrónica a cuenta BBVA', true, NOW(), NOW()),
 ('PSE (Pagos Seguros en Línea)', 'Pago electrónico seguro en línea', true, NOW(), NOW()),
 ('Daviplata', 'Billetera digital de Davivienda', true, NOW(), NOW()),
 ('Nequi', 'Billetera digital de Bancolombia', true, NOW(), NOW()),
-('Cheque', 'Pago mediante cheque bancario', true, NOW(), NOW()),
-('Consignación', 'Consignación bancaria', true, NOW(), NOW());
+('Tarjeta de Crédito', 'Pago con tarjeta de crédito', true, NOW(), NOW()),
+('Cheque', 'Pago mediante cheque bancario', true, NOW(), NOW());
 
 -- ===== PLATAFORMAS DE REDES SOCIALES =====
 INSERT INTO `social_media_platforms` (`name`, `created_at`, `updated_at`) VALUES
@@ -85,6 +87,13 @@ INSERT INTO `product_categories` (`name`, `description`, `is_active`, `created_a
 ('Fotografía', 'Servicios y productos fotográficos', true, NOW(), NOW()),
 ('Material Promocional', 'Fotos, videos y material publicitario', true, NOW(), NOW());
 
+-- ===== PLANES DE SUSCRIPCIÓN =====
+INSERT INTO `subscription_plans` (`name`, `description`, `price`, `duration_months`, `is_active`, `created_at`, `updated_at`) VALUES
+('Plan Mensual', 'Plan de suscripción básico con duración de 1 mes', 150000.00, 1, true, NOW(), NOW());
+
+-- ===== CONFIGURACIÓN DE PLANES POR SEDE =====
+INSERT INTO `branch_subscription_plans` (`branch_id`, `subscription_plan_id`, `custom_price`, `is_active`, `created_at`, `updated_at`) VALUES
+(1, 1, 150000.00, true, NOW(), NOW());
 
 -- ===== ROLES DEL SISTEMA (Compatibles con RolesAndPermissionsSeeder) =====
 INSERT INTO `roles` (`name`, `guard_name`, `created_at`, `updated_at`) VALUES
