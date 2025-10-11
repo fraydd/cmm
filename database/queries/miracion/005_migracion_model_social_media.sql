@@ -1,4 +1,4 @@
-INSERT INTO cmm_db.model_social_media (id,model_id,social_media_platform_id,url,is_active,created_at,updated_at) VALUES
+INSERT INTO model_social_media (id,model_id,social_media_platform_id,url,is_active,created_at,updated_at) VALUES
 	 (1,421,1,'JHOOSV',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (2,422,1,'SHARON',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (3,490,1,'NAYRUBYS PAREDES',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
@@ -9,7 +9,7 @@ INSERT INTO cmm_db.model_social_media (id,model_id,social_media_platform_id,url,
 	 (8,91,2,'GAB_IVARGAS',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (9,99,2,'ISABELLA7444',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (10,160,2,'PAUAGU_',1,'2025-10-11 18:46:57','2025-10-11 18:46:57');
-INSERT INTO cmm_db.model_social_media (id,model_id,social_media_platform_id,url,is_active,created_at,updated_at) VALUES
+INSERT INTO model_social_media (id,model_id,social_media_platform_id,url,is_active,created_at,updated_at) VALUES
 	 (11,161,2,'ISABELLACERQUERAHERRERA',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (12,164,2,'MARII.1301',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (13,198,2,'TOMASESGUERRAR',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
@@ -20,7 +20,7 @@ INSERT INTO cmm_db.model_social_media (id,model_id,social_media_platform_id,url,
 	 (18,286,2,'__SALAAS_',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (19,289,2,'ZAHY740',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (20,290,2,'SALOMEVALENCIA',1,'2025-10-11 18:46:57','2025-10-11 18:46:57');
-INSERT INTO cmm_db.model_social_media (id,model_id,social_media_platform_id,url,is_active,created_at,updated_at) VALUES
+INSERT INTO model_social_media (id,model_id,social_media_platform_id,url,is_active,created_at,updated_at) VALUES
 	 (21,294,2,'VALERIA',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (22,323,2,'HCC__37',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (23,326,2,'LAURAMUNOZ06_',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
@@ -31,7 +31,7 @@ INSERT INTO cmm_db.model_social_media (id,model_id,social_media_platform_id,url,
 	 (28,369,2,'JUANIS_222',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (29,370,2,'NA',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (30,373,2,'SALO.PRIVV16',1,'2025-10-11 18:46:57','2025-10-11 18:46:57');
-INSERT INTO cmm_db.model_social_media (id,model_id,social_media_platform_id,url,is_active,created_at,updated_at) VALUES
+INSERT INTO model_social_media (id,model_id,social_media_platform_id,url,is_active,created_at,updated_at) VALUES
 	 (31,378,2,'NA',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (32,382,2,'GIRALDO_HANNA08',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (33,383,2,'VALEANGG',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
@@ -42,7 +42,7 @@ INSERT INTO cmm_db.model_social_media (id,model_id,social_media_platform_id,url,
 	 (38,402,2,'VALE_HERRERA12187',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (39,404,2,'MICHELVALENCIA_MAKE_UP',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (40,405,2,'NORKYSTERAN',1,'2025-10-11 18:46:57','2025-10-11 18:46:57');
-INSERT INTO cmm_db.model_social_media (id,model_id,social_media_platform_id,url,is_active,created_at,updated_at) VALUES
+INSERT INTO model_social_media (id,model_id,social_media_platform_id,url,is_active,created_at,updated_at) VALUES
 	 (41,406,2,'JPABLO33',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (42,412,2,'NA',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (43,414,2,'@154_PL',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
@@ -53,7 +53,7 @@ INSERT INTO cmm_db.model_social_media (id,model_id,social_media_platform_id,url,
 	 (48,429,2,'JULIILZ__',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (49,430,2,'MJRESTREPO-',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (50,431,2,'SARA.EUSSE5',1,'2025-10-11 18:46:57','2025-10-11 18:46:57');
-INSERT INTO cmm_db.model_social_media (id,model_id,social_media_platform_id,url,is_active,created_at,updated_at) VALUES
+INSERT INTO model_social_media (id,model_id,social_media_platform_id,url,is_active,created_at,updated_at) VALUES
 	 (51,432,2,'AMYGALVIZ',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (52,434,2,'MARIANAAGUIRRE',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (53,435,2,'ANNA.OROZCO-',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
@@ -64,7 +64,7 @@ INSERT INTO cmm_db.model_social_media (id,model_id,social_media_platform_id,url,
 	 (58,455,2,'NIKOLLAGUDELOO',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (59,457,2,'SSOFTTIES',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (60,458,2,'SOFIA.GRAJALESS',1,'2025-10-11 18:46:57','2025-10-11 18:46:57');
-INSERT INTO cmm_db.model_social_media (id,model_id,social_media_platform_id,url,is_active,created_at,updated_at) VALUES
+INSERT INTO model_social_media (id,model_id,social_media_platform_id,url,is_active,created_at,updated_at) VALUES
 	 (61,460,2,'YULISSA.ARROYAVE',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (62,461,2,'TEY-VC',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (63,463,2,'MAJOO_QUIN',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
@@ -75,7 +75,7 @@ INSERT INTO cmm_db.model_social_media (id,model_id,social_media_platform_id,url,
 	 (68,483,2,'S_HURTADO65',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (69,484,2,'VALENCIFUENTES',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (70,487,2,'NA',1,'2025-10-11 18:46:57','2025-10-11 18:46:57');
-INSERT INTO cmm_db.model_social_media (id,model_id,social_media_platform_id,url,is_active,created_at,updated_at) VALUES
+INSERT INTO model_social_media (id,model_id,social_media_platform_id,url,is_active,created_at,updated_at) VALUES
 	 (71,497,2,'SOYVALERIAUGC',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (72,499,2,'CRISTIANSANCHEZP_',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (73,501,2,'MARIA_MAZUERA',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
@@ -86,5 +86,5 @@ INSERT INTO cmm_db.model_social_media (id,model_id,social_media_platform_id,url,
 	 (78,421,4,'@HJYTR',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (79,441,4,'SAY.HERRERA_96',1,'2025-10-11 18:46:57','2025-10-11 18:46:57'),
 	 (80,506,4,'11',1,'2025-10-11 18:46:57','2025-10-11 18:46:57');
-INSERT INTO cmm_db.model_social_media (id,model_id,social_media_platform_id,url,is_active,created_at,updated_at) VALUES
+INSERT INTO model_social_media (id,model_id,social_media_platform_id,url,is_active,created_at,updated_at) VALUES
 	 (81,500,5,'178',1,'2025-10-11 18:46:57','2025-10-11 18:46:57');

@@ -1,4 +1,4 @@
-INSERT INTO cmm_db.model_profiles (id,model_id,height,bust,waist,hips,hair_color_id,eye_color_id,skin_color_id,pants_size,shirt_size,shoe_size,created_at,updated_at) VALUES
+INSERT INTO model_profiles (id,model_id,height,bust,waist,hips,hair_color_id,eye_color_id,skin_color_id,pants_size,shirt_size,shoe_size,created_at,updated_at) VALUES
 	 (1,8,1.78,76,65,97,3,2,2,'8','S','39','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (2,48,1.72,74,63,89,4,1,3,'6','S','36','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (3,76,1.60,80,62,87,5,1,2,'4','S','36','2025-10-11 17:44:12','2025-10-11 17:44:12'),
@@ -9,7 +9,7 @@ INSERT INTO cmm_db.model_profiles (id,model_id,height,bust,waist,hips,hair_color
 	 (8,161,1.81,91,71,101,3,1,2,'8','S','41','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (9,164,1.65,87,63,99,1,1,3,'8','S','38','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (10,198,1.90,1,1,1,1,1,3,'30','M','43','2025-10-11 17:44:12','2025-10-11 17:44:12');
-INSERT INTO cmm_db.model_profiles (id,model_id,height,bust,waist,hips,hair_color_id,eye_color_id,skin_color_id,pants_size,shirt_size,shoe_size,created_at,updated_at) VALUES
+INSERT INTO model_profiles (id,model_id,height,bust,waist,hips,hair_color_id,eye_color_id,skin_color_id,pants_size,shirt_size,shoe_size,created_at,updated_at) VALUES
 	 (11,210,1.15,1,1,1,1,1,3,'8','6','28','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (12,222,1.81,1,1,1,NULL,NULL,NULL,'34','M','44','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (13,243,1.70,1,1,1,3,5,2,'8','M','40','2025-10-11 17:44:12','2025-10-11 17:44:12'),
@@ -20,7 +20,7 @@ INSERT INTO cmm_db.model_profiles (id,model_id,height,bust,waist,hips,hair_color
 	 (18,294,0.85,1,1,1,2,3,2,'2','2','26','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (19,296,1.45,1,1,1,1,1,2,'14','14','35','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (20,298,1.30,1,1,1,1,1,3,'14','14','34','2025-10-11 17:44:12','2025-10-11 17:44:12');
-INSERT INTO cmm_db.model_profiles (id,model_id,height,bust,waist,hips,hair_color_id,eye_color_id,skin_color_id,pants_size,shirt_size,shoe_size,created_at,updated_at) VALUES
+INSERT INTO model_profiles (id,model_id,height,bust,waist,hips,hair_color_id,eye_color_id,skin_color_id,pants_size,shirt_size,shoe_size,created_at,updated_at) VALUES
 	 (21,323,1.63,1,1,1,2,1,2,'6','XS','36','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (22,326,1.70,1,1,1,2,1,3,'8','S','39-40','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (23,327,1.68,1,1,1,2,5,3,'6','S','38','2025-10-11 17:44:12','2025-10-11 17:44:12'),
@@ -31,7 +31,7 @@ INSERT INTO cmm_db.model_profiles (id,model_id,height,bust,waist,hips,hair_color
 	 (28,370,1.43,1,1,1,4,1,2,'12','12','34','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (29,371,1.46,10,10,10,6,3,4,'14-16','14-16','35-36','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (30,373,1.50,1,1,1,1,1,3,'12','12','35-36','2025-10-11 17:44:12','2025-10-11 17:44:12');
-INSERT INTO cmm_db.model_profiles (id,model_id,height,bust,waist,hips,hair_color_id,eye_color_id,skin_color_id,pants_size,shirt_size,shoe_size,created_at,updated_at) VALUES
+INSERT INTO model_profiles (id,model_id,height,bust,waist,hips,hair_color_id,eye_color_id,skin_color_id,pants_size,shirt_size,shoe_size,created_at,updated_at) VALUES
 	 (31,378,1.55,1,1,1,3,1,2,'6','S','37','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (32,382,1.65,10,10,10,2,1,4,'6','S','38','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (33,383,1.78,10,10,10,3,1,2,'06-08','S-XS','40-41','2025-10-11 17:44:12','2025-10-11 17:44:12'),
@@ -42,7 +42,7 @@ INSERT INTO cmm_db.model_profiles (id,model_id,height,bust,waist,hips,hair_color
 	 (38,402,1.66,1,1,1,5,5,2,'18','16','40','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (39,404,1.72,1,1,1,6,2,2,'8','S','38','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (40,405,1.75,1,1,1,2,7,3,'12','S','38','2025-10-11 17:44:12','2025-10-11 17:44:12');
-INSERT INTO cmm_db.model_profiles (id,model_id,height,bust,waist,hips,hair_color_id,eye_color_id,skin_color_id,pants_size,shirt_size,shoe_size,created_at,updated_at) VALUES
+INSERT INTO model_profiles (id,model_id,height,bust,waist,hips,hair_color_id,eye_color_id,skin_color_id,pants_size,shirt_size,shoe_size,created_at,updated_at) VALUES
 	 (41,406,1.82,1,1,1,3,1,2,'30-32','L','40','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (42,412,1.50,1,1,1,4,1,3,'10','14','35','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (43,414,1.73,84,69,97,3,1,3,'8','S','39','2025-10-11 17:44:12','2025-10-11 17:44:12'),
@@ -53,7 +53,7 @@ INSERT INTO cmm_db.model_profiles (id,model_id,height,bust,waist,hips,hair_color
 	 (48,426,1.50,68,63,78,2,1,3,'6','XS','37','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (49,427,1.60,79,66,91,2,1,2,'8','S','38','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (50,429,1.62,1,1,1,1,1,3,'6','XS','36','2025-10-11 17:44:12','2025-10-11 17:44:12');
-INSERT INTO cmm_db.model_profiles (id,model_id,height,bust,waist,hips,hair_color_id,eye_color_id,skin_color_id,pants_size,shirt_size,shoe_size,created_at,updated_at) VALUES
+INSERT INTO model_profiles (id,model_id,height,bust,waist,hips,hair_color_id,eye_color_id,skin_color_id,pants_size,shirt_size,shoe_size,created_at,updated_at) VALUES
 	 (51,430,1.70,85,70,100,5,1,2,'6','S','38','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (52,431,1.61,82,62,88,4,1,3,'6','XS','37','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (53,432,1.75,85,65,95,6,1,2,'8','XS','39','2025-10-11 17:44:12','2025-10-11 17:44:12'),
@@ -64,7 +64,7 @@ INSERT INTO cmm_db.model_profiles (id,model_id,height,bust,waist,hips,hair_color
 	 (58,438,1.50,68,60,80,1,1,3,'6','XS','37','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (59,439,1.65,84,66,93,2,1,3,'8','S','39','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (60,440,1.73,1,1,1,2,1,2,'8','S','37','2025-10-11 17:44:12','2025-10-11 17:44:12');
-INSERT INTO cmm_db.model_profiles (id,model_id,height,bust,waist,hips,hair_color_id,eye_color_id,skin_color_id,pants_size,shirt_size,shoe_size,created_at,updated_at) VALUES
+INSERT INTO model_profiles (id,model_id,height,bust,waist,hips,hair_color_id,eye_color_id,skin_color_id,pants_size,shirt_size,shoe_size,created_at,updated_at) VALUES
 	 (61,441,1.60,81,68,90,3,7,2,'8-10','s','37','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (62,442,1.60,80,61,89,3,1,2,'6','XS','35','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (63,443,1.55,83,61,88,3,1,2,'6','XS','36','2025-10-11 17:44:12','2025-10-11 17:44:12'),
@@ -75,7 +75,7 @@ INSERT INTO cmm_db.model_profiles (id,model_id,height,bust,waist,hips,hair_color
 	 (68,448,1.43,61,55,57,5,5,2,'10','6','32','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (69,449,1.70,76,60,86,6,1,3,'6','XS','36','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (70,450,1.70,87,70,98,4,1,3,'8','S','39','2025-10-11 17:44:12','2025-10-11 17:44:12');
-INSERT INTO cmm_db.model_profiles (id,model_id,height,bust,waist,hips,hair_color_id,eye_color_id,skin_color_id,pants_size,shirt_size,shoe_size,created_at,updated_at) VALUES
+INSERT INTO model_profiles (id,model_id,height,bust,waist,hips,hair_color_id,eye_color_id,skin_color_id,pants_size,shirt_size,shoe_size,created_at,updated_at) VALUES
 	 (71,451,1.65,85,67,91,2,1,2,'6','S','38','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (72,454,1.65,1,1,1,3,1,2,'4','S','37','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (73,455,1.63,1,1,1,4,1,2,'4','XS','37','2025-10-11 17:44:12','2025-10-11 17:44:12'),
@@ -86,7 +86,7 @@ INSERT INTO cmm_db.model_profiles (id,model_id,height,bust,waist,hips,hair_color
 	 (78,461,1.55,78,61,87,2,1,3,'6','XS','35','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (79,462,1.70,89,63,88,1,1,2,'6','S','37','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (80,463,1.65,83,58,87,1,3,3,'6','S','38','2025-10-11 17:44:12','2025-10-11 17:44:12');
-INSERT INTO cmm_db.model_profiles (id,model_id,height,bust,waist,hips,hair_color_id,eye_color_id,skin_color_id,pants_size,shirt_size,shoe_size,created_at,updated_at) VALUES
+INSERT INTO model_profiles (id,model_id,height,bust,waist,hips,hair_color_id,eye_color_id,skin_color_id,pants_size,shirt_size,shoe_size,created_at,updated_at) VALUES
 	 (81,464,1.70,84,64,98,1,3,3,'8','S','37','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (82,466,1.70,79,66,88,5,5,2,'6','S','39','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (83,467,1.00,51,47,55,5,5,2,'4','6','23','2025-10-11 17:44:12','2025-10-11 17:44:12'),
@@ -97,7 +97,7 @@ INSERT INTO cmm_db.model_profiles (id,model_id,height,bust,waist,hips,hair_color
 	 (88,472,1.35,58,51,64,5,5,2,'10','10','34','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (89,473,1.50,73,61,75,5,5,2,'12','12','36','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (90,474,1.55,78,61,89,2,3,2,'8','XS','36','2025-10-11 17:44:12','2025-10-11 17:44:12');
-INSERT INTO cmm_db.model_profiles (id,model_id,height,bust,waist,hips,hair_color_id,eye_color_id,skin_color_id,pants_size,shirt_size,shoe_size,created_at,updated_at) VALUES
+INSERT INTO model_profiles (id,model_id,height,bust,waist,hips,hair_color_id,eye_color_id,skin_color_id,pants_size,shirt_size,shoe_size,created_at,updated_at) VALUES
 	 (91,475,1.60,73,56,82,3,5,3,'6','XS','38','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (92,476,1.63,80,60,91,1,3,3,'6','XS','37','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (93,477,1.63,86,66,95,4,1,2,'8','S','37','2025-10-11 17:44:12','2025-10-11 17:44:12'),
@@ -108,7 +108,7 @@ INSERT INTO cmm_db.model_profiles (id,model_id,height,bust,waist,hips,hair_color
 	 (98,483,1.60,1,1,1,2,1,3,'14','XS','39','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (99,484,1.65,1,1,1,1,1,2,'8','XS','37','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (100,485,1.60,1,1,1,1,1,2,'6','XS','37','2025-10-11 17:44:12','2025-10-11 17:44:12');
-INSERT INTO cmm_db.model_profiles (id,model_id,height,bust,waist,hips,hair_color_id,eye_color_id,skin_color_id,pants_size,shirt_size,shoe_size,created_at,updated_at) VALUES
+INSERT INTO model_profiles (id,model_id,height,bust,waist,hips,hair_color_id,eye_color_id,skin_color_id,pants_size,shirt_size,shoe_size,created_at,updated_at) VALUES
 	 (101,486,1.70,80,76,100,2,5,3,'32','S','40-41','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (102,487,1.02,1,1,1,1,3,2,'5','5','27','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (103,488,1.58,79,62,91,5,1,2,'6','XS','37','2025-10-11 17:44:12','2025-10-11 17:44:12'),
@@ -119,7 +119,7 @@ INSERT INTO cmm_db.model_profiles (id,model_id,height,bust,waist,hips,hair_color
 	 (108,493,1.68,89,72,98,5,1,2,'8','S','37','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (109,494,1.70,78,66,89,3,1,2,'8','S','37','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (110,495,1.62,86,67,89,2,1,3,'8','S','38','2025-10-11 17:44:12','2025-10-11 17:44:12');
-INSERT INTO cmm_db.model_profiles (id,model_id,height,bust,waist,hips,hair_color_id,eye_color_id,skin_color_id,pants_size,shirt_size,shoe_size,created_at,updated_at) VALUES
+INSERT INTO model_profiles (id,model_id,height,bust,waist,hips,hair_color_id,eye_color_id,skin_color_id,pants_size,shirt_size,shoe_size,created_at,updated_at) VALUES
 	 (111,496,1.70,88,76,98,2,1,2,'34','M','40','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (112,497,1.63,1,1,1,4,1,2,'6','S','36','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (113,498,1.65,79,65,90,1,1,2,'6','XS','36','2025-10-11 17:44:12','2025-10-11 17:44:12'),
@@ -130,7 +130,7 @@ INSERT INTO cmm_db.model_profiles (id,model_id,height,bust,waist,hips,hair_color
 	 (118,503,1.70,1,1,1,4,1,3,'6','XS','39','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (119,504,1.60,86,67,98,5,1,2,'8','S','36','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (120,505,1.60,1,1,1,3,5,2,'8','S','36-37','2025-10-11 17:44:12','2025-10-11 17:44:12');
-INSERT INTO cmm_db.model_profiles (id,model_id,height,bust,waist,hips,hair_color_id,eye_color_id,skin_color_id,pants_size,shirt_size,shoe_size,created_at,updated_at) VALUES
+INSERT INTO model_profiles (id,model_id,height,bust,waist,hips,hair_color_id,eye_color_id,skin_color_id,pants_size,shirt_size,shoe_size,created_at,updated_at) VALUES
 	 (121,506,1.73,86,64,93,5,1,2,'6.8','XS','35.36','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (122,507,1.68,101,86,112,2,1,3,'14','M','37,38','2025-10-11 17:44:12','2025-10-11 17:44:12'),
 	 (123,508,1.70,89,74,101,2,1,3,'12','M','38,39','2025-10-11 17:44:12','2025-10-11 17:44:12'),

@@ -1,4 +1,4 @@
-INSERT INTO cmm_db.model_files (id,model_id,file_path,file_name,file_type,created_at,updated_at) VALUES
+INSERT INTO model_files (id,model_id,file_path,file_name,file_type,created_at,updated_at) VALUES
 	 (1,8,'storage/modelos/8/20220827094804.jpeg','20220827094804.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (2,48,'storage/modelos/48/20220827174133.jpeg','20220827174133.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (3,76,'storage/modelos/76/20220903150310.jpeg','20220903150310.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
@@ -9,7 +9,7 @@ INSERT INTO cmm_db.model_files (id,model_id,file_path,file_name,file_type,create
 	 (8,161,'storage/modelos/161/20230119110551.jpeg','20230119110551.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (9,164,'storage/modelos/164/20230120174342.jpeg','20230120174342.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (10,198,'storage/modelos/198/20230826192324.jpg','20230826192324.jpg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37');
-INSERT INTO cmm_db.model_files (id,model_id,file_path,file_name,file_type,created_at,updated_at) VALUES
+INSERT INTO model_files (id,model_id,file_path,file_name,file_type,created_at,updated_at) VALUES
 	 (11,210,'storage/modelos/210/20230330175806.jpeg','20230330175806.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (12,222,'storage/modelos/222/20230506110947.jpeg','20230506110947.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (13,243,'storage/modelos/243/20230610112342.jpeg','20230610112342.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
@@ -20,7 +20,7 @@ INSERT INTO cmm_db.model_files (id,model_id,file_path,file_name,file_type,create
 	 (18,294,'storage/modelos/294/20231013162000.jpeg','20231013162000.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (19,296,'storage/modelos/296/20231014154543.jpeg','20231014154543.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (20,298,'storage/modelos/298/20231021153040.jpeg','20231021153040.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37');
-INSERT INTO cmm_db.model_files (id,model_id,file_path,file_name,file_type,created_at,updated_at) VALUES
+INSERT INTO model_files (id,model_id,file_path,file_name,file_type,created_at,updated_at) VALUES
 	 (21,323,'storage/modelos/323/20240113114939.jpeg','20240113114939.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (22,326,'storage/modelos/326/20240113145253.jpeg','20240113145253.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (23,327,'storage/modelos/327/20240113150007.jpeg','20240113150007.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
@@ -31,7 +31,7 @@ INSERT INTO cmm_db.model_files (id,model_id,file_path,file_name,file_type,create
 	 (28,370,'storage/modelos/370/20240511144939.jpeg','20240511144939.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (29,371,'storage/modelos/371/20240518093929.jpeg','20240518093929.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (30,373,'storage/modelos/373/20240518141759.jpeg','20240518141759.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37');
-INSERT INTO cmm_db.model_files (id,model_id,file_path,file_name,file_type,created_at,updated_at) VALUES
+INSERT INTO model_files (id,model_id,file_path,file_name,file_type,created_at,updated_at) VALUES
 	 (31,378,'storage/modelos/378/20240518174921.jpeg','20240518174921.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (32,382,'storage/modelos/382/20240608163246.jpeg','20240608163246.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (33,383,'storage/modelos/383/20240608164225.jpeg','20240608164225.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
@@ -42,7 +42,7 @@ INSERT INTO cmm_db.model_files (id,model_id,file_path,file_name,file_type,create
 	 (38,402,'storage/modelos/402/20240907154333.jpeg','20240907154333.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (39,404,'storage/modelos/404/20240921114651.jpeg','20240921114651.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (40,405,'storage/modelos/405/20240926170514.jpeg','20240926170514.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37');
-INSERT INTO cmm_db.model_files (id,model_id,file_path,file_name,file_type,created_at,updated_at) VALUES
+INSERT INTO model_files (id,model_id,file_path,file_name,file_type,created_at,updated_at) VALUES
 	 (41,406,'storage/modelos/406/20240926182518.jpeg','20240926182518.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (42,412,'storage/modelos/412/20241102142928.jpeg','20241102142928.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (43,414,'storage/modelos/414/20241108184452.jpeg','20241108184452.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
@@ -53,7 +53,7 @@ INSERT INTO cmm_db.model_files (id,model_id,file_path,file_name,file_type,create
 	 (48,426,'storage/modelos/426/20250123194703.jpeg','20250123194703.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (49,427,'storage/modelos/427/20250125103835.jpeg','20250125103835.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (50,429,'storage/modelos/429/20250125151047.jpeg','20250125151047.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37');
-INSERT INTO cmm_db.model_files (id,model_id,file_path,file_name,file_type,created_at,updated_at) VALUES
+INSERT INTO model_files (id,model_id,file_path,file_name,file_type,created_at,updated_at) VALUES
 	 (51,430,'storage/modelos/430/20250131180419.jpeg','20250131180419.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (52,431,'storage/modelos/431/20250201175934.jpeg','20250201175934.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (53,432,'storage/modelos/432/20250206180059.jpeg','20250206180059.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
@@ -64,7 +64,7 @@ INSERT INTO cmm_db.model_files (id,model_id,file_path,file_name,file_type,create
 	 (58,438,'storage/modelos/438/20250208180157.jpeg','20250208180157.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (59,439,'storage/modelos/439/20250222125807.jpeg','20250222125807.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (60,440,'storage/modelos/440/20250222145216.jpeg','20250222145216.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37');
-INSERT INTO cmm_db.model_files (id,model_id,file_path,file_name,file_type,created_at,updated_at) VALUES
+INSERT INTO model_files (id,model_id,file_path,file_name,file_type,created_at,updated_at) VALUES
 	 (61,441,'storage/modelos/441/20250227192411.jpeg','20250227192411.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (62,442,'storage/modelos/442/20250228195616.jpeg','20250228195616.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (63,443,'storage/modelos/443/20250304151309.jpeg','20250304151309.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
@@ -75,7 +75,7 @@ INSERT INTO cmm_db.model_files (id,model_id,file_path,file_name,file_type,create
 	 (68,448,'storage/modelos/448/20250308154756.jpeg','20250308154756.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (69,449,'storage/modelos/449/20250308175806.jpeg','20250308175806.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (70,450,'storage/modelos/450/20250313145903.jpeg','20250313145903.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37');
-INSERT INTO cmm_db.model_files (id,model_id,file_path,file_name,file_type,created_at,updated_at) VALUES
+INSERT INTO model_files (id,model_id,file_path,file_name,file_type,created_at,updated_at) VALUES
 	 (71,451,'storage/modelos/451/20250313174436.jpeg','20250313174436.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (72,454,'storage/modelos/454/20250328173848.jpg','20250328173848.jpg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (73,455,'storage/modelos/455/20250404192200.jpg','20250404192200.jpg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
@@ -86,7 +86,7 @@ INSERT INTO cmm_db.model_files (id,model_id,file_path,file_name,file_type,create
 	 (78,461,'storage/modelos/461/20250424173107.jpeg','20250424173107.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (79,462,'storage/modelos/462/20250424175330.jpeg','20250424175330.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (80,463,'storage/modelos/463/20250425173738.jpeg','20250425173738.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37');
-INSERT INTO cmm_db.model_files (id,model_id,file_path,file_name,file_type,created_at,updated_at) VALUES
+INSERT INTO model_files (id,model_id,file_path,file_name,file_type,created_at,updated_at) VALUES
 	 (81,464,'storage/modelos/464/20250426094300.jpeg','20250426094300.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (82,466,'storage/modelos/466/20250502173937.jpeg','20250502173937.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (83,467,'storage/modelos/467/20250503135422.jpeg','20250503135422.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
@@ -97,7 +97,7 @@ INSERT INTO cmm_db.model_files (id,model_id,file_path,file_name,file_type,create
 	 (88,472,'storage/modelos/472/20250516181131.jpeg','20250516181131.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (89,473,'storage/modelos/473/20250516182017.jpeg','20250516182017.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (90,474,'storage/modelos/474/20250517134158.jpeg','20250517134158.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37');
-INSERT INTO cmm_db.model_files (id,model_id,file_path,file_name,file_type,created_at,updated_at) VALUES
+INSERT INTO model_files (id,model_id,file_path,file_name,file_type,created_at,updated_at) VALUES
 	 (91,475,'storage/modelos/475/20250531102137.jpeg','20250531102137.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (92,476,'storage/modelos/476/20250531150759.jpeg','20250531150759.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (93,477,'storage/modelos/477/20250605185343.jpeg','20250605185343.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
@@ -108,7 +108,7 @@ INSERT INTO cmm_db.model_files (id,model_id,file_path,file_name,file_type,create
 	 (98,483,'storage/modelos/483/20250627180732.jpeg','20250627180732.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (99,484,'storage/modelos/484/20250627193709.jpeg','20250627193709.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (100,485,'storage/modelos/485/20250628121404.jpeg','20250628121404.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37');
-INSERT INTO cmm_db.model_files (id,model_id,file_path,file_name,file_type,created_at,updated_at) VALUES
+INSERT INTO model_files (id,model_id,file_path,file_name,file_type,created_at,updated_at) VALUES
 	 (101,486,'storage/modelos/486/20250703173603.jpeg','20250703173603.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (102,487,'storage/modelos/487/20250705135951.jpeg','20250705135951.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (103,488,'storage/modelos/488/20250710171426.jpeg','20250710171426.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
@@ -119,7 +119,7 @@ INSERT INTO cmm_db.model_files (id,model_id,file_path,file_name,file_type,create
 	 (108,493,'storage/modelos/493/20250718191016.jpeg','20250718191016.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (109,494,'storage/modelos/494/20250719103152.jpeg','20250719103152.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (110,495,'storage/modelos/495/20250719110110.jpeg','20250719110110.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37');
-INSERT INTO cmm_db.model_files (id,model_id,file_path,file_name,file_type,created_at,updated_at) VALUES
+INSERT INTO model_files (id,model_id,file_path,file_name,file_type,created_at,updated_at) VALUES
 	 (111,496,'storage/modelos/496/20250719152539.jpeg','20250719152539.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (112,497,'storage/modelos/497/20250726122538.jpeg','20250726122538.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (113,498,'storage/modelos/498/20250731172330.jpeg','20250731172330.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
@@ -130,7 +130,7 @@ INSERT INTO cmm_db.model_files (id,model_id,file_path,file_name,file_type,create
 	 (118,503,'storage/modelos/503/20250809151826.jpg','20250809151826.jpg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (119,504,'storage/modelos/504/20250809175819.jpeg','20250809175819.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (120,505,'storage/modelos/505/20250821193732.jpg','20250821193732.jpg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37');
-INSERT INTO cmm_db.model_files (id,model_id,file_path,file_name,file_type,created_at,updated_at) VALUES
+INSERT INTO model_files (id,model_id,file_path,file_name,file_type,created_at,updated_at) VALUES
 	 (121,506,'storage/modelos/506/20250828173734.jpeg','20250828173734.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (122,507,'storage/modelos/507/20250830122507.jpeg','20250830122507.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),
 	 (123,508,'storage/modelos/508/20250830150920.jpeg','20250830150920.jpeg','imagen','2025-10-11 17:41:37','2025-10-11 17:41:37'),

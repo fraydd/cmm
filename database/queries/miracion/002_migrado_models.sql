@@ -1,4 +1,4 @@
-INSERT INTO cmm_db.models (id,person_id,is_active,created_at,updated_at) VALUES
+INSERT INTO models (id,person_id,is_active,created_at,updated_at) VALUES
 	 (8,8,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (48,48,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (76,76,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
@@ -9,7 +9,7 @@ INSERT INTO cmm_db.models (id,person_id,is_active,created_at,updated_at) VALUES
 	 (161,161,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (164,164,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (198,198,1,'2025-10-11 17:38:46','2025-10-11 17:38:46');
-INSERT INTO cmm_db.models (id,person_id,is_active,created_at,updated_at) VALUES
+INSERT INTO models (id,person_id,is_active,created_at,updated_at) VALUES
 	 (210,210,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (222,222,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (243,243,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
@@ -20,7 +20,7 @@ INSERT INTO cmm_db.models (id,person_id,is_active,created_at,updated_at) VALUES
 	 (294,294,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (296,296,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (298,298,1,'2025-10-11 17:38:46','2025-10-11 17:38:46');
-INSERT INTO cmm_db.models (id,person_id,is_active,created_at,updated_at) VALUES
+INSERT INTO models (id,person_id,is_active,created_at,updated_at) VALUES
 	 (323,323,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (326,326,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (327,327,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
@@ -31,7 +31,7 @@ INSERT INTO cmm_db.models (id,person_id,is_active,created_at,updated_at) VALUES
 	 (370,370,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (371,371,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (373,373,1,'2025-10-11 17:38:46','2025-10-11 17:38:46');
-INSERT INTO cmm_db.models (id,person_id,is_active,created_at,updated_at) VALUES
+INSERT INTO models (id,person_id,is_active,created_at,updated_at) VALUES
 	 (378,378,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (382,382,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (383,383,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
@@ -42,7 +42,7 @@ INSERT INTO cmm_db.models (id,person_id,is_active,created_at,updated_at) VALUES
 	 (402,402,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (404,404,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (405,405,1,'2025-10-11 17:38:46','2025-10-11 17:38:46');
-INSERT INTO cmm_db.models (id,person_id,is_active,created_at,updated_at) VALUES
+INSERT INTO models (id,person_id,is_active,created_at,updated_at) VALUES
 	 (406,406,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (412,412,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (414,414,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
@@ -53,7 +53,7 @@ INSERT INTO cmm_db.models (id,person_id,is_active,created_at,updated_at) VALUES
 	 (426,426,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (427,427,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (429,429,1,'2025-10-11 17:38:46','2025-10-11 17:38:46');
-INSERT INTO cmm_db.models (id,person_id,is_active,created_at,updated_at) VALUES
+INSERT INTO models (id,person_id,is_active,created_at,updated_at) VALUES
 	 (430,430,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (431,431,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (432,432,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
@@ -64,7 +64,7 @@ INSERT INTO cmm_db.models (id,person_id,is_active,created_at,updated_at) VALUES
 	 (438,438,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (439,439,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (440,440,1,'2025-10-11 17:38:46','2025-10-11 17:38:46');
-INSERT INTO cmm_db.models (id,person_id,is_active,created_at,updated_at) VALUES
+INSERT INTO models (id,person_id,is_active,created_at,updated_at) VALUES
 	 (441,441,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (442,442,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (443,443,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
@@ -75,7 +75,7 @@ INSERT INTO cmm_db.models (id,person_id,is_active,created_at,updated_at) VALUES
 	 (448,448,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (449,449,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (450,450,1,'2025-10-11 17:38:46','2025-10-11 17:38:46');
-INSERT INTO cmm_db.models (id,person_id,is_active,created_at,updated_at) VALUES
+INSERT INTO models (id,person_id,is_active,created_at,updated_at) VALUES
 	 (451,451,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (454,454,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (455,455,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
@@ -86,7 +86,7 @@ INSERT INTO cmm_db.models (id,person_id,is_active,created_at,updated_at) VALUES
 	 (461,461,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (462,462,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (463,463,1,'2025-10-11 17:38:46','2025-10-11 17:38:46');
-INSERT INTO cmm_db.models (id,person_id,is_active,created_at,updated_at) VALUES
+INSERT INTO models (id,person_id,is_active,created_at,updated_at) VALUES
 	 (464,464,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (466,466,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (467,467,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
@@ -97,7 +97,7 @@ INSERT INTO cmm_db.models (id,person_id,is_active,created_at,updated_at) VALUES
 	 (472,472,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (473,473,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (474,474,1,'2025-10-11 17:38:46','2025-10-11 17:38:46');
-INSERT INTO cmm_db.models (id,person_id,is_active,created_at,updated_at) VALUES
+INSERT INTO models (id,person_id,is_active,created_at,updated_at) VALUES
 	 (475,475,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (476,476,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (477,477,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
@@ -108,7 +108,7 @@ INSERT INTO cmm_db.models (id,person_id,is_active,created_at,updated_at) VALUES
 	 (483,483,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (484,484,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (485,485,1,'2025-10-11 17:38:46','2025-10-11 17:38:46');
-INSERT INTO cmm_db.models (id,person_id,is_active,created_at,updated_at) VALUES
+INSERT INTO models (id,person_id,is_active,created_at,updated_at) VALUES
 	 (486,486,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (487,487,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (488,488,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
@@ -119,7 +119,7 @@ INSERT INTO cmm_db.models (id,person_id,is_active,created_at,updated_at) VALUES
 	 (493,493,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (494,494,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (495,495,1,'2025-10-11 17:38:46','2025-10-11 17:38:46');
-INSERT INTO cmm_db.models (id,person_id,is_active,created_at,updated_at) VALUES
+INSERT INTO models (id,person_id,is_active,created_at,updated_at) VALUES
 	 (496,496,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (497,497,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (498,498,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
@@ -130,7 +130,7 @@ INSERT INTO cmm_db.models (id,person_id,is_active,created_at,updated_at) VALUES
 	 (503,503,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (504,504,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (505,505,1,'2025-10-11 17:38:46','2025-10-11 17:38:46');
-INSERT INTO cmm_db.models (id,person_id,is_active,created_at,updated_at) VALUES
+INSERT INTO models (id,person_id,is_active,created_at,updated_at) VALUES
 	 (506,506,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (507,507,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
 	 (508,508,1,'2025-10-11 17:38:46','2025-10-11 17:38:46'),
