@@ -173,6 +173,10 @@ class SubscriptionController
             }
             // Registrar factura
             $total = $precioUnitario * $veces;
+            // Si $pagado es null o no numérico, se asume pago completo
+            if (!is_numeric($pagado) || $pagado === null) {
+                $pagado = $total;
+            }
             // Definir estado de la factura:
             // 1 = pendiente, 2 = pagada, 3 = abonada
             if ($pagado >= $total) {

@@ -546,4 +546,43 @@ class InvoicesController extends Controller
             return response()->json(['message' => 'Error al buscar personas'], 500);
         }
     }
+
+    /**
+     * Registrar una persona nueva para egresos
+     * Método simple que recibe solo los datos esenciales
+     */
+    public function createPerson(Request $request)
+    {
+        try {
+            $data = $request->validate([
+                'first_name' => 'required|string|max:255',
+                'last_name' => 'nullable|string|max:255',
+                'identification_number' => 'required|string|max:50|unique:people,identification_number',
+                'phone' => 'nullable|string|max:20',
+                'email' => 'nullable|email|max:255',
+            ]);
+
+            $personId = DB::table('people')->insertGetId([
+                'first_name' => $data['first_name'],
+                'last_name' => $data['last_name'] ?? null,
+                'identification_number' => $data['identification_number'],
+                'phone' => $data['phone'] ?? null,
+                'email' => $data['email'] ?? null,
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            return response()->json(['message' => 'Persona registrada correctamente'], 201);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Error al registrar persona: ' . $e->getMessage());
+            return response()->json(['message' => 'Error al registrar la persona'], 500);
+        }
+    }
 }

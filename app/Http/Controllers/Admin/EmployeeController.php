@@ -362,7 +362,6 @@ class EmployeeController extends \App\Http\Controllers\Controller
                 
                 // Usar el método reutilizable para procesar la invitación
                 $result = InvitationController::createOrUpdateInvitation($email, 'employee_creation');
-                
                 if (!$result['success']) {
                     Log::warning("Error al enviar invitación durante creación de empleado", [
                         'email' => $email,

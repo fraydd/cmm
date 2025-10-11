@@ -9,7 +9,7 @@ import CustomDateRangePicker from '../../../Components/CustomDateRangePicker';
 
 const { Title, Text } = Typography;
 
-export default function ReportsIndex() {
+export default function ReportsIndex({ paymentMethods = [] }) {
     // Ya no se necesita modelosBranches
     const [empleadosBranches, setEmpleadosBranches] = React.useState([]);
     const [branchOptions, setBranchOptions] = React.useState([]);
@@ -26,6 +26,19 @@ export default function ReportsIndex() {
     const [dateRange, setDateRange] = React.useState([null, null]);
     const [downloadingCierres, setDownloadingCierres] = React.useState(false);
     const dateRangeRef = React.useRef();
+
+    // Para pagos
+    const [pagosBranches, setPagosBranches] = React.useState([]);
+    const [pagosDateRange, setPagosDateRange] = React.useState([null, null]);
+    const [pagosPaymentMethods, setPagosPaymentMethods] = React.useState([]);
+    const [downloadingPagos, setDownloadingPagos] = React.useState(false);
+    const pagosDateRangeRef = React.useRef();
+
+    // Preparar opciones de métodos de pago
+    const paymentMethodOptions = paymentMethods.map(pm => ({
+        label: pm.name,
+        value: pm.id
+    }));
 
     React.useEffect(() => {
         fetch('/admin/asistencias/branches/access')
@@ -271,6 +284,85 @@ export default function ReportsIndex() {
                                     }
                                 >
                                     Descargar Excel de Cierres de Caja
+                                </Button>
+                            </div>
+                        </div>
+                        {/* Card de Pagos */}
+                        <div className={styles.reportCard}>
+                            <div className={styles.reportTitle}>Reporte de Pagos</div>
+                            <div className={styles.reportDescription}>
+                                Descarga el informe de pagos registrados en el sistema filtrando por rango de fechas y sedes. Incluye método de pago y factura asociada.
+                            </div>
+                            <div className={styles.reportActionsRow}>
+                                <CustomDateRangePicker
+                                    ref={pagosDateRangeRef}
+                                    onChange={setPagosDateRange}
+                                    className={styles.dateRangePicker}
+                                    placeholder={["Fecha inicio", "Fecha fin"]}
+                                    disabled={loadingBranches}
+                                />
+                                {loadingBranches ? (
+                                    <Spin size="small" />
+                                ) : (
+                                    <Select
+                                        className={styles.branchSelector}
+                                        mode="multiple"
+                                        placeholder="Selecciona las sedes"
+                                        options={branchOptions}
+                                        value={pagosBranches}
+                                        onChange={setPagosBranches}
+                                    />
+                                )}
+                                <Select
+                                    className={styles.branchSelector}
+                                    mode="multiple"
+                                    placeholder="Métodos de pago (opcional)"
+                                    options={paymentMethodOptions}
+                                    value={pagosPaymentMethods}
+                                    onChange={setPagosPaymentMethods}
+                                    allowClear
+                                />
+                                <Button
+                                    type="primary"
+                                    loading={downloadingPagos}
+                                    onClick={async () => {
+                                        if (!pagosDateRange[0] || !pagosDateRange[1] || pagosBranches.length === 0) return;
+                                        setDownloadingPagos(true);
+                                        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                                        const body = {
+                                            branches: pagosBranches,
+                                            start_date: pagosDateRange[0] ? pagosDateRange[0].format('YYYY-MM-DD') : null,
+                                            end_date: pagosDateRange[1] ? pagosDateRange[1].format('YYYY-MM-DD') : null,
+                                            payment_methods: pagosPaymentMethods.length > 0 ? pagosPaymentMethods : null
+                                        };
+                                        try {
+                                            const response = await fetch('/admin/informes/pagos/excel', {
+                                                method: 'POST',
+                                                headers: {
+                                                    'Content-Type': 'application/json',
+                                                    'X-CSRF-TOKEN': token,
+                                                    'X-Requested-With': 'XMLHttpRequest'
+                                                },
+                                                body: JSON.stringify(body)
+                                            });
+                                            const blob = await response.blob();
+                                            const url = window.URL.createObjectURL(blob);
+                                            const a = document.createElement('a');
+                                            a.href = url;
+                                            a.download = 'pagos.xlsx';
+                                            a.click();
+                                            window.URL.revokeObjectURL(url);
+                                        } finally {
+                                            setDownloadingPagos(false);
+                                        }
+                                    }}
+                                    disabled={
+                                        loadingBranches ||
+                                        pagosBranches.length === 0 ||
+                                        !pagosDateRange[0] || !pagosDateRange[1]
+                                    }
+                                >
+                                    Descargar Excel de Pagos
                                 </Button>
                             </div>
                         </div>

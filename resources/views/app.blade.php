@@ -3,8 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>CMM - Carlos Mario Miranda Models</title>
-    
+    <title>C Models management</title>
+
     <!-- Vite carga automáticamente CSS y JS -->
     @viteReactRefresh
     @vite(['resources/css/app.css', 'resources/js/app.jsx'])

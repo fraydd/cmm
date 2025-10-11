@@ -84,6 +84,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
         Route::post('/informes/empleados/excel', [ReportsController::class, 'exportEmployeesExcel'])->name('informes.empleados.excel');
         Route::post('/informes/cierres-caja/excel', [ReportsController::class, 'exportCashRegisterExcel'])->name('informes.cierres-caja.excel');
         Route::post('/informes/facturas/excel', [ReportsController::class, 'exportInvoicesExcel'])->name('informes.facturas.excel');
+        Route::post('/informes/pagos/excel', [ReportsController::class, 'exportPaymentsExcel'])->name('informes.pagos.excel');
     });
 
     // ------------------------------------------------------------------------
@@ -290,6 +291,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
         Route::put('/invoices/updatePayment/{id}', [InvoicesController::class, 'updatePayment'])->name('admin.invoices.updatePayment');
         Route::put('/invoices/updateInvoice/{id}', [InvoicesController::class, 'updateInvoice'])->name('admin.invoices.updateInvoice');
         Route::delete('/invoices/deletePayment/{id}', [InvoicesController::class, 'deletePayment'])->name('admin.invoices.deletePayment');
+        Route::post('/invoices/createPerson', [InvoicesController::class, 'createPerson'])->name('admin.invoices.createPerson');
     });
 
     // Búsqueda de personas para facturas

@@ -18,7 +18,16 @@ class ReportsController extends Controller
     // Solo sirve la vista de informes
     public function index(Request $request)
     {
-        return Inertia::render('Admin/Reports/Index');
+        // Obtener métodos de pago para el selector
+        $paymentMethods = \Illuminate\Support\Facades\DB::table('payment_methods')
+            ->where('is_active', true)
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
+        return Inertia::render('Admin/Reports/Index', [
+            'paymentMethods' => $paymentMethods
+        ]);
     }
 
     // Exporta la lista de modelos en Excel y la descarga
@@ -45,12 +54,12 @@ class ReportsController extends Controller
                mp.shirt_size,
                mp.shoe_size,
                (
-                   SELECT MAX(s.start_date)
+                   SELECT CONVERT_TZ(MAX(s.start_date), 'UTC', 'America/Bogota')
                    FROM subscriptions s
                    WHERE s.model_id = m.id AND s.is_active = 1
                ) AS ultima_suscripcion_inicio,
                (
-                   SELECT MAX(s.end_date)
+                   SELECT CONVERT_TZ(MAX(s.end_date), 'UTC', 'America/Bogota')
                    FROM subscriptions s
                    WHERE s.model_id = m.id AND s.is_active = 1
                ) AS ultima_suscripcion_fin
@@ -170,12 +179,12 @@ class ReportsController extends Controller
                              p.identification_number,
                              p.phone,
                              p.email,
-                             p.birth_date,
+                             CONVERT_TZ(p.birth_date, 'UTC', 'America/Bogota') AS birth_date_local,
                              p.address,
                              g.name AS genero,
                              bt.name AS tipo_sangre,
                              e.role,
-                             e.hire_date,
+                             CONVERT_TZ(e.hire_date, 'UTC', 'America/Bogota') AS hire_date_local,
                              e.salary,
                              e.job_description,
                              (
@@ -205,12 +214,12 @@ class ReportsController extends Controller
                 'Identificación' => $item->identification_number,
                 'Teléfono' => $item->phone,
                 'Email' => $item->email,
-                'Fecha Nacimiento' => $item->birth_date,
+                'Fecha Nacimiento' => $item->birth_date_local,
                 'Dirección' => $item->address,
                 'Género' => $item->genero,
                 'Tipo Sangre' => $item->tipo_sangre,
                 'Rol' => $item->role,
-                'Contratación' => $item->hire_date,
+                'Contratación' => $item->hire_date_local,
                 'Salario' => $item->salary,
                 'Descripción Cargo' => $item->job_description,
                 'Sedes Acceso' => $item->sedes_acceso,
@@ -397,7 +406,7 @@ class ReportsController extends Controller
         $sql = <<<SQL
             SELECT i.id AS factura_id,
                    b.name AS sede,
-                   i.invoice_date,
+                   CONVERT_TZ(i.invoice_date, 'UTC', 'America/Bogota') AS invoice_date_local,
                    i.total_amount,
                    i.paid_amount,
                    i.remaining_amount,
@@ -420,7 +429,7 @@ class ReportsController extends Controller
             return [
                 'ID' => $item->factura_id,
                 'Sede' => $item->sede,
-                'Fecha' => $item->invoice_date,
+                'Fecha' => $item->invoice_date_local,
                 'Cliente' => trim($item->cliente_nombre . ' ' . $item->cliente_apellido),
                 'Monto Total' => $item->total_amount,
                 'Pagado' => $item->paid_amount,
@@ -485,6 +494,127 @@ class ReportsController extends Controller
             }
         };
         $filename = 'facturas_' . date('Ymd_His') . '.xlsx';
+        return Excel::download($export, $filename);
+    }
+
+    public function exportPaymentsExcel(Request $request)
+    {
+        $branches = $request->input('branches', []);
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $paymentMethods = $request->input('payment_methods', []);
+        
+        if (!is_array($branches) || empty($branches) || !$startDate || !$endDate) {
+            return response()->json(['message' => 'branches, start_date y end_date son requeridos'], 400);
+        }
+        $branchesList = implode(',', array_map('intval', $branches));
+        
+        // Construir filtro de métodos de pago si se especificaron
+        $paymentMethodFilter = '';
+        $params = [$startDate, $endDate];
+        if (!empty($paymentMethods) && is_array($paymentMethods)) {
+            $paymentMethodsList = implode(',', array_map('intval', $paymentMethods));
+            $paymentMethodFilter = "AND p.payment_method_id IN ($paymentMethodsList)";
+        }
+        
+        // Consulta SQL: pagos filtrados por sede, rango de fechas y métodos de pago
+        $sql = <<<SQL
+            SELECT p.id AS pago_id,
+                   b.name AS sede,
+                   CONVERT_TZ(p.payment_date, 'UTC', 'America/Bogota') AS payment_date_local,
+                   p.amount,
+                   pm.name AS metodo_pago,
+                   i.id AS factura_id,
+                   CASE 
+                       WHEN it.id = 1 THEN 'Ingreso'
+                       WHEN it.id = 2 THEN 'Egreso'
+                       ELSE 'Otro'
+                   END AS tipo_movimiento,
+                   CONCAT(pe.first_name, ' ', COALESCE(pe.last_name, '')) AS cliente,
+                   u.name AS registrado_por,
+                   p.observations
+            FROM payments p
+            INNER JOIN branches b ON p.branch_id = b.id
+            INNER JOIN payment_methods pm ON p.payment_method_id = pm.id
+            INNER JOIN invoices i ON p.invoice_id = i.id
+            INNER JOIN invoice_types it ON i.invoice_type_id = it.id
+            LEFT JOIN people pe ON i.person_id = pe.id
+            LEFT JOIN users u ON p.created_by = u.id
+            WHERE p.branch_id IN ($branchesList)
+              AND DATE(p.payment_date) BETWEEN ? AND ?
+              $paymentMethodFilter
+            ORDER BY p.payment_date DESC
+        SQL;
+        $rows = DB::select($sql, $params);
+        $collection = collect($rows)->map(function ($item) {
+            return [
+                'ID' => $item->pago_id,
+                'Sede' => $item->sede,
+                'Fecha Pago' => $item->payment_date_local,
+                'Monto' => $item->amount,
+                'Tipo Movimiento' => $item->tipo_movimiento,
+                'Método Pago' => $item->metodo_pago,
+                'Factura ID' => $item->factura_id,
+                'Cliente' => $item->cliente,
+                'Registrado Por' => $item->registrado_por,
+                'Observaciones' => $item->observations,
+            ];
+        });
+        $export = new class($collection) implements \Maatwebsite\Excel\Concerns\FromCollection, \Maatwebsite\Excel\Concerns\WithHeadings, \Maatwebsite\Excel\Concerns\WithStyles, \Maatwebsite\Excel\Concerns\WithColumnWidths, \Maatwebsite\Excel\Concerns\WithEvents {
+            protected $collection;
+            public function __construct($collection) {
+                $this->collection = $collection;
+            }
+            public function collection() {
+                return $this->collection;
+            }
+            public function headings(): array {
+                return [
+                    'ID', 'Sede', 'Fecha Pago', 'Monto', 'Tipo Movimiento', 'Método Pago', 'Factura ID', 'Cliente', 'Registrado Por', 'Observaciones'
+                ];
+            }
+            public function styles(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet)
+            {
+                $sheet->getStyle('A1:J1')->applyFromArray([
+                    'font' => [
+                        'bold' => true,
+                        'color' => ['rgb' => 'FFFFFF'],
+                    ],
+                    'fill' => [
+                        'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                        'startColor' => ['rgb' => '0073e6'],
+                    ],
+                ]);
+                return [
+                    1 => ['font' => ['bold' => true]],
+                ];
+            }
+            public function columnWidths(): array
+            {
+                return [
+                    'A' => 7,   // ID
+                    'B' => 18,  // Sede
+                    'C' => 18,  // Fecha Pago
+                    'D' => 15,  // Monto
+                    'E' => 15,  // Tipo Movimiento
+                    'F' => 15,  // Método Pago
+                    'G' => 12,  // Factura ID
+                    'H' => 22,  // Cliente
+                    'I' => 18,  // Registrado Por
+                    'J' => 30,  // Observaciones
+                ];
+            }
+            public function registerEvents(): array
+            {
+                return [
+                    \Maatwebsite\Excel\Events\AfterSheet::class => function(\Maatwebsite\Excel\Events\AfterSheet $event) {
+                        $event->sheet->freezePane('A2');
+                        $event->sheet->getDelegate()->setAutoFilter('A1:J1');
+                    },
+                ];
+            }
+        };
+        $filename = 'pagos_' . date('Ymd_His') . '.xlsx';
         return Excel::download($export, $filename);
     }
 }
