@@ -552,7 +552,7 @@ class ModeloController extends \App\Http\Controllers\Controller
                     'identification_place' => $data['acudiente_lugar_expedicion'],
                     'address' => $data['acudiente_direccion'],
                     'phone' => $data['acudiente_telefono'],
-                    'email' => $data['acudiente_email'],
+                    'email' => $data['acudiente_email'] ?? null,
                     'is_active' => true,
                     'updated_at' => now(),
                 ]);
@@ -567,7 +567,7 @@ class ModeloController extends \App\Http\Controllers\Controller
                     'identification_place' => $data['acudiente_lugar_expedicion'],
                     'address' => $data['acudiente_direccion'],
                     'phone' => $data['acudiente_telefono'],
-                    'email' => $data['acudiente_email'],
+                    'email' => $data['acudiente_email'] ?? null,
                     'is_active' => true,
                     'created_at' => now(),
                     'updated_at' => now(),
@@ -1618,7 +1618,7 @@ class ModeloController extends \App\Http\Controllers\Controller
                             'identification_place' => $data['acudiente_lugar_expedicion'],
                             'address' => $data['acudiente_direccion'],
                             'phone' => $data['acudiente_telefono'],
-                            'email' => $data['acudiente_email'],
+                            'email' => $data['acudiente_email'] ?? null,
                             'updated_at' => now(),
                         ]);
 
@@ -1639,7 +1639,7 @@ class ModeloController extends \App\Http\Controllers\Controller
                                 'identification_place' => $data['acudiente_lugar_expedicion'],
                                 'address' => $data['acudiente_direccion'],
                                 'phone' => $data['acudiente_telefono'],
-                                'email' => $data['acudiente_email'],
+                                'email' => $data['acudiente_email'] ?? null,
                                 'updated_at' => now(),
                             ]);
 
@@ -1647,7 +1647,7 @@ class ModeloController extends \App\Http\Controllers\Controller
                             Log::info('Acudiente cambiado a persona existente', ['new_guardian_person_id' => $guardianPersonId]);
                         } else {
                             // No existe persona con la nueva identificación, crear nueva persona
-                            $guardianPersonId = DB::table('people')->insertGetId([
+                                $guardianPersonId = DB::table('people')->insertGetId([
                                 'first_name' => $data['acudiente_nombres'],
                                 'last_name' => $data['acudiente_apellidos'],
                                 'identification_number' => $data['acudiente_identificacion'],
@@ -1655,7 +1655,7 @@ class ModeloController extends \App\Http\Controllers\Controller
                                 'identification_place' => $data['acudiente_lugar_expedicion'],
                                 'address' => $data['acudiente_direccion'],
                                 'phone' => $data['acudiente_telefono'],
-                                'email' => $data['acudiente_email'],
+                                'email' => $data['acudiente_email'] ?? null,
                                 'is_active' => true,
                                 'created_at' => now(),
                                 'updated_at' => now(),
@@ -1694,7 +1694,7 @@ class ModeloController extends \App\Http\Controllers\Controller
                             'identification_place' => $data['acudiente_lugar_expedicion'],
                             'address' => $data['acudiente_direccion'],
                             'phone' => $data['acudiente_telefono'],
-                            'email' => $data['acudiente_email'],
+                            'email' => $data['acudiente_email'] ?? null,
                             'updated_at' => now(),
                         ]);
                         $guardianPersonId = $existingPersonWithNewId->id;
@@ -1709,7 +1709,7 @@ class ModeloController extends \App\Http\Controllers\Controller
                             'identification_place' => $data['acudiente_lugar_expedicion'],
                             'address' => $data['acudiente_direccion'],
                             'phone' => $data['acudiente_telefono'],
-                            'email' => $data['acudiente_email'],
+                            'email' => $data['acudiente_email'] ?? null,
                             'is_active' => true,
                             'created_at' => now(),
                             'updated_at' => now(),
